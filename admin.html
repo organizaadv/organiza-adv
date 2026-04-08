@@ -305,7 +305,8 @@ async function loginAdmin(){
   document.getElementById('adm-err').textContent='';
   const{data,error}=await db.auth.signInWithPassword({email,password:senha});
   if(error||!data.user){document.getElementById('adm-err').textContent='Email ou senha incorretos.';return;}
-  if(data.user.email!==ADMIN_EMAIL&&!data.user.email.endsWith('@organizaadv.com.br')){
+  const admins=['organizaadv81@gmail.com','monicableg01@gmail.com'];
+  if(!admins.includes(data.user.email)&&!data.user.email.endsWith('@organizaadv.com.br')){
     await db.auth.signOut();
     document.getElementById('adm-err').textContent='Acesso nao autorizado.';
     return;
@@ -550,7 +551,8 @@ async function init(){
 
 window.addEventListener('load',async()=>{
   const{data:{session}}=await db.auth.getSession();
-  if(session&&(session.user.email===ADMIN_EMAIL||session.user.email.endsWith('@organizaadv.com.br'))){
+  const adminsLoad=['organizaadv81@gmail.com','monicableg01@gmail.com'];
+  if(session&&(adminsLoad.includes(session.user.email)||session.user.email.endsWith('@organizaadv.com.br'))){
     document.getElementById('auth-screen').style.display='none';
     document.getElementById('sb-user-email').textContent=session.user.email;
     init();
