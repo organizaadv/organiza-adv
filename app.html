@@ -1807,7 +1807,7 @@ async function addMembro(){
   const wpp=document.getElementById('eq-wpp').value.trim();
   const perfil=document.getElementById('eq-perfil').value||'colaborador';
   if(!nome){toast('Informe o nome do membro.','te');return;}
-  const escId=await getEscId();
+  const escId=escData.id;
   const{data,error}=await db.from('colab_escritorio').insert([{nome,wpp:wpp||null,perfil,escritorio_id:escId}]).select();
   if(error){toast('Erro: '+error.message,'te');return;}
   colabs.push(data[0]);
@@ -1882,7 +1882,7 @@ async function salvarDemanda(){
   const btn=document.getElementById('btn-salvar-nd');
   btn.disabled=true;btn.innerHTML='<span class="spin"></span> Salvando...';
 
-  const escId=await getEscId();
+  const escId=escData.id;
   const{data,error}=await db.from('demandas_escritorio').insert([{
     escritorio_id:escId,nome,tipo,
     tel,
@@ -2059,6 +2059,8 @@ async function confirmarConclusao(){
   closeM('m-concluir-ato');
   atoIdPendente=null;
   renderAtosDetalhe(d);
+  renderProgressoAtos(d);
+  renderKanban();
   toast('Ato concluído e registrado!');
 }
 
@@ -2121,6 +2123,12 @@ async function avancar(){
   const d=demandas.find(x=>x.id===detId);if(!d)return;
   const quem=document.getElementById('det-quem').value.trim();
   if(!quem){toast('Informe quem realizou esta etapa.','te');return;}
+  const etAtual=ETAPAS[d.etapa_atual]?.nome||'';
+  const bloqueantes=getA(d).filter(a=>a.etapa===etAtual&&a.obrigatorio&&!a.feito);
+  if(bloqueantes.length){
+    toast(`Conclua ${bloqueantes.length===1?'o ato obrigatório':'os '+bloqueantes.length+' atos obrigatórios'} antes de avançar.`,'te');
+    return;
+  }
   const obs=document.getElementById('det-obs-av').value.trim();
   const etFeita=ETAPAS[d.etapa_atual]?.nome||'';
   const nova=d.etapa_atual+1;const conc=nova>=ETAPAS.length;
@@ -2452,17 +2460,11 @@ async function checkProcesso(d){
 
 async function resumirIA(mov,d){
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',max_tokens:400,
-        messages:[{role:'user',content:`Você é um assistente jurídico. Analise esta movimentação processual e responda APENAS com JSON válido:\n{"resumo":"Resumo claro em 1-2 frases","acao":"O que o advogado deve fazer agora","prazo":"DD/MM/AAAA ou null","urgente":true|false}\n\nMovimentação: ${JSON.stringify(mov)}\nDemanda: ${d.nome} — ${d.tipo}`}]
-      })
+    const{data,error}=await db.functions.invoke('resumir-ia',{
+      body:{movimentacao:mov,demandaNome:d.nome,demandaTipo:d.tipo}
     });
-    if(!r.ok)return null;
-    const dados=await r.json();
-    const txt=dados.content?.[0]?.text||'';
-    return JSON.parse(txt.replace(/```json|```/g,'').trim());
+    if(error)return null;
+    return data;
   }catch(e){return null;}
 }
 
@@ -2475,17 +2477,10 @@ function renderCfg(){
   document.getElementById('cfg-plano').textContent=escData.plano==='avancado'?'Plano Avançado ativo — R$ 149/mês · Até 5 advogados e 25 colaboradores':escData.plano==='essencial'?'Plano Essencial ativo — R$ 99/mês · Até 2 advogados e 10 colaboradores':`Período de teste${dias!==null?` — ${dias>0?dias+' dias restantes':'Expirado'}`:''}.`;
 }
 async function salvarCfg(){
-  const escId=await getEscId();
+  const escId=escData.id;
   const{error}=await db.from('escritorios').update({nome:document.getElementById('cfg-nome').value,tel:document.getElementById('cfg-tel').value}).eq('id',escId);
   if(error){toast('Erro: '+error.message,'te');return;}
   escData.nome=document.getElementById('cfg-nome').value;renderSBInfo();toast('Configurações salvas!');
-}
-
-// ── AUXILIAR ──
-async function getEscId(){
-  const{data:{user}}=await db.auth.getUser();
-  const{data}=await db.from('escritorios').select('id').eq('user_id',user.id).single();
-  return data?.id;
 }
 
 // ── INIT ──
