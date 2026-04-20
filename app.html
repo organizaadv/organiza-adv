@@ -342,6 +342,17 @@ tbody td{padding:14px 18px;font-size:13.5px;color:var(--tx);vertical-align:middl
 .obet-btn{margin-top:5px;padding:5px 14px;font-size:12px;font-family:'DM Sans',sans-serif;border:1.5px solid var(--gdb);border-radius:var(--rsm);background:transparent;color:var(--am);cursor:pointer;font-weight:600;transition:all .15s}
 .obet-btn:hover{background:var(--gdp)}
 
+/* ── ORDENAÇÃO DE TABELA ── */
+thead th.sortable{cursor:pointer;user-select:none;}
+thead th.sortable:hover{color:var(--tx2);}
+thead th.sort-asc::after{content:' ▲';font-size:9px;color:var(--gd);}
+thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd);}
+
+/* ── ABAS DO DETALHE ── */
+.det-tab{background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 16px;font-size:13px;font-weight:500;color:var(--tx3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;margin-bottom:-1.5px;}
+.det-tab:hover{color:var(--tx);}
+.det-tab.on{color:var(--tx);border-bottom-color:var(--gd);font-weight:600;}
+
 /* ── TOAST ── */
 .toast{position:fixed;bottom:28px;right:28px;padding:13px 22px;border-radius:var(--rmd);font-size:14px;font-weight:500;z-index:9999;opacity:0;transform:translateY(10px);transition:all .25s;pointer-events:none;box-shadow:var(--s3s);max-width:340px;display:flex;align-items:center;gap:10px}
 .toast.show{opacity:1;transform:translateY(0)}
@@ -363,7 +374,11 @@ tbody td{padding:14px 18px;font-size:13.5px;color:var(--tx);vertical-align:middl
 #busca-dropdown{border-radius:var(--rlg) !important;overflow:hidden}
 
 @media(max-width:768px){
-  .sb{width:0;overflow:hidden}
+  .sb{width:var(--sbw);transform:translateX(-100%);transition:transform .25s ease;}
+  .sb.open{transform:translateX(0);box-shadow:4px 0 24px rgba(0,0,0,.25);}
+  #sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99;}
+  #sb-overlay.on{display:block;}
+  #btn-menu{display:inline-flex;}
   .main{margin-left:0}
   .metrics{grid-template-columns:repeat(2,1fr)}
   .content,.topbar{padding:0 16px}
@@ -450,7 +465,11 @@ tbody td{padding:14px 18px;font-size:13.5px;color:var(--tx);vertical-align:middl
 
 <!-- ══ MAIN ══ -->
 <main class="main">
+  <div id="sb-overlay" onclick="toggleSidebar()"></div>
   <div class="topbar">
+    <button id="btn-menu" class="btn-icon" onclick="toggleSidebar()" style="display:none;margin-right:8px;">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/></svg>
+    </button>
     <div class="tb-title" id="view-title">Fluxo de trabalho</div>
     <div class="tb-right">
       <span class="tb-date" id="tb-date"></span>
@@ -498,15 +517,34 @@ tbody td{padding:14px 18px;font-size:13.5px;color:var(--tx);vertical-align:middl
         </div>
       </div>
       <div class="tbl-wrap">
-        <table><thead><tr><th>Cliente</th><th>Tipo de demanda</th><th>Responsável</th><th>Etapa atual</th><th>Prazo fatal</th><th>Data de entrada</th></tr></thead>
+        <table><thead><tr>
+          <th class="sortable" onclick="setSortDem('nome')">Cliente</th>
+          <th class="sortable" onclick="setSortDem('tipo')">Tipo de demanda</th>
+          <th class="sortable" onclick="setSortDem('responsavel')">Responsável</th>
+          <th>Etapa atual</th>
+          <th class="sortable" onclick="setSortDem('prazo')">Prazo fatal</th>
+          <th class="sortable" onclick="setSortDem('data')">Data de entrada</th>
+        </tr></thead>
         <tbody id="tb-dem"></tbody></table>
       </div>
     </div>
 
     <!-- CLIENTES -->
     <div id="v-clientes" style="display:none">
+      <div class="fbar">
+        <div class="sw">
+          <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><circle cx="7" cy="7" r="5"/><line x1="11" y1="11" x2="14" y2="14"/></svg>
+          <input class="si" type="text" placeholder="Buscar por nome, telefone ou CPF..." id="si-cli" oninput="renderClientes()"/>
+        </div>
+      </div>
       <div class="tbl-wrap">
-        <table><thead><tr><th>Cliente</th><th>WhatsApp</th><th>E-mail</th><th>Demandas</th><th>Última entrada</th></tr></thead>
+        <table><thead><tr>
+          <th class="sortable" onclick="setSortCli('nome')">Cliente</th>
+          <th>WhatsApp</th>
+          <th>E-mail</th>
+          <th class="sortable" onclick="setSortCli('ativas')">Demandas</th>
+          <th class="sortable" onclick="setSortCli('ult')">Última entrada</th>
+        </tr></thead>
         <tbody id="tb-cli"></tbody></table>
       </div>
     </div>
@@ -558,7 +596,16 @@ tbody td{padding:14px 18px;font-size:13.5px;color:var(--tx);vertical-align:middl
 
     <!-- FINANCEIRO -->
     <div id="v-fin" style="display:none">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+        <div class="fbar" style="margin-bottom:0;">
+          <button class="fc on" data-ff="todos" onclick="setFiltroFin(this)">Todos</button>
+          <button class="fc" data-ff="pendente" onclick="setFiltroFin(this)">Pendentes</button>
+          <button class="fc" data-ff="quitado" onclick="setFiltroFin(this)">Quitados</button>
+          <div class="sw">
+            <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><circle cx="7" cy="7" r="5"/><line x1="11" y1="11" x2="14" y2="14"/></svg>
+            <input class="si" id="si-fin" placeholder="Buscar cliente ou serviço..." oninput="renderFin()"/>
+          </div>
+        </div>
         <button class="btn btn-p" onclick="openM('m-fin-novo')">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg>
           Registrar contrato
@@ -613,8 +660,12 @@ tbody td{padding:14px 18px;font-size:13.5px;color:var(--tx);vertical-align:middl
       <!-- BLOCO 1: DADOS DO CLIENTE -->
       <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--div);">Dados do cliente</div>
       <div class="fg2">
-        <div class="field"><label class="flabel">Nome completo <span class="req">*</span></label><input type="text" class="finp" id="f-nome" placeholder="Nome completo do cliente"/></div>
-        <div class="field"><label class="flabel">CPF / CNPJ</label><input type="text" class="finp" id="f-cpf" placeholder="000.000.000-00 ou 00.000.000/0001-00"/></div>
+        <div class="field" style="position:relative;">
+          <label class="flabel">Nome completo <span class="req">*</span></label>
+          <input type="text" class="finp" id="f-nome" placeholder="Nome completo do cliente" autocomplete="off" oninput="autocompleteCliente(this.value)"/>
+          <div id="f-nome-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1.5px solid var(--bd);border-radius:var(--rmd);box-shadow:var(--s3s);z-index:300;max-height:200px;overflow-y:auto;"></div>
+        </div>
+        <div class="field"><label class="flabel">CPF / CNPJ</label><input type="text" class="finp" id="f-cpf" placeholder="000.000.000-00 ou 00.000.000/0001-00" onblur="onBlurCpf(this)"/></div>
       </div>
       <div class="fg2">
         <div class="field"><label class="flabel">WhatsApp <span class="req">*</span></label><input type="tel" class="finp" id="f-tel" placeholder="(00) 9 0000-0000"/></div>
@@ -694,80 +745,96 @@ tbody td{padding:14px 18px;font-size:13.5px;color:var(--tx);vertical-align:middl
 <div class="mov" id="m-det">
   <div class="mbox wide">
     <div class="mhead"><div><div class="mtitle" id="det-nome">—</div><div class="msubt" id="det-tipo">—</div></div><button class="mx" onclick="closeM('m-det')">✕</button></div>
+
+    <!-- PROGRESSO (sempre visível) -->
+    <div style="padding:16px 26px 0;">
+      <div class="pbar" id="det-prog"></div>
+    </div>
+
+    <!-- ABAS -->
+    <div style="display:flex;gap:0;padding:12px 26px 0;border-bottom:1.5px solid var(--bd);margin-top:12px;">
+      <button class="det-tab on" data-tab="atos" onclick="switchDetTab('atos')">Atos</button>
+      <button class="det-tab" data-tab="hist" onclick="switchDetTab('hist')">Histórico & Avanço</button>
+      <button class="det-tab" data-tab="cli" onclick="switchDetTab('cli')">Cliente & Mensagem</button>
+    </div>
+
     <div class="mbody">
 
-      <div class="detsec">
-        <div class="detsec-title">Progresso da demanda</div>
-        <div class="pbar" id="det-prog"></div>
-      </div>
-
-      <div class="detsec">
-        <div class="fg2" style="gap:6px;">
-          <div>
-            <div class="detrow"><span class="det-lbl">WhatsApp</span><span class="det-val" id="det-tel">—</span></div>
-            <div class="detrow"><span class="det-lbl">E-mail</span><span class="det-val" id="det-email">—</span></div>
-            <div class="detrow"><span class="det-lbl">CPF / CNPJ</span><span class="det-val" id="det-cpf">—</span></div>
-            <div class="detrow"><span class="det-lbl">Responsável</span><span class="det-val" id="det-resp">—</span></div>
-            <div class="detrow"><span class="det-lbl">Processo</span><span class="det-val" id="det-proc">—</span></div>
-          </div>
-          <div>
-            <div class="detrow"><span class="det-lbl">Prazo fatal</span><span class="det-val" id="det-prazo">—</span></div>
-            <div class="detrow"><span class="det-lbl">Data de entrada</span><span class="det-val" id="det-data">—</span></div>
-            <div class="detrow"><span class="det-lbl">Status</span><span class="det-val" id="det-status">—</span></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="detsec" id="det-obs-sec" style="display:none">
-        <div class="detsec-title">Observações gerais</div>
-        <p id="det-obs" style="font-size:13.5px;color:var(--tx2);line-height:1.7;"></p>
-      </div>
-
-      <div class="detsec">
-        <div class="detsec-title"><span>Atos da etapa atual</span><button class="btn btn-gh btn-sm" onclick="abrirModalAto()">+ Adicionar ato</button></div>
-        <div class="atos-wrap">
-          <div class="atos-head">
-            <span class="atos-title" id="atos-et-lbl">Etapa atual</span>
-            <span id="atos-progresso" style="font-size:11px;color:var(--tx3);"></span>
-          </div>
-          <div id="atos-prog-bar" style="height:3px;background:var(--s3);margin:0;transition:all .3s;"></div>
-          <div id="det-atos"></div>
-        </div>
-      </div>
-
-      <div class="detsec">
-        <div class="detsec-title">Observações por etapa</div>
-        <div id="det-obs-et"></div>
-      </div>
-
-      <div id="det-avanco">
+      <!-- ABA: ATOS -->
+      <div id="det-tab-atos">
         <div class="detsec">
-          <div class="detsec-title">Avançar etapa</div>
-          <div class="fg2">
-            <div class="field"><label class="flabel">Quem realizou esta etapa <span class="req">*</span></label><input type="text" class="finp" id="det-quem" placeholder="Seu nome"/></div>
-            <div class="field"><label class="flabel">Observação (opcional)</label><input type="text" class="finp" id="det-obs-av" placeholder="Ex: Documentos enviados"/></div>
-          </div>
-          <div style="display:flex;gap:8px;margin-top:4px;">
-            <button class="btn btn-p" style="flex:1;" onclick="avancar()">Concluir etapa e avançar →</button>
-            <button class="btn btn-gh" onclick="voltar()">← Voltar</button>
+          <div class="detsec-title"><span>Atos da etapa atual</span><button class="btn btn-gh btn-sm" onclick="abrirModalAto()">+ Adicionar ato</button></div>
+          <div class="atos-wrap">
+            <div class="atos-head">
+              <span class="atos-title" id="atos-et-lbl">Etapa atual</span>
+              <span id="atos-progresso" style="font-size:11px;color:var(--tx3);"></span>
+            </div>
+            <div id="atos-prog-bar" style="height:3px;background:var(--s3);margin:0;transition:all .3s;"></div>
+            <div id="det-atos"></div>
           </div>
         </div>
-        <div class="detsec">
+        <div class="detsec" style="border-bottom:none;margin-bottom:0;padding-bottom:0;">
+          <div class="detsec-title">Observações por etapa</div>
+          <div id="det-obs-et"></div>
+        </div>
+      </div>
+
+      <!-- ABA: HISTÓRICO & AVANÇO -->
+      <div id="det-tab-hist" style="display:none;">
+        <div id="det-avanco">
+          <div class="detsec">
+            <div class="detsec-title">Avançar etapa</div>
+            <div class="fg2">
+              <div class="field"><label class="flabel">Quem realizou esta etapa <span class="req">*</span></label><input type="text" class="finp" id="det-quem" placeholder="Seu nome"/></div>
+              <div class="field"><label class="flabel">Observação (opcional)</label><input type="text" class="finp" id="det-obs-av" placeholder="Ex: Documentos enviados"/></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:4px;">
+              <button class="btn btn-p" style="flex:1;" onclick="avancar()">Concluir etapa e avançar →</button>
+              <button class="btn btn-gh" onclick="voltar()">← Voltar</button>
+            </div>
+          </div>
+        </div>
+        <div class="detsec" style="border-bottom:none;margin-bottom:0;padding-bottom:0;">
           <div class="detsec-title">Histórico de fases</div>
           <div id="det-hist"></div>
         </div>
       </div>
 
-      <div class="detsec">
-        <div class="detsec-title"><span>Mensagem para o cliente</span><button class="btn btn-gh btn-sm" onclick="gerarMsg()">Gerar mensagem</button></div>
-        <div id="msg-wrap" style="display:none;">
-          <div class="msg-prev" id="msg-texto"></div>
-          <a id="btn-wpp" href="#" target="_blank" class="btn-wpp">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-            Enviar pelo WhatsApp
-          </a>
+      <!-- ABA: CLIENTE & MENSAGEM -->
+      <div id="det-tab-cli" style="display:none;">
+        <div class="detsec">
+          <div class="detsec-title">Dados do cliente e da demanda</div>
+          <div class="fg2" style="gap:6px;">
+            <div>
+              <div class="detrow"><span class="det-lbl">WhatsApp</span><span class="det-val" id="det-tel">—</span></div>
+              <div class="detrow"><span class="det-lbl">E-mail</span><span class="det-val" id="det-email">—</span></div>
+              <div class="detrow"><span class="det-lbl">CPF / CNPJ</span><span class="det-val" id="det-cpf">—</span></div>
+              <div class="detrow"><span class="det-lbl">Responsável</span><span class="det-val" id="det-resp">—</span></div>
+              <div class="detrow"><span class="det-lbl">Processo</span><span class="det-val" id="det-proc">—</span></div>
+            </div>
+            <div>
+              <div class="detrow"><span class="det-lbl">Prazo fatal</span><span class="det-val" id="det-prazo">—</span></div>
+              <div class="detrow"><span class="det-lbl">Data de entrada</span><span class="det-val" id="det-data">—</span></div>
+              <div class="detrow"><span class="det-lbl">Status</span><span class="det-val" id="det-status">—</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="detsec" id="det-obs-sec" style="display:none">
+          <div class="detsec-title">Observações gerais</div>
+          <p id="det-obs" style="font-size:13.5px;color:var(--tx2);line-height:1.7;"></p>
+        </div>
+        <div class="detsec" style="border-bottom:none;margin-bottom:0;padding-bottom:0;">
+          <div class="detsec-title"><span>Mensagem para o cliente</span><button class="btn btn-gh btn-sm" onclick="gerarMsg()">Gerar mensagem</button></div>
+          <div id="msg-wrap" style="display:none;">
+            <div class="msg-prev" id="msg-texto"></div>
+            <a id="btn-wpp" href="#" target="_blank" class="btn-wpp">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              Enviar pelo WhatsApp
+            </a>
+          </div>
         </div>
       </div>
+
     </div>
     <div class="mfoot">
       <button class="btn btn-danger" onclick="excluirDemanda()">Excluir demanda</button>
@@ -914,7 +981,7 @@ tbody td{padding:14px 18px;font-size:13.5px;color:var(--tx);vertical-align:middl
       <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--div);">Dados do cliente</div>
       <div class="fg2">
         <div class="field"><label class="flabel">Nome completo <span class="req">*</span></label><input type="text" class="finp" id="e-nome" placeholder="Nome completo do cliente"/></div>
-        <div class="field"><label class="flabel">CPF / CNPJ</label><input type="text" class="finp" id="e-cpf" placeholder="000.000.000-00"/></div>
+        <div class="field"><label class="flabel">CPF / CNPJ</label><input type="text" class="finp" id="e-cpf" placeholder="000.000.000-00" onblur="onBlurCpf(this)"/></div>
       </div>
       <div class="fg2">
         <div class="field"><label class="flabel">WhatsApp <span class="req">*</span></label><input type="tel" class="finp" id="e-tel" placeholder="(00) 9 0000-0000"/></div>
@@ -1155,7 +1222,8 @@ function getAtosTemplate(tipo,etapa){
 }
 
 // ── ESTADO ──
-let demandas=[],colabs=[],escData={},userAtual=null,filtroAtivo='todos',detId=null;
+let demandas=[],colabs=[],escData={},userAtual=null,filtroAtivo='todos',filtroFinAtivo='todos',detId=null;
+let sortDem={col:null,asc:true},sortCli={col:null,asc:true};
 let finLanc=[],finNextId=1,finDetId=null,notifs=[],notifNextId=1;
 
 // ── UTILS ──
@@ -1167,6 +1235,32 @@ function toast(msg,tipo='ts'){
 function hoje(){const d=new Date();return`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
 function iniciais(n){return(n||'').trim().split(' ').filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase();}
 function fmtMoeda(v){return'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function validarCpfCnpj(v){
+  const n=v.replace(/\D/g,'');
+  if(!n.length)return true;
+  if(n.length===11){
+    if(/^(\d)\1+$/.test(n))return false;
+    let s=0;for(let i=0;i<9;i++)s+=+n[i]*(10-i);
+    let r=11-(s%11);const d1=r>=10?0:r;
+    s=0;for(let i=0;i<10;i++)s+=+n[i]*(11-i);
+    r=11-(s%11);const d2=r>=10?0:r;
+    return d1===+n[9]&&d2===+n[10];
+  }
+  if(n.length===14){
+    if(/^(\d)\1+$/.test(n))return false;
+    const calc=(s,len)=>{let t=0,p=len-7;for(let i=0;i<len;i++){t+=+s[i]*p--;if(p<2)p=9;}return t%11<2?0:11-(t%11);};
+    return calc(n,12)===+n[12]&&calc(n,13)===+n[13];
+  }
+  return false;
+}
+function onBlurCpf(el){
+  if(el.value.trim()&&!validarCpfCnpj(el.value)){
+    el.style.borderColor='var(--rd)';el.style.boxShadow='0 0 0 3px rgba(220,38,38,.1)';
+    toast('CPF ou CNPJ inválido.','te');
+  } else {
+    el.style.borderColor='';el.style.boxShadow='';
+  }
+}
 function fmtDt(s){if(!s)return'—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`;}
 function calcPrazo(p){
   if(!p)return null;
@@ -1175,14 +1269,14 @@ function calcPrazo(p){
 }
 function prazoBadge(p){
   if(!p)return'';const d=calcPrazo(p);if(d===null)return'';
-  if(d<0)return`<span class="bdg b-ven">Vencido ${Math.abs(d)}d</span>`;
+  if(d<0){const a=Math.abs(d);return`<span class="bdg b-ven">Vencido ${a} dia${a>1?'s':''}</span>`;}
   if(d<=1)return`<span class="bdg b-urg">${d===0?'Hoje!':'Amanhã'}</span>`;
   if(d<=5)return`<span class="bdg b-av">${d} dias</span>`;
   return`<span class="bdg b-ok">${d} dias</span>`;
 }
 function statusD(d){
-  if(d.etapa_atual>=ETAPAS.length||d.status==='Concluído')return'Concluído';
-  if(d.status==='Cancelado')return'Cancelado';
+  if(d.status==='Concluído'||d.status==='Cancelado')return d.status;
+  if(d.etapa_atual>=ETAPAS.length)return'Concluído';
   return'Em andamento';
 }
 function etapaLabel(d){return d.etapa_atual>=ETAPAS.length?'Concluída':ETAPAS[d.etapa_atual]?.nome||'—';}
@@ -1195,7 +1289,26 @@ document.getElementById('tb-date').textContent=new Date().toLocaleDateString('pt
 
 // ── MODAIS ──
 function openM(id){document.getElementById(id).classList.add('on');}
-function closeM(id){document.getElementById(id).classList.remove('on');}
+function closeM(id){
+  const el=document.getElementById(id);
+  const FORM_MODALS=['m-nova','m-editar'];
+  if(FORM_MODALS.includes(id)){
+    const temDados=Array.from(el.querySelectorAll('input,textarea,select'))
+      .some(f=>f.value.trim()&&f.type!=='hidden'&&!f.closest('[style*="display:none"]'));
+    if(temDados&&!confirm('Descartar as alterações?'))return;
+  }
+  el.classList.remove('on');
+}
+function toggleSidebar(){
+  document.querySelector('.sb').classList.toggle('open');
+  document.getElementById('sb-overlay').classList.toggle('on');
+}
+function switchDetTab(tab){
+  ['atos','hist','cli'].forEach(t=>{
+    document.getElementById('det-tab-'+t).style.display=t===tab?'block':'none';
+    document.querySelector(`.det-tab[data-tab="${t}"]`).classList.toggle('on',t===tab);
+  });
+}
 
 // ── LOGIN COLABORADOR ──
 function mostrarLogin(){
@@ -1208,7 +1321,8 @@ function renderLoginGrid(){
   const grid=document.getElementById('ls-grid');
   const nomes=[...new Set(colabs.map(c=>c.nome))];
   if(!nomes.length){grid.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:13px;text-align:center;padding:20px;grid-column:1/-1;">Nenhum membro cadastrado.<br>Acesse Configurações para adicionar.</div>';return;}
-  grid.innerHTML=nomes.map(n=>`<div class="ls-btn" onclick="loginComo('${n}')"><div class="ls-av">${iniciais(n)}</div><div class="ls-nome">${n}</div></div>`).join('');
+  grid.innerHTML=nomes.map(n=>`<div class="ls-btn" data-nome="${n.replace(/"/g,'&quot;')}"><div class="ls-av">${iniciais(n)}</div><div class="ls-nome">${n}</div></div>`).join('');
+  grid.querySelectorAll('.ls-btn').forEach(btn=>btn.addEventListener('click',()=>loginComo(btn.dataset.nome)));
 }
 function getPerfilUser(nome){
   const c=colabs.find(x=>x.nome===nome);
@@ -1409,6 +1523,26 @@ function renderKanban(){
 }
 
 // ── LISTA ──
+function setSortDem(col){
+  if(sortDem.col===col)sortDem.asc=!sortDem.asc;
+  else{sortDem.col=col;sortDem.asc=true;}
+  document.querySelectorAll('#v-demandas thead th').forEach(th=>{
+    th.classList.remove('sort-asc','sort-desc');
+    if(th.getAttribute('onclick')===`setSortDem('${col}')`)
+      th.classList.add(sortDem.asc?'sort-asc':'sort-desc');
+  });
+  renderLista();
+}
+function setSortCli(col){
+  if(sortCli.col===col)sortCli.asc=!sortCli.asc;
+  else{sortCli.col=col;sortCli.asc=true;}
+  document.querySelectorAll('#v-clientes thead th').forEach(th=>{
+    th.classList.remove('sort-asc','sort-desc');
+    if(th.getAttribute('onclick')===`setSortCli('${col}')`)
+      th.classList.add(sortCli.asc?'sort-asc':'sort-desc');
+  });
+  renderClientes();
+}
 function setFiltro(el){
   filtroAtivo=el.dataset.f;
   document.querySelectorAll('.fc').forEach(b=>b.classList.remove('on'));
@@ -1421,8 +1555,22 @@ function renderLista(){
   else if(filtroAtivo==='urgente')lista=lista.filter(d=>{const p=calcPrazo(d.prazo);return p!==null&&p<=1;});
   else if(filtroAtivo==='Concluído')lista=lista.filter(d=>statusD(d)==='Concluído');
   else if(filtroAtivo==='Cancelado')lista=lista.filter(d=>d.status==='Cancelado');
-  if(q)lista=lista.filter(d=>(d.nome||'').toLowerCase().includes(q));
-  lista.sort((a,b)=>(calcPrazo(a.prazo)??999)-(calcPrazo(b.prazo)??999));
+  if(q)lista=lista.filter(d=>
+    (d.nome||'').toLowerCase().includes(q)||
+    (d.tipo||'').toLowerCase().includes(q)||
+    (d.processo||'').toLowerCase().includes(q)||
+    (d.tel||'').includes(q)||
+    (d.cpf||'').includes(q)
+  );
+  if(sortDem.col){
+    lista.sort((a,b)=>{
+      let va=a[sortDem.col]??'',vb=b[sortDem.col]??'';
+      if(sortDem.col==='prazo'){va=calcPrazo(a.prazo)??999;vb=calcPrazo(b.prazo)??999;return sortDem.asc?va-vb:vb-va;}
+      return sortDem.asc?(va+'').localeCompare(vb+''):((vb+'').localeCompare(va+''));
+    });
+  } else {
+    lista.sort((a,b)=>(calcPrazo(a.prazo)??999)-(calcPrazo(b.prazo)??999));
+  }
   const tbody=document.getElementById('tb-dem');
   if(!lista.length){tbody.innerHTML=`<tr><td colspan="6"><div class="empty"><div class="empty-ico">📋</div><div class="empty-title">Nenhuma demanda encontrada</div><div class="empty-sub">Ajuste os filtros ou cadastre uma nova demanda</div></div></td></tr>`;return;}
   tbody.innerHTML=lista.map(d=>`<tr onclick="abrirDet(${d.id})">
@@ -1559,7 +1707,7 @@ function mostrarResumoDiario(){
   // Toast com resumo
   setTimeout(()=>{
     const el=document.getElementById('toast');
-    el.innerHTML=`📋 Atenção: ${linhas[0]}`;
+    el.innerHTML=`📋 ${linhas.join(' · ')}`;
     el.className='toast te show';
     setTimeout(()=>el.classList.remove('show'),5000);
   },2000);
@@ -1653,6 +1801,7 @@ function renderProgressoAtos(d){
 }
 
 function renderClientes(){
+  const q=(document.getElementById('si-cli')?.value||'').toLowerCase().trim();
   const map={};
   demandas.forEach(d=>{
     if(!map[d.nome])map[d.nome]={tel:d.tel,email:d.email,cpf:d.cpf,cnt:0,ult:d.data,ativas:0,conc:0};
@@ -1666,10 +1815,27 @@ function renderClientes(){
     if(d.cpf)map[d.nome].cpf=d.cpf;
   });
   const tbody=document.getElementById('tb-cli');
-  const entries=Object.entries(map);
-  if(!entries.length){tbody.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="empty-ico">👤</div><div class="empty-title">Nenhum cliente cadastrado</div></div></td></tr>`;return;}
-  // Ordenar por número de demandas ativas
-  entries.sort((a,b)=>b[1].ativas-a[1].ativas||b[1].cnt-a[1].cnt);
+  let entries=Object.entries(map);
+  if(q)entries=entries.filter(([nome,info])=>
+    nome.toLowerCase().includes(q)||
+    (info.tel||'').includes(q)||
+    (info.cpf||'').toLowerCase().includes(q)
+  );
+  if(!entries.length){tbody.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="empty-ico">👤</div><div class="empty-title">Nenhum cliente encontrado</div></div></td></tr>`;return;}
+  if(sortCli.col){
+    entries.sort((a,b)=>{
+      const [na,ia]=[a[0],a[1]],[nb,ib]=[b[0],b[1]];
+      let va,vb;
+      if(sortCli.col==='nome'){va=na;vb=nb;}
+      else if(sortCli.col==='ativas'){va=ia.ativas;vb=ib.ativas;}
+      else if(sortCli.col==='ult'){va=ia.ult||'';vb=ib.ult||'';}
+      else{va='';vb='';}
+      if(typeof va==='number')return sortCli.asc?va-vb:vb-va;
+      return sortCli.asc?(va+'').localeCompare(vb+''):((vb+'').localeCompare(va+''));
+    });
+  } else {
+    entries.sort((a,b)=>b[1].ativas-a[1].ativas||b[1].cnt-a[1].cnt);
+  }
   tbody.innerHTML=entries.map(([nome,info])=>`<tr onclick="abrirPerfilCliente('${nome.replace(/'/g,"\'")}')">
     <td><div class="td-av"><div class="av">${iniciais(nome)}</div><div>
       <div style="font-weight:500;">${nome}</div>
@@ -1862,7 +2028,56 @@ function renderRel(){
 }
 
 // ── SALVAR DEMANDA ──
-function abrirNovaDemanda(){initEtapaSel();initRespSel();openM('m-nova');}
+function abrirNovaDemanda(){
+  initEtapaSel();initRespSel();
+  document.getElementById('f-nome-drop').style.display='none';
+  openM('m-nova');
+}
+
+function autocompleteCliente(q){
+  const drop=document.getElementById('f-nome-drop');
+  if(!q||q.trim().length<2){drop.style.display='none';return;}
+  const termo=q.toLowerCase();
+  const map={};
+  demandas.forEach(d=>{
+    if(!(d.nome||'').toLowerCase().includes(termo))return;
+    if(!map[d.nome])map[d.nome]={tel:d.tel,email:d.email,cpf:d.cpf};
+    if(d.tel)map[d.nome].tel=d.tel;
+    if(d.email)map[d.nome].email=d.email;
+    if(d.cpf)map[d.nome].cpf=d.cpf;
+  });
+  const entries=Object.entries(map).slice(0,6);
+  if(!entries.length){drop.style.display='none';return;}
+  drop.innerHTML=entries.map(([nome,info])=>`
+    <div data-nome="${nome.replace(/"/g,'&quot;')}"
+      style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--div);font-size:13.5px;transition:background .1s;"
+      onmouseover="this.style.background='var(--s2)'" onmouseout="this.style.background=''"
+      onclick="selecionarClienteAuto(this.dataset.nome)">
+      <div style="font-weight:500;">${nome}</div>
+      <div style="font-size:12px;color:var(--tx3);">${info.tel||''}${info.tel&&info.cpf?' · ':''}${info.cpf||''}</div>
+    </div>`).join('');
+  drop.style.display='block';
+  setTimeout(()=>document.addEventListener('click',fecharAutoCliOnce,{once:true}),100);
+}
+
+function fecharAutoCliOnce(e){
+  const drop=document.getElementById('f-nome-drop');
+  if(drop&&!drop.contains(e.target))drop.style.display='none';
+}
+
+function selecionarClienteAuto(nome){
+  document.getElementById('f-nome').value=nome;
+  document.getElementById('f-nome-drop').style.display='none';
+  const map={};
+  demandas.filter(d=>d.nome===nome).forEach(d=>{
+    if(d.tel)map.tel=d.tel;
+    if(d.email)map.email=d.email;
+    if(d.cpf)map.cpf=d.cpf;
+  });
+  if(map.tel)document.getElementById('f-tel').value=map.tel;
+  if(map.email)document.getElementById('f-email').value=map.email;
+  if(map.cpf)document.getElementById('f-cpf').value=map.cpf;
+}
 function toggleTipoOutro(){
   const sel=document.getElementById('f-tipo-sel').value;
   document.getElementById('f-tipo-outro-wrap').style.display=sel==='Outro'?'block':'none';
@@ -1878,6 +2093,8 @@ async function salvarDemanda(){
   if(!nome){toast('Informe o nome do cliente.','te');return;}
   if(!tipo){toast('Selecione o tipo de demanda.','te');return;}
   if(!tel){toast('Informe o WhatsApp do cliente.','te');return;}
+  const cpfVal=document.getElementById('f-cpf').value.trim();
+  if(cpfVal&&!validarCpfCnpj(cpfVal)){toast('CPF ou CNPJ inválido.','te');return;}
 
   const btn=document.getElementById('btn-salvar-nd');
   btn.disabled=true;btn.innerHTML='<span class="spin"></span> Salvando...';
@@ -1932,53 +2149,52 @@ async function salvarDemanda(){
 function abrirDet(id){
   detId=id;const d=demandas.find(x=>x.id===id);if(!d)return;
   document.getElementById('det-nome').textContent=d.nome;
-  document.getElementById('det-tipo').textContent=d.tipo||'—';
-  document.getElementById('det-tel').textContent=d.tel||'—';
-  document.getElementById('det-email').textContent=d.email||'—';
-  document.getElementById('det-cpf').textContent=d.cpf||'—';
-  document.getElementById('det-resp').textContent=d.responsavel||'—';
-  document.getElementById('det-proc').textContent=d.processo||'—';
-  document.getElementById('det-data').textContent=d.data||'—';
-  const st=statusD(d);
-  document.getElementById('det-status').innerHTML=st==='Concluído'?'<span class="bdg b-conc">Concluída</span>':st==='Cancelado'?'<span class="bdg b-can">Cancelada</span>':'<span class="bdg b-bl">Em andamento</span>';
-  document.getElementById('det-prazo').innerHTML=d.prazo?`${prazoBadge(d.prazo)} <span style="font-size:12px;color:var(--tx3);">(${fmtDt(d.prazo)})</span>`:'—';
-  if(d.obs){document.getElementById('det-obs').textContent=d.obs;document.getElementById('det-obs-sec').style.display='block';}
-  else document.getElementById('det-obs-sec').style.display='none';
-  // Progresso
-  document.getElementById('det-prog').innerHTML=ETAPAS.map((e,idx)=>{
-    const done=idx<d.etapa_atual,curr=idx===d.etapa_atual;
-    return`${idx>0?`<div class="pconn ${done||curr?'done':''}"></div>`:''}
-    <div class="pstep"><div class="pcircle ${done?'done':curr?'curr':''}">${done?'✓':idx+1}</div><div class="plabel ${curr?'curr':done?'done':''}">${e.label}</div></div>`;
-  }).join('');
-  // Atos
-  document.getElementById('atos-et-lbl').textContent=ETAPAS[d.etapa_atual]?.nome||'Etapa atual';
-  renderAtosDetalhe(d);
-  renderProgressoAtos(d);
-  // Obs etapa
-  const obsEt=getO(d);
-  document.getElementById('det-obs-et').innerHTML=ETAPAS.map((e,idx)=>`
-    <div class="obet-item">
-      <div class="obet-lbl">${idx+1}. ${e.nome}
-        ${idx<d.etapa_atual?'<span class="bdg b-conc" style="font-size:10px;">concluída</span>':''}
-        ${idx===d.etapa_atual?'<span class="bdg b-av" style="font-size:10px;">atual</span>':''}
-      </div>
-      <textarea class="obet-ta" id="ob-et-${idx}" placeholder="Observações desta etapa...">${obsEt[idx]||''}</textarea>
-      <button class="obet-btn" onclick="salvarObsEt(${idx})">Salvar observação</button>
-    </div>`).join('');
-  // Avanço
-  const conc=d.etapa_atual>=ETAPAS.length||d.status==='Concluído';
-  document.getElementById('det-avanco').style.display=conc?'none':'block';
-  // Histórico
-  const hist=getH(d);
-  document.getElementById('det-hist').innerHTML=hist.length?hist.map(h=>`<div class="hist-item">
-    <div class="hist-top"><span class="hist-et">${h.etapa}</span><span class="hist-dt">${h.data}</span></div>
-    <div class="hist-qm">Por: <strong>${h.quem}</strong>${h.obs?' — '+h.obs:''}</div>
-  </div>`).join(''):'<div style="font-size:13px;color:var(--tx3);padding:8px 0;">Nenhuma fase concluída ainda.</div>';
-  // Reset
-  const qf=document.getElementById('det-quem');if(qf&&userAtual)qf.value=userAtual;
-  const oa=document.getElementById('det-obs-av');if(oa)oa.value='';
-  document.getElementById('msg-wrap').style.display='none';
-  initRespSel();openM('m-det');
+  document.getElementById('det-tipo').innerHTML='<span class="spin" style="border-color:rgba(0,0,0,.15);border-top-color:var(--tx3);"></span>';
+  switchDetTab('atos');
+  openM('m-det');
+  requestAnimationFrame(()=>{
+    document.getElementById('det-tipo').textContent=d.tipo||'—';
+    document.getElementById('det-tel').textContent=d.tel||'—';
+    document.getElementById('det-email').textContent=d.email||'—';
+    document.getElementById('det-cpf').textContent=d.cpf||'—';
+    document.getElementById('det-resp').textContent=d.responsavel||'—';
+    document.getElementById('det-proc').textContent=d.processo||'—';
+    document.getElementById('det-data').textContent=d.data||'—';
+    const st=statusD(d);
+    document.getElementById('det-status').innerHTML=st==='Concluído'?'<span class="bdg b-conc">Concluída</span>':st==='Cancelado'?'<span class="bdg b-can">Cancelada</span>':'<span class="bdg b-bl">Em andamento</span>';
+    document.getElementById('det-prazo').innerHTML=d.prazo?`${prazoBadge(d.prazo)} <span style="font-size:12px;color:var(--tx3);">(${fmtDt(d.prazo)})</span>`:'—';
+    if(d.obs){document.getElementById('det-obs').textContent=d.obs;document.getElementById('det-obs-sec').style.display='block';}
+    else document.getElementById('det-obs-sec').style.display='none';
+    document.getElementById('det-prog').innerHTML=ETAPAS.map((e,idx)=>{
+      const done=idx<d.etapa_atual,curr=idx===d.etapa_atual;
+      return`${idx>0?`<div class="pconn ${done||curr?'done':''}"></div>`:''}
+      <div class="pstep"><div class="pcircle ${done?'done':curr?'curr':''}">${done?'✓':idx+1}</div><div class="plabel ${curr?'curr':done?'done':''}">${e.label}</div></div>`;
+    }).join('');
+    document.getElementById('atos-et-lbl').textContent=ETAPAS[d.etapa_atual]?.nome||'Etapa atual';
+    renderAtosDetalhe(d);
+    renderProgressoAtos(d);
+    const obsEt=getO(d);
+    document.getElementById('det-obs-et').innerHTML=ETAPAS.map((e,idx)=>`
+      <div class="obet-item">
+        <div class="obet-lbl">${idx+1}. ${e.nome}
+          ${idx<d.etapa_atual?'<span class="bdg b-conc" style="font-size:10px;">concluída</span>':''}
+          ${idx===d.etapa_atual?'<span class="bdg b-av" style="font-size:10px;">atual</span>':''}
+        </div>
+        <textarea class="obet-ta" id="ob-et-${idx}" placeholder="Observações desta etapa...">${obsEt[idx]||''}</textarea>
+        <button class="obet-btn" onclick="salvarObsEt(${idx})">Salvar observação</button>
+      </div>`).join('');
+    const conc=statusD(d)==='Concluído';
+    document.getElementById('det-avanco').style.display=conc?'none':'block';
+    const hist=getH(d);
+    document.getElementById('det-hist').innerHTML=hist.length?hist.map(h=>`<div class="hist-item">
+      <div class="hist-top"><span class="hist-et">${h.etapa}</span><span class="hist-dt">${h.data}</span></div>
+      <div class="hist-qm">Por: <strong>${h.quem}</strong>${h.obs?' — '+h.obs:''}</div>
+    </div>`).join(''):'<div style="font-size:13px;color:var(--tx3);padding:8px 0;">Nenhuma fase concluída ainda.</div>';
+    const qf=document.getElementById('det-quem');if(qf&&userAtual)qf.value=userAtual;
+    const oa=document.getElementById('det-obs-av');if(oa)oa.value='';
+    document.getElementById('msg-wrap').style.display='none';
+    initRespSel();
+  });
 }
 
 function renderAtosDetalhe(d){
@@ -2107,7 +2323,14 @@ async function salvarAto(){
   renderAtosDetalhe(d);toast('Ato adicionado!');
   if(deleg){
     const col=colabs.find(c=>c.nome===deleg);
-    if(col?.wpp){const msg=encodeURIComponent(`Olá, ${deleg}! Você recebeu um ato delegado no OrganizaADV:\n\n*Demanda:* ${d.nome} — ${d.tipo}\n*Ato:* ${nome}\n*Instrução:* ${novoAto.instrucao||'Sem instrução adicional'}`);window.open(`https://wa.me/${col.wpp}?text=${msg}`,'_blank');}
+    if(col?.wpp){
+      const msg=encodeURIComponent(`Olá, ${deleg}! Você recebeu um ato delegado no OrganizaADV:\n\n*Demanda:* ${d.nome} — ${d.tipo}\n*Ato:* ${nome}\n*Instrução:* ${novoAto.instrucao||'Sem instrução adicional'}`);
+      const wppUrl=`https://wa.me/${col.wpp}?text=${msg}`;
+      const elDeleg=document.getElementById('toast');
+      elDeleg.innerHTML=`Ato adicionado! <a href="${wppUrl}" target="_blank" style="color:#fff;font-weight:700;text-decoration:underline;">Notificar ${deleg} →</a>`;
+      elDeleg.className='toast ts show';
+      setTimeout(()=>elDeleg.classList.remove('show'),6000);
+    }
   }
 }
 
@@ -2197,6 +2420,8 @@ async function salvarEdicao(){
   if(!nome){toast('Informe o nome do cliente.','te');return;}
   if(!tipo){toast('Selecione o tipo de demanda.','te');return;}
   if(!tel){toast('Informe o WhatsApp do cliente.','te');return;}
+  const cpfEditVal=document.getElementById('e-cpf').value.trim();
+  if(cpfEditVal&&!validarCpfCnpj(cpfEditVal)){toast('CPF ou CNPJ inválido.','te');return;}
 
   const btn=document.getElementById('btn-salvar-edit');
   btn.disabled=true;btn.innerHTML='<span class="spin"></span> Salvando...';
@@ -2238,8 +2463,11 @@ function notifConc(d,quem){
   const resp=d.responsavel;if(!resp)return;
   const col=colabs.find(c=>c.nome===resp);
   const msg=encodeURIComponent(`✅ *Demanda concluída no OrganizaADV!*\n\nOlá, ${resp}!\n\n*Cliente:* ${d.nome}\n*Tipo:* ${d.tipo||'—'}\n*Concluída por:* ${quem}\n*Data:* ${hoje()}`);
-  if(col?.wpp)window.open(`https://wa.me/${col.wpp}?text=${msg}`,'_blank');
-  else if(confirm(`A demanda de ${d.nome} foi concluída!\nDeseja notificar ${resp} pelo WhatsApp?`))window.open(`https://wa.me/?text=${msg}`,'_blank');
+  const wppUrl=col?.wpp?`https://wa.me/${col.wpp}?text=${msg}`:`https://wa.me/?text=${msg}`;
+  const elConc=document.getElementById('toast');
+  elConc.innerHTML=`✅ Demanda concluída! <a href="${wppUrl}" target="_blank" style="color:#fff;font-weight:700;text-decoration:underline;">Notificar ${resp} →</a>`;
+  elConc.className='toast ts show';
+  setTimeout(()=>elConc.classList.remove('show'),6000);
 }
 
 function gerarMsg(){
@@ -2279,10 +2507,24 @@ function exportPDF(){
   <h2>Observações por etapa</h2>
   ${Object.entries(obsEt).filter(([,v])=>v).map(([idx,ob])=>`<div class="obs"><strong>${ETAPAS[idx]?.nome||'Etapa '+(parseInt(idx)+1)}</strong><br>${ob}</div>`).join('')||'<p style="color:#888;font-size:13px;">Sem observações registradas.</p>'}
   </body></html>`;
-  const w=window.open('','_blank');w.document.write(html);w.document.close();w.focus();setTimeout(()=>w.print(),600);
+  const w=window.open('','_blank');
+  if(w){w.document.write(html);w.document.close();w.focus();setTimeout(()=>w.print(),600);}
+  else{
+    const blob=new Blob([html],{type:'text/html'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=`demanda-${d.nome}.html`;
+    a.click();URL.revokeObjectURL(url);
+    toast('PDF salvo como arquivo HTML (popup bloqueado pelo browser).','ti');
+  }
 }
 
 // ── FINANCEIRO ──
+function setFiltroFin(el){
+  filtroFinAtivo=el.dataset.ff;
+  document.querySelectorAll('[data-ff]').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  renderFin();
+}
 function saveFin(){const k='oadv_fin_'+(escData.id||'');localStorage.setItem(k,JSON.stringify(finLanc));localStorage.setItem(k+'_nid',String(finNextId));}
 function loadFin(){const k='oadv_fin_'+(escData.id||'');finLanc=JSON.parse(localStorage.getItem(k)||'[]');finNextId=parseInt(localStorage.getItem(k+'_nid')||'1');}
 function toggleParc(){document.getElementById('fn-parc-wrap').style.display=document.getElementById('fn-pag').value==='parcelado'?'block':'none';calcParc();}
@@ -2319,8 +2561,13 @@ function renderFin(){
   document.getElementById('fin-rec').textContent=fmtMoeda(tot-rec);
   document.getElementById('fin-cnt').textContent=finLanc.length;
   const tbody=document.getElementById('tb-fin');
-  if(!finLanc.length){tbody.innerHTML=`<tr><td colspan="7"><div class="empty"><div class="empty-ico">💰</div><div class="empty-title">Nenhum contrato registrado</div></div></td></tr>`;return;}
-  tbody.innerHTML=[...finLanc].sort((a,b)=>new Date(b.data)-new Date(a.data)).map(l=>{
+  const q=(document.getElementById('si-fin')?.value||'').toLowerCase().trim();
+  let lista=[...finLanc].sort((a,b)=>new Date(b.data)-new Date(a.data));
+  if(q)lista=lista.filter(l=>(l.cli||'').toLowerCase().includes(q)||(l.serv||'').toLowerCase().includes(q));
+  if(filtroFinAtivo==='pendente')lista=lista.filter(l=>{const r=l.parcs.filter(p=>p.pago).reduce((s,p)=>s+(parseFloat(p.valor)||0),0);return(parseFloat(l.val)||0)-r>0.01;});
+  else if(filtroFinAtivo==='quitado')lista=lista.filter(l=>{const r=l.parcs.filter(p=>p.pago).reduce((s,p)=>s+(parseFloat(p.valor)||0),0);return(parseFloat(l.val)||0)-r<=0.01;});
+  if(!lista.length){tbody.innerHTML=`<tr><td colspan="7"><div class="empty"><div class="empty-ico">💰</div><div class="empty-title">Nenhum contrato encontrado</div></div></td></tr>`;return;}
+  tbody.innerHTML=lista.map(l=>{
     const r=l.parcs.filter(p=>p.pago).reduce((s,p)=>s+(parseFloat(p.valor)||0),0);
     const rest=(parseFloat(l.val)||0)-r;const quit=rest<=0.01;
     return`<tr onclick="abrirFinDet(${l.id})" style="cursor:pointer;">
