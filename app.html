@@ -636,6 +636,19 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd);}
           <button class="btn btn-p" onclick="salvarCfg()">Salvar alterações</button>
         </div>
         <div class="cfg-sec">
+          <div class="cfg-title">Fluxo de etapas</div>
+          <div class="cfg-sub">Defina as etapas do fluxo de trabalho do escritório. A ordem importa.</div>
+          <div id="cfg-etapas-lista" style="margin-bottom:14px;display:flex;flex-direction:column;gap:6px;"></div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <input type="text" class="finp" id="cfg-etapa-nova" placeholder="Nome da nova etapa..." style="flex:1;"/>
+            <button class="btn btn-gh" onclick="addEtapa()">Adicionar</button>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-p" onclick="salvarEtapas()">Salvar etapas</button>
+            <button class="btn btn-gh" onclick="resetEtapas()">Restaurar padrão</button>
+          </div>
+        </div>
+        <div class="cfg-sec">
           <div class="cfg-title">Plano atual</div>
           <div class="cfg-sub" id="cfg-plano">Carregando...</div>
           <a href="contratar.html" class="btn btn-gh" style="text-decoration:none;">Gerenciar assinatura</a>
@@ -691,6 +704,15 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd);}
             <option value="Ação Previdenciária">Ação Previdenciária</option>
             <option value="Habeas Corpus">Habeas Corpus</option>
             <option value="Mandado de Segurança">Mandado de Segurança</option>
+            <option value="Direito Criminal">Direito Criminal</option>
+            <option value="Direito Tributário">Direito Tributário</option>
+            <option value="Direito Empresarial">Direito Empresarial</option>
+            <option value="Direito Imobiliário">Direito Imobiliário</option>
+            <option value="Direito Administrativo">Direito Administrativo</option>
+            <option value="Direito Ambiental">Direito Ambiental</option>
+            <option value="Direito Digital">Direito Digital</option>
+            <option value="Responsabilidade Médica">Responsabilidade Médica</option>
+            <option value="Direito Eleitoral">Direito Eleitoral</option>
             <option value="Outro">Outro (especificar)</option>
           </select>
         </div>
@@ -1006,6 +1028,15 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd);}
             <option value="Ação Previdenciária">Ação Previdenciária</option>
             <option value="Habeas Corpus">Habeas Corpus</option>
             <option value="Mandado de Segurança">Mandado de Segurança</option>
+            <option value="Direito Criminal">Direito Criminal</option>
+            <option value="Direito Tributário">Direito Tributário</option>
+            <option value="Direito Empresarial">Direito Empresarial</option>
+            <option value="Direito Imobiliário">Direito Imobiliário</option>
+            <option value="Direito Administrativo">Direito Administrativo</option>
+            <option value="Direito Ambiental">Direito Ambiental</option>
+            <option value="Direito Digital">Direito Digital</option>
+            <option value="Responsabilidade Médica">Responsabilidade Médica</option>
+            <option value="Direito Eleitoral">Direito Eleitoral</option>
             <option value="Outro">Outro (especificar)</option>
           </select>
         </div>
@@ -1163,7 +1194,7 @@ const {createClient}=supabase;
 const db=createClient(SB_URL,SB_KEY);
 
 // ── ETAPAS ──
-const ETAPAS=[
+const ETAPAS_DEFAULT=[
   {nome:'Recepção',label:'Recepção'},
   {nome:'Consulta',label:'Consulta'},
   {nome:'Petição',label:'Petição'},
@@ -1171,6 +1202,7 @@ const ETAPAS=[
   {nome:'Organização',label:'Organização'},
   {nome:'Protocolo',label:'Protocolo'},
 ];
+let ETAPAS=[...ETAPAS_DEFAULT];
 
 // ── TEMPLATES DE ATOS ──
 const TMPL={
@@ -1206,6 +1238,94 @@ const TMPL={
     'Organização':['Organização do processo'],
     'Protocolo':['Protocolo no cartório ou tribunal'],
   },
+  'Consumidor':{
+    'Recepção':['Consulta inicial com o cliente','Coleta de documentos do escritório','Coleta de documentos do cliente (notas fiscais, contratos, fotos)'],
+    'Consulta':['Análise do caso e viabilidade da demanda','Orientação jurídica ao cliente','Definição da estratégia (extrajudicial ou judicial)'],
+    'Petição':['Notificação extrajudicial ao fornecedor','Aguardo da resposta à notificação (15 dias)','Elaboração da petição inicial','Pesquisa de jurisprudência no TJBA/STJ'],
+    'Revisão':['Revisão técnica da peça','Ajustes e correções finais','Aprovação para protocolo'],
+    'Organização':['Organização do dossiê','Preparação dos anexos e provas'],
+    'Protocolo':['Protocolo no Juizado ou Vara Cível','Audiência de conciliação','Instrução processual','Acompanhamento da sentença','Encerramento do caso'],
+  },
+  'Previdenciário':{
+    'Recepção':['Consulta inicial com o cliente','Coleta de documentos do escritório','Coleta de documentos do cliente (CNIS, CTPS, laudos médicos)'],
+    'Consulta':['Organização da pasta do cliente','Análise do CNIS e tempo de contribuição','Definição da estratégia (via administrativa ou judicial)'],
+    'Petição':['Requerimento administrativo ao INSS','Elaboração de recurso administrativo (se indeferido)','Elaboração da petição judicial (se necessário)','Pesquisa de precedentes no TRF e STJ'],
+    'Revisão':['Revisão técnica da peça','Ajustes e correções','Aprovação para protocolo'],
+    'Organização':['Organização do processo','Preparação da documentação para protocolo'],
+    'Protocolo':['Protocolo no INSS ou na Justiça Federal','Aguardo da decisão administrativa','Instrução judicial','Sentença','Implantação do benefício','Encerramento'],
+  },
+  'Eleitoral':{
+    'Recepção':['Consulta inicial de urgência','Coleta de documentos do escritório','Coleta de documentos do cliente'],
+    'Consulta':['Estudo do caso e verificação imediata de prazos eleitorais','Definição urgente da estratégia eleitoral'],
+    'Petição':['Elaboração da peça eleitoral (prazo curtíssimo)','Pesquisa de jurisprudência no TRE/TSE'],
+    'Revisão':['Revisão urgente da peça','Aprovação imediata para protocolo'],
+    'Organização':['Organização da documentação eleitoral'],
+    'Protocolo':['Protocolo no TRE/TSE','Aguardo da decisão','Elaboração e protocolo de recurso','Encerramento'],
+  },
+  'Criminal':{
+    'Recepção':['Consulta inicial com o cliente ou familiar','Coleta de BO e auto de prisão em flagrante','Coleta de documentos pessoais do cliente'],
+    'Consulta':['Organização da pasta criminal','Estudo do caso e definição da estratégia de defesa','Diligências preliminares (testemunhas, laudos periciais)'],
+    'Petição':['Elaboração da peça de defesa','Pesquisa de jurisprudência criminal','Habeas corpus se necessário'],
+    'Revisão':['Revisão técnica da peça','Ajustes e correções','Aprovação para protocolo'],
+    'Organização':['Organização do processo criminal','Preparação para audiência de instrução'],
+    'Protocolo':['Protocolo','Aguardo da decisão','Audiência de instrução','Alegações finais','Sentença','Recurso se necessário','Encerramento'],
+  },
+  'Tributário':{
+    'Recepção':['Consulta inicial com o cliente','Coleta de documentos do escritório','Coleta de certidões de débito e autos de infração'],
+    'Consulta':['Organização da pasta tributária','Estudo fiscal e análise dos débitos/autuações','Definição da estratégia (administrativo ou judicial)'],
+    'Petição':['Elaboração da impugnação administrativa','Elaboração da petição judicial (se necessário)','Pesquisa de precedentes no CARF e STJ'],
+    'Revisão':['Revisão técnica da peça','Ajustes e correções','Aprovação para protocolo'],
+    'Organização':['Organização do dossiê tributário'],
+    'Protocolo':['Protocolo na Receita Federal, SEFAZ ou tribunal','Aguardo da resposta administrativa','Instrução judicial','Sentença','Encerramento'],
+  },
+  'Empresarial':{
+    'Recepção':['Consulta inicial com o cliente','Coleta de documentos do escritório','Coleta de contrato social, registros e documentos empresariais'],
+    'Consulta':['Organização da pasta empresarial','Estudo do caso e análise societária/contratual','Definição da estratégia'],
+    'Petição':['Elaboração do documento empresarial (contrato, parecer ou petição)','Pesquisa de legislação empresarial aplicável'],
+    'Revisão':['Revisão técnica do documento','Ajustes e correções','Aprovação pelas partes'],
+    'Organização':['Assinatura e formalização do documento','Autenticação e reconhecimento de firma se necessário'],
+    'Protocolo':['Protocolo na Junta Comercial ou entrega às partes','Aguardo da resposta ou registro','Instrução judicial se litigioso','Sentença se litigioso','Encerramento'],
+  },
+  'Imobiliário':{
+    'Recepção':['Consulta inicial com o cliente','Coleta de matrícula do imóvel e contratos','Coleta de documentos do escritório e das partes'],
+    'Consulta':['Organização da pasta imobiliária','Estudo do caso e análise jurídica do imóvel','Busca de jurisprudência imobiliária'],
+    'Petição':['Elaboração da peça processual ou contrato','Pesquisa de legislação imobiliária e registral'],
+    'Revisão':['Revisão técnica da peça ou contrato','Ajustes e correções','Aprovação das partes'],
+    'Organização':['Organização do dossiê imobiliário','Preparação para protocolo ou cartório'],
+    'Protocolo':['Protocolo judicial ou registro em cartório','Aguardo do despacho ou análise','Audiência se necessário','Sentença ou registro do imóvel','Encerramento'],
+  },
+  'Administrativo':{
+    'Recepção':['Consulta inicial com o cliente','Coleta de documentos do escritório','Coleta de documentos do cliente (atos administrativos, contratos)'],
+    'Consulta':['Organização da pasta administrativa','Estudo do caso e análise do ato impugnado','Definição da estratégia'],
+    'Petição':['Elaboração do recurso administrativo','Elaboração da petição judicial (se necessário)','Pesquisa de precedentes nos tribunais'],
+    'Revisão':['Revisão técnica da peça','Ajustes e correções','Aprovação para protocolo'],
+    'Organização':['Organização do processo administrativo'],
+    'Protocolo':['Protocolo no órgão ou tribunal','Aguardo da resposta administrativa','Instrução judicial','Sentença','Encerramento'],
+  },
+  'Ambiental':{
+    'Recepção':['Consulta inicial com o cliente','Coleta de autos de infração e licenças ambientais','Coleta de documentos do cliente'],
+    'Consulta':['Organização da pasta ambiental','Estudo do caso e análise da infração ou dano ambiental','Definição da estratégia'],
+    'Petição':['Elaboração da defesa administrativa','Elaboração da petição judicial (se necessário)','Pesquisa de legislação ambiental (Lei 9.605/98 e outras)'],
+    'Revisão':['Revisão técnica da peça','Ajustes e correções','Aprovação para protocolo'],
+    'Organização':['Organização do processo ambiental'],
+    'Protocolo':['Protocolo no órgão ambiental ou tribunal','Aguardo da resposta','Instrução judicial','Sentença','Encerramento'],
+  },
+  'Digital':{
+    'Recepção':['Consulta inicial com o cliente','Coleta de prints, URLs e registros digitais','Coleta de documentos do escritório'],
+    'Consulta':['Organização da pasta digital','Estudo do caso (remoção de conteúdo, crimes digitais, LGPD)','Definição da estratégia'],
+    'Petição':['Notificação à plataforma ou provedor','Elaboração da petição judicial após prazo sem resposta','Pesquisa de jurisprudência em direito digital'],
+    'Revisão':['Revisão técnica da peça','Ajustes e correções','Aprovação para protocolo'],
+    'Organização':['Organização do processo digital','Preservação e autenticação de provas digitais'],
+    'Protocolo':['Protocolo','Aguardo da resposta da plataforma ou decisão judicial','Instrução judicial','Sentença','Encerramento'],
+  },
+  'Médico':{
+    'Recepção':['Consulta inicial com o cliente','Coleta de prontuários e laudos médicos','Coleta de documentos do escritório'],
+    'Consulta':['Organização da pasta médica','Estudo do caso e análise técnica com perito','Notificação extrajudicial ao responsável'],
+    'Petição':['Requerimento de perícia técnica médica','Elaboração da petição inicial','Pesquisa de jurisprudência em responsabilidade médica'],
+    'Revisão':['Revisão técnica da peça','Ajustes e correções','Aprovação para protocolo'],
+    'Organização':['Organização do dossiê médico','Preparação dos laudos e documentação técnica'],
+    'Protocolo':['Protocolo','Instrução e perícia judicial','Laudo pericial','Sentença','Encerramento'],
+  },
   'default':{
     'Recepção':['Consulta inicial com o cliente','Coleta de documentos','Análise de admissibilidade'],
     'Consulta':['Avaliação jurídica','Orientação ao cliente','Definição da estratégia'],
@@ -1216,8 +1336,29 @@ const TMPL={
   }
 };
 
+// Aliases para tipos que não fazem substring match direto com a chave do TMPL
+const TIPO_ALIAS={
+  'habeas corpus':'Criminal',
+  'mandado de segurança':'Administrativo',
+  'ação previdenciária':'Previdenciário',
+  'previdenciária':'Previdenciário',
+  'reclamação trabalhista':'Trabalhista',
+  'ação trabalhista':'Trabalhista',
+  'direito de família':'Família',
+  'médico':'Médico',
+  'saúde':'Médico',
+  'responsabilidade médica':'Médico',
+};
+
 function getAtosTemplate(tipo,etapa){
-  const k=Object.keys(TMPL).find(k=>k!=='default'&&tipo&&tipo.toLowerCase().includes(k.toLowerCase()))||'default';
+  if(!tipo)return TMPL['default'][etapa]||[];
+  const tl=tipo.toLowerCase();
+  const aliasKey=Object.keys(TIPO_ALIAS).find(a=>tl.includes(a));
+  if(aliasKey){
+    const k=TIPO_ALIAS[aliasKey];
+    return TMPL[k]?.[etapa]||TMPL['default'][etapa]||[];
+  }
+  const k=Object.keys(TMPL).find(k=>k!=='default'&&tl.includes(k.toLowerCase()))||'default';
   return TMPL[k][etapa]||TMPL['default'][etapa]||[];
 }
 
@@ -2722,6 +2863,62 @@ function renderCfg(){
   document.getElementById('cfg-tel').value=escData.tel||'';
   const dias=calcPrazo(escData.trial_expira?.split('T')[0]);
   document.getElementById('cfg-plano').textContent=escData.plano==='avancado'?'Plano Avançado ativo — R$ 149/mês · Até 5 advogados e 25 colaboradores':escData.plano==='essencial'?'Plano Essencial ativo — R$ 99/mês · Até 2 advogados e 10 colaboradores':`Período de teste${dias!==null?` — ${dias>0?dias+' dias restantes':'Expirado'}`:''}.`;
+  renderCfgEtapas();
+}
+
+function renderCfgEtapas(){
+  const lista=document.getElementById('cfg-etapas-lista');
+  if(!lista)return;
+  lista.innerHTML=ETAPAS.map((e,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--rsm);">
+      <span style="font-size:12px;color:var(--tx3);width:20px;text-align:center;font-weight:600;">${i+1}</span>
+      <span style="flex:1;font-size:13.5px;font-weight:500;">${e.nome}</span>
+      <button onclick="moverEtapa(${i},-1)" ${i===0?'disabled':''} style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:14px;padding:2px 6px;" title="Subir">↑</button>
+      <button onclick="moverEtapa(${i},1)" ${i===ETAPAS.length-1?'disabled':''} style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:14px;padding:2px 6px;" title="Descer">↓</button>
+      <button onclick="removeEtapa(${i})" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:16px;padding:2px 6px;transition:color .15s;" onmouseover="this.style.color='var(--rd)'" onmouseout="this.style.color='var(--tx3)'" title="Remover">×</button>
+    </div>`).join('');
+}
+
+function addEtapa(){
+  const inp=document.getElementById('cfg-etapa-nova');
+  const nome=inp.value.trim();
+  if(!nome){toast('Informe o nome da etapa.','te');return;}
+  if(ETAPAS.find(e=>e.nome.toLowerCase()===nome.toLowerCase())){toast('Já existe uma etapa com este nome.','te');return;}
+  ETAPAS.push({nome,label:nome});
+  inp.value='';
+  renderCfgEtapas();
+  initEtapaSel();
+}
+
+function removeEtapa(i){
+  if(ETAPAS.length<=2){toast('O fluxo precisa ter ao menos 2 etapas.','te');return;}
+  if(!confirm(`Remover a etapa "${ETAPAS[i].nome}"?`))return;
+  ETAPAS.splice(i,1);
+  renderCfgEtapas();
+  initEtapaSel();
+}
+
+function moverEtapa(i,dir){
+  const j=i+dir;
+  if(j<0||j>=ETAPAS.length)return;
+  [ETAPAS[i],ETAPAS[j]]=[ETAPAS[j],ETAPAS[i]];
+  renderCfgEtapas();
+  initEtapaSel();
+}
+
+async function salvarEtapas(){
+  const{error}=await db.from('escritorios').update({etapas:JSON.stringify(ETAPAS)}).eq('id',escData.id);
+  if(error){toast('Erro ao salvar etapas: '+error.message,'te');return;}
+  escData.etapas=ETAPAS;
+  renderKanban();
+  toast('Etapas salvas com sucesso!');
+}
+
+function resetEtapas(){
+  if(!confirm('Restaurar as etapas padrão? As etapas atuais serão substituídas.'))return;
+  ETAPAS=[...ETAPAS_DEFAULT];
+  renderCfgEtapas();
+  initEtapaSel();
 }
 async function salvarCfg(){
   const escId=escData.id;
@@ -2736,7 +2933,9 @@ window.addEventListener('load',async()=>{
   if(!session){window.location.href='cadastro.html';return;}
   const{data:esc}=await db.from('escritorios').select('*').eq('user_id',session.user.id).single();
   if(!esc){window.location.href='cadastro.html';return;}
-  escData=esc;renderSBInfo();verificarTrial();loadFin();loadNotifs();
+  escData=esc;
+  if(esc.etapas?.length)ETAPAS=esc.etapas;
+  renderSBInfo();verificarTrial();loadFin();loadNotifs();
   const[{data:d},{data:c}]=await Promise.all([
     db.from('demandas_escritorio').select('*').eq('escritorio_id',esc.id).order('created_at',{ascending:false}),
     db.from('colab_escritorio').select('*').eq('escritorio_id',esc.id).order('created_at',{ascending:true})
