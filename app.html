@@ -481,6 +481,11 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       Agenda
       <span class="ni-badge" id="n-agenda-badge" style="display:none">0</span>
     </div>
+    <div class="ni" id="n-diario" onclick="showView('diario')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><path d="M2 2h12v12H2z"/><path d="M5 2v12M2 6h3M2 10h3M8 5h4M8 8h4M8 11h2"/></svg>
+      Diário Oficial
+      <span class="ni-badge" id="n-diario-badge" style="display:none">0</span>
+    </div>
     <div class="nav-sec">Equipe</div>
     <div class="ni" id="n-equipe" onclick="showView('equipe')">
       <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><circle cx="5" cy="5" r="2.5"/><circle cx="11" cy="5" r="2.5"/><path d="M0 13c0-2.5 2-4 5-4"/><path d="M16 13c0-2.5-2-4-5-4"/><path d="M5 13c0-2.5 1.3-4 3-4s3 1.5 3 4"/></svg>
@@ -651,6 +656,31 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         <button class="btn btn-gd" onclick="abrirNovoEvento()" style="margin-left:auto">+ Novo evento</button>
       </div>
       <div id="agenda-lista"></div>
+    </div>
+
+    <!-- DIÁRIO OFICIAL -->
+    <div id="v-diario" style="display:none">
+      <!-- Bloco de busca rápida -->
+      <div class="cfg-sec" style="margin-bottom:14px">
+        <div class="cfg-title">Busca rápida por advogado</div>
+        <div class="cfg-sub">Clique para abrir o Diário Oficial com o nome do advogado pré-preenchido</div>
+        <div id="diario-advogados"></div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--div)">
+          <div style="font-size:12px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Diários disponíveis</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px" id="diario-links"></div>
+        </div>
+      </div>
+      <!-- Publicações registradas -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:13px;color:var(--tx2)">Publicações registradas manualmente</div>
+        <button class="btn btn-gd" onclick="novaPublicacao()">+ Registrar publicação</button>
+      </div>
+      <div class="tbl-wrap">
+        <table><thead><tr>
+          <th>Data</th><th>Advogado</th><th>Fonte</th><th>Assunto</th><th>Ação necessária</th>
+        </tr></thead>
+        <tbody id="tb-diario"></tbody></table>
+      </div>
     </div>
 
     <!-- EQUIPE -->
@@ -1330,6 +1360,53 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
   </div>
 </div>
 
+<!-- ══ MODAL DIÁRIO OFICIAL ══ -->
+<div class="mov" id="m-diario">
+  <div class="mbox">
+    <div class="mhead">
+      <div><div class="mtitle">Registrar publicação</div><div class="msubt">Documente uma publicação encontrada no Diário Oficial</div></div>
+      <div class="mx" onclick="closeM('m-diario')">✕</div>
+    </div>
+    <div class="mbody">
+      <div class="fg2">
+        <div class="field"><label class="flabel">Data da publicação <span class="req">*</span></label><input type="date" class="finp" id="dj-data"/></div>
+        <div class="field"><label class="flabel">Fonte <span class="req">*</span></label>
+          <select class="fsel" id="dj-fonte">
+            <option value="DOU">DOU — Diário Oficial da União</option>
+            <option value="DJBA">DJBA — Diário de Justiça da Bahia</option>
+            <option value="DJSP">DJSP — Diário de Justiça de São Paulo</option>
+            <option value="DJMG">DJMG — Diário de Justiça de Minas Gerais</option>
+            <option value="DJRJ">DJRJ — Diário de Justiça do Rio de Janeiro</option>
+            <option value="DJPR">DJPR — Diário de Justiça do Paraná</option>
+            <option value="DJRS">DJRS — Diário de Justiça do Rio Grande do Sul</option>
+            <option value="TRT">TRT — Diário da Justiça do Trabalho</option>
+            <option value="TRF">TRF — Diário da Justiça Federal</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg2">
+        <div class="field"><label class="flabel">Advogado mencionado</label><select class="fsel" id="dj-adv"><option value="">Selecione...</option></select></div>
+        <div class="field"><label class="flabel">Demanda vinculada</label><select class="fsel" id="dj-demanda"><option value="">Nenhuma</option></select></div>
+      </div>
+      <div class="field"><label class="flabel">Assunto / resumo <span class="req">*</span></label><input type="text" class="finp" id="dj-assunto" placeholder="Ex.: Intimação para manifestação em 15 dias — Proc. 0001234-56.2024"/></div>
+      <div class="field"><label class="flabel">Conteúdo completo</label><textarea class="fta" id="dj-conteudo" placeholder="Cole aqui o texto da publicação..."></textarea></div>
+      <div class="fg2">
+        <div class="field"><label class="flabel">Prazo para resposta</label><input type="date" class="finp" id="dj-prazo"/></div>
+        <div class="field"><label class="flabel">Link da publicação</label><input type="url" class="finp" id="dj-link" placeholder="https://..."/></div>
+      </div>
+      <div class="field"><label class="flabel">Ação necessária</label><input type="text" class="finp" id="dj-acao" placeholder="Ex.: Protocolar contestação até DD/MM"/></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-danger" id="dj-btn-excluir" onclick="excluirPublicacao()" style="display:none">Excluir</button>
+      <div class="mfoot-r">
+        <button class="btn btn-gh" onclick="closeM('m-diario')">Cancelar</button>
+        <button class="btn btn-gd" id="dj-btn-salvar" onclick="salvarPublicacao()">Salvar publicação</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ══ MODAL PERMISSÕES ══ -->
 <div class="mov" id="m-permissoes">
   <div class="mbox narrow">
@@ -1912,8 +1989,8 @@ function initRespSel(){
 }
 
 // ── VIEWS ──
-const VIEWS=['kanban','demandas','clientes','atendimentos','agenda','notif','equipe','relatorio','fin','cfg'];
-const VTITLES={kanban:'Fluxo de trabalho',demandas:'Todas as demandas',clientes:'Clientes',atendimentos:'Atendimentos',agenda:'Agenda',notif:'Tribunal & IA',equipe:'Advogados e colaboradores',relatorio:'Relatório mensal',fin:'Financeiro',cfg:'Configurações'};
+const VIEWS=['kanban','demandas','clientes','atendimentos','agenda','diario','notif','equipe','relatorio','fin','cfg'];
+const VTITLES={kanban:'Fluxo de trabalho',demandas:'Todas as demandas',clientes:'Clientes',atendimentos:'Atendimentos',agenda:'Agenda',diario:'Diário Oficial',notif:'Tribunal & IA',equipe:'Advogados e colaboradores',relatorio:'Relatório mensal',fin:'Financeiro',cfg:'Configurações'};
 function showView(v){
   // bloqueia views por permissão
   if(v==='fin'&&!temPermissao('ver_financeiro')){toast('Sem permissão para acessar o financeiro.','te');return;}
@@ -1929,6 +2006,7 @@ function showView(v){
   if(v==='clientes')renderClientes();
   if(v==='atendimentos')renderAtendimentos();
   if(v==='agenda')renderAgenda();
+  if(v==='diario')renderDiario();
   if(v==='equipe'){renderEqTabela();renderEqCfg();}
   if(v==='relatorio'){initRel();renderRel();}
   if(v==='fin')renderFin();
@@ -3288,6 +3366,147 @@ async function salvarCfg(){
   escData.nome=document.getElementById('cfg-nome').value;renderSBInfo();toast('Configurações salvas!');
 }
 
+// ── DIÁRIO OFICIAL ──
+let publicacoes=[],djEditId=null;
+
+const DIARIOS_LINKS=[
+  {nome:'DOU',label:'Diário Oficial da União',url:'https://www.in.gov.br/consulta/-/buscar/dou?q={nome}&s=todos&exactDate=all&sortType=0',cor:'#1D4ED8'},
+  {nome:'TJe',label:'Consulta TJe (Nacional)',url:'https://www.cnj.jus.br/busca-ativa-judiciaria/?q={nome}',cor:'#065F46'},
+  {nome:'DJBA',label:'TJBA — Bahia',url:'https://dj.tjba.jus.br/dj/faces/index.xhtml?q={nome}',cor:'#7C3AED'},
+  {nome:'DJSP',label:'TJSP — São Paulo',url:'https://www.dje.tjsp.jus.br/cdje/consultaSimples.do?query={nome}',cor:'#B45309'},
+  {nome:'DJMG',label:'TJMG — Minas Gerais',url:'https://www5.tjmg.jus.br/jurisprudencia/pesquisaNumeroCNJEspelhoAcordao.do?q={nome}',cor:'#047857'},
+  {nome:'TRT5',label:'TRT 5ª Região (BA)',url:'https://www.trt5.jus.br/diario?q={nome}',cor:'#DC2626'},
+];
+
+async function loadDiario(){
+  const{data}=await db.from('publicacoes_diario').select('*').eq('escritorio_id',escData.id).order('data_publicacao',{ascending:false});
+  publicacoes=data||[];
+  const badge=document.getElementById('n-diario-badge');
+  const semAcao=publicacoes.filter(p=>!p.lida).length;
+  if(badge){badge.textContent=semAcao;badge.style.display=semAcao?'':'none';}
+}
+function renderDiario(){
+  // Bloco de advogados com OAB
+  const advs=colabs.filter(c=>c.oab);
+  const el=document.getElementById('diario-advogados');
+  if(el){
+    if(!advs.length){
+      el.innerHTML='<div style="font-size:13px;color:var(--tx3);padding:8px 0">Nenhum advogado com OAB cadastrado. Vá em <strong>Equipe</strong> e adicione os advogados com seus números OAB.</div>';
+    } else {
+      el.innerHTML=advs.map(c=>`
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd);margin-bottom:8px;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-weight:600;font-size:13.5px">${c.nome}</div>
+            <div style="font-size:12px;color:var(--tx3)">${c.oab}</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            ${DIARIOS_LINKS.map(d=>`<a href="${d.url.replace('{nome}',encodeURIComponent(c.nome))}" target="_blank" class="btn btn-sm btn-gh" style="font-size:11px;text-decoration:none">${d.nome}</a>`).join('')}
+          </div>
+        </div>`).join('');
+    }
+  }
+  // Links fixos dos diários
+  const linksEl=document.getElementById('diario-links');
+  if(linksEl){
+    linksEl.innerHTML=DIARIOS_LINKS.map(d=>`
+      <a href="${d.url.replace('{nome}','')}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:1px solid var(--bd);background:var(--surface);font-size:12.5px;font-weight:500;color:${d.cor};text-decoration:none;transition:box-shadow .15s" onmouseover="this.style.boxShadow='var(--s2s)'" onmouseout="this.style.boxShadow='none'">
+        📰 ${d.label}
+      </a>`).join('');
+  }
+  // Tabela de publicações
+  initDjSelects();
+  const tbody=document.getElementById('tb-diario');
+  if(!tbody)return;
+  if(!publicacoes.length){tbody.innerHTML=`<tr><td colspan="5"><div class="empty" style="padding:28px"><div class="empty-ico">📋</div><div class="empty-title">Nenhuma publicação registrada</div><div class="empty-sub">Registre as publicações encontradas no Diário Oficial</div></div></td></tr>`;return;}
+  tbody.innerHTML=publicacoes.map(p=>`
+    <tr onclick="abrirPublicacao('${p.id}')" style="${!p.lida?'background:#EFF6FF;font-weight:500':''}">
+      <td>${p.data_publicacao?formatarData(p.data_publicacao):'—'}</td>
+      <td>${p.advogado||'—'}</td>
+      <td><span class="bdg b-bl" style="font-size:10px">${p.fonte||'—'}</span></td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.assunto||'—'}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${p.prazo_resposta?'var(--rd)':'var(--tx2)'}">${p.acao||'—'}${p.prazo_resposta?' ('+formatarData(p.prazo_resposta)+')':''}</td>
+    </tr>`).join('');
+}
+function initDjSelects(){
+  const advs=colabs.filter(c=>c.oab);
+  const selAdv=document.getElementById('dj-adv');
+  if(selAdv)selAdv.innerHTML='<option value="">Selecione...</option>'+advs.map(c=>`<option value="${c.nome}">${c.nome} — ${c.oab}</option>`).join('');
+  const selDem=document.getElementById('dj-demanda');
+  if(selDem)selDem.innerHTML='<option value="">Nenhuma</option>'+demandas.filter(d=>d.status!=='Cancelado').map(d=>`<option value="${d.id}">${d.nome} — ${d.tipo||''}</option>`).join('');
+}
+function abrirPublicacao(id){
+  const p=publicacoes.find(x=>x.id===id);if(!p)return;
+  djEditId=id;
+  document.getElementById('dj-data').value=p.data_publicacao||'';
+  document.getElementById('dj-fonte').value=p.fonte||'DOU';
+  document.getElementById('dj-adv').value=p.advogado||'';
+  document.getElementById('dj-assunto').value=p.assunto||'';
+  document.getElementById('dj-conteudo').value=p.conteudo||'';
+  document.getElementById('dj-prazo').value=p.prazo_resposta||'';
+  document.getElementById('dj-link').value=p.link||'';
+  document.getElementById('dj-acao').value=p.acao||'';
+  document.getElementById('dj-demanda').value=p.demanda_id||'';
+  document.getElementById('dj-btn-excluir').style.display='';
+  // marca como lida
+  if(!p.lida){db.from('publicacoes_diario').update({lida:true}).eq('id',id).then(()=>{p.lida=true;atualizarBadgeDiario();});}
+  openM('m-diario');
+}
+function novaPublicacao(){
+  djEditId=null;
+  ['dj-assunto','dj-conteudo','dj-link','dj-acao'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('dj-data').value=new Date().toISOString().split('T')[0];
+  document.getElementById('dj-prazo').value='';
+  document.getElementById('dj-fonte').value='DOU';
+  document.getElementById('dj-btn-excluir').style.display='none';
+  initDjSelects();
+  openM('m-diario');
+}
+async function salvarPublicacao(){
+  const assunto=document.getElementById('dj-assunto').value.trim();
+  const data=document.getElementById('dj-data').value;
+  if(!assunto||!data){toast('Preencha assunto e data.','te');return;}
+  const btn=document.getElementById('dj-btn-salvar');
+  btn.disabled=true;btn.textContent='Salvando...';
+  const payload={
+    escritorio_id:escData.id,
+    data_publicacao:data,
+    fonte:document.getElementById('dj-fonte').value,
+    advogado:document.getElementById('dj-adv').value||null,
+    assunto,
+    conteudo:document.getElementById('dj-conteudo').value.trim()||null,
+    prazo_resposta:document.getElementById('dj-prazo').value||null,
+    link:document.getElementById('dj-link').value.trim()||null,
+    acao:document.getElementById('dj-acao').value.trim()||null,
+    demanda_id:document.getElementById('dj-demanda').value||null,
+    lida:false,
+  };
+  let error;
+  if(djEditId){
+    const r=await db.from('publicacoes_diario').update(payload).eq('id',djEditId);
+    error=r.error;
+    if(!error){const i=publicacoes.findIndex(x=>x.id===djEditId);if(i>=0)publicacoes[i]={...publicacoes[i],...payload};}
+  } else {
+    const r=await db.from('publicacoes_diario').insert([payload]).select().single();
+    error=r.error;if(!error)publicacoes.unshift(r.data);
+  }
+  btn.disabled=false;btn.textContent='Salvar publicação';
+  if(error){toast('Erro: '+error.message,'te');return;}
+  closeM('m-diario');renderDiario();atualizarBadgeDiario();
+  toast(djEditId?'Publicação atualizada!':'Publicação registrada!');
+}
+async function excluirPublicacao(){
+  if(!djEditId||!confirm('Excluir esta publicação?'))return;
+  const{error}=await db.from('publicacoes_diario').delete().eq('id',djEditId);
+  if(error){toast('Erro: '+error.message,'te');return;}
+  publicacoes=publicacoes.filter(x=>x.id!==djEditId);
+  closeM('m-diario');renderDiario();atualizarBadgeDiario();toast('Publicação excluída.');
+}
+function atualizarBadgeDiario(){
+  const n=publicacoes.filter(p=>!p.lida).length;
+  const badge=document.getElementById('n-diario-badge');
+  if(badge){badge.textContent=n;badge.style.display=n?'':'none';}
+}
+
 // ── AGENDA ──
 let agenda=[],filtroAgenda='proximos',agEditId=null;
 const TIPO_ICONE={Audiência:'⚖️',Reunião:'🤝',Prazo:'⏰',Protocolo:'📋',Perícia:'🔬',Outro:'📌'};
@@ -3766,7 +3985,7 @@ window.addEventListener('load',async()=>{
     db.from('demandas_escritorio').select('*').eq('escritorio_id',esc.id).order('created_at',{ascending:false}),
     db.from('colab_escritorio').select('*').eq('escritorio_id',esc.id).order('created_at',{ascending:true})
   ]);
-  demandas=d||[];colabs=c||[];initEtapaSel();initRespSel();renderKanban();loadAtendimentos();loadAgenda();
+  demandas=d||[];colabs=c||[];initEtapaSel();initRespSel();renderKanban();loadAtendimentos();loadAgenda();loadDiario();
   // Nota: rode no Supabase SQL Editor:
   // ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS onboarding_completo boolean DEFAULT false;
   // ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS logo_url text;
