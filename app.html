@@ -386,6 +386,45 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd);}
   .fg2{grid-template-columns:1fr}
   #tb{left:0}
 }
+
+/* ── ONBOARDING ── */
+#ob{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;padding:20px}
+#ob.on{display:flex}
+.ob-bg{position:fixed;inset:0;background:var(--sb)}
+.ob-card{position:relative;background:#fff;border-radius:24px;padding:40px;width:100%;max-width:520px;box-shadow:0 24px 80px rgba(0,0,0,.3);max-height:90vh;overflow-y:auto}
+.ob-logo{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--gd);letter-spacing:-.5px;margin-bottom:2px}
+.ob-sub{font-size:13px;color:var(--tx3);margin-bottom:28px}
+.ob-steps{display:flex;align-items:center;margin-bottom:32px}
+.ob-step-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--bd2);background:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--tx3);flex-shrink:0;transition:all .3s}
+.ob-step-dot.ativo{border-color:var(--gd);background:var(--gd);color:#fff}
+.ob-step-dot.feito{border-color:var(--gd);background:var(--gd);color:#fff}
+.ob-step-line{flex:1;height:2px;background:var(--bd);margin:0 6px;transition:background .3s}
+.ob-step-line.feito{background:var(--gd)}
+.ob-p-title{font-size:20px;font-weight:700;color:var(--tx);margin-bottom:6px;font-family:'Fraunces',serif}
+.ob-p-sub{font-size:13px;color:var(--tx3);margin-bottom:20px}
+.ob-logo-area{border:2px dashed var(--bd2);border-radius:12px;padding:24px;text-align:center;cursor:pointer;margin-top:14px;transition:all .2s}
+.ob-logo-area:hover{border-color:var(--gd);background:var(--gdp)}
+.ob-logo-area img{max-height:80px;max-width:200px;object-fit:contain}
+.ob-logo-txt{font-size:13px;color:var(--tx3);margin-top:8px}
+.ob-temas{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px}
+.ob-tema-card{border:2px solid var(--bd);border-radius:12px;padding:12px;cursor:pointer;text-align:center;transition:all .2s}
+.ob-tema-card:hover{border-color:var(--gd);transform:translateY(-2px)}
+.ob-tema-card.ativo{border-color:var(--gd);box-shadow:0 0 0 3px var(--gdb)}
+.ob-tema-sb{height:36px;border-radius:6px;margin-bottom:6px}
+.ob-tema-acc{height:6px;border-radius:3px;margin:0 8px 6px}
+.ob-tema-nome{font-size:11px;font-weight:600;color:var(--tx2)}
+.ob-membros-add{display:flex;gap:8px;margin-bottom:12px}
+.ob-membros-add .finp{flex:1;margin:0}
+.ob-membro-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--s2);border-radius:8px;margin-bottom:6px;font-size:13px}
+.ob-membro-rm{background:none;border:none;cursor:pointer;color:var(--tx3);font-size:18px;line-height:1;padding:0 2px}
+.ob-membro-rm:hover{color:var(--rd)}
+.ob-nav{display:flex;gap:10px;margin-top:28px;align-items:center}
+.ob-btn-back{background:none;border:1px solid var(--bd2);border-radius:10px;padding:10px 20px;font-size:14px;font-weight:500;cursor:pointer;color:var(--tx2);transition:all .2s}
+.ob-btn-back:hover{border-color:var(--gd);color:var(--gd)}
+.ob-btn-next{background:var(--gd);border:none;border-radius:10px;padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer;color:#fff;transition:all .2s;margin-left:auto}
+.ob-btn-next:hover{opacity:.9;transform:translateY(-1px)}
+.ob-btn-next:disabled{opacity:.5;cursor:not-allowed;transform:none}
+@media(max-width:600px){.ob-card{padding:24px}.ob-temas{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -1182,6 +1221,116 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd);}
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- ══ ONBOARDING ══ -->
+<div id="ob">
+  <div class="ob-bg"></div>
+  <div class="ob-card">
+    <div class="ob-logo">OrganizaADV</div>
+    <div class="ob-sub">Bem-vindo! Vamos configurar seu escritório em 4 passos.</div>
+    <div class="ob-steps">
+      <div class="ob-step-dot ativo" id="ob-dot-1">1</div>
+      <div class="ob-step-line" id="ob-line-1"></div>
+      <div class="ob-step-dot" id="ob-dot-2">2</div>
+      <div class="ob-step-line" id="ob-line-2"></div>
+      <div class="ob-step-dot" id="ob-dot-3">3</div>
+      <div class="ob-step-line" id="ob-line-3"></div>
+      <div class="ob-step-dot" id="ob-dot-4">4</div>
+    </div>
+
+    <!-- Passo 1: Nome + Logo -->
+    <div class="ob-pane" id="ob-p1">
+      <div class="ob-p-title">Nome do escritório</div>
+      <div class="ob-p-sub">Como seu escritório será identificado no sistema</div>
+      <input type="text" class="finp" id="ob-nome" placeholder="Ex.: Silva & Associados Advogados" style="margin-bottom:0"/>
+      <div class="ob-logo-area" id="ob-logo-drop" onclick="document.getElementById('ob-logo-inp').click()">
+        <div id="ob-logo-preview-wrap">
+          <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="color:var(--tx3)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          <div class="ob-logo-txt">Clique para adicionar logo (opcional)</div>
+        </div>
+      </div>
+      <input type="file" id="ob-logo-inp" accept="image/*" style="display:none" onchange="obPreviewLogo(this)"/>
+    </div>
+
+    <!-- Passo 2: Tema de cores -->
+    <div class="ob-pane" id="ob-p2" style="display:none">
+      <div class="ob-p-title">Tema do sistema</div>
+      <div class="ob-p-sub">Escolha as cores do seu escritório</div>
+      <div class="ob-temas">
+        <div class="ob-tema-card ativo" data-tema="preto-dourado" onclick="obSelecionarTema('preto-dourado')">
+          <div class="ob-tema-sb" style="background:#1C1F2E"></div>
+          <div class="ob-tema-acc" style="background:#C9A84C"></div>
+          <div class="ob-tema-nome">Preto &amp; Dourado</div>
+        </div>
+        <div class="ob-tema-card" data-tema="azul-profundo" onclick="obSelecionarTema('azul-profundo')">
+          <div class="ob-tema-sb" style="background:#0F2552"></div>
+          <div class="ob-tema-acc" style="background:#3B82F6"></div>
+          <div class="ob-tema-nome">Azul Profundo</div>
+        </div>
+        <div class="ob-tema-card" data-tema="verde-justica" onclick="obSelecionarTema('verde-justica')">
+          <div class="ob-tema-sb" style="background:#0D2B1A"></div>
+          <div class="ob-tema-acc" style="background:#059669"></div>
+          <div class="ob-tema-nome">Verde Justiça</div>
+        </div>
+        <div class="ob-tema-card" data-tema="roxo-prestige" onclick="obSelecionarTema('roxo-prestige')">
+          <div class="ob-tema-sb" style="background:#1E0A3C"></div>
+          <div class="ob-tema-acc" style="background:#7C3AED"></div>
+          <div class="ob-tema-nome">Roxo Prestígio</div>
+        </div>
+        <div class="ob-tema-card" data-tema="vermelho-poder" onclick="obSelecionarTema('vermelho-poder')">
+          <div class="ob-tema-sb" style="background:#3B0A0A"></div>
+          <div class="ob-tema-acc" style="background:#DC2626"></div>
+          <div class="ob-tema-nome">Vermelho Poder</div>
+        </div>
+        <div class="ob-tema-card" data-tema="cinza-platina" onclick="obSelecionarTema('cinza-platina')">
+          <div class="ob-tema-sb" style="background:#1F2937"></div>
+          <div class="ob-tema-acc" style="background:#94A3B8"></div>
+          <div class="ob-tema-nome">Cinza Platina</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Passo 3: Equipe -->
+    <div class="ob-pane" id="ob-p3" style="display:none">
+      <div class="ob-p-title">Membros da equipe</div>
+      <div class="ob-p-sub">Adicione os colaboradores do escritório (pode fazer isso depois)</div>
+      <div class="ob-membros-add">
+        <input type="text" class="finp" id="ob-membro-inp" placeholder="Nome do membro..." onkeydown="if(event.key==='Enter')obAdicionarMembro()"/>
+        <button class="btn btn-gh" onclick="obAdicionarMembro()" style="white-space:nowrap">+ Adicionar</button>
+      </div>
+      <div id="ob-membros-lista"></div>
+    </div>
+
+    <!-- Passo 4: Área principal -->
+    <div class="ob-pane" id="ob-p4" style="display:none">
+      <div class="ob-p-title">Área principal de atuação</div>
+      <div class="ob-p-sub">Isso ajuda a personalizar os fluxos de trabalho sugeridos</div>
+      <select class="fsel" id="ob-area" style="margin-top:4px">
+        <option value="">Selecione a área principal...</option>
+        <option value="Trabalhista">Trabalhista</option>
+        <option value="Família">Família e Sucessões</option>
+        <option value="Consumidor">Direito do Consumidor</option>
+        <option value="Previdenciário">Previdenciário</option>
+        <option value="Criminal">Criminal</option>
+        <option value="Tributário">Tributário</option>
+        <option value="Empresarial">Empresarial</option>
+        <option value="Imobiliário">Imobiliário</option>
+        <option value="Administrativo">Administrativo</option>
+        <option value="Ambiental">Ambiental</option>
+        <option value="Digital">Digital</option>
+        <option value="Médico">Responsabilidade Médica</option>
+        <option value="Eleitoral">Eleitoral</option>
+        <option value="Cível">Cível Geral</option>
+      </select>
+    </div>
+
+    <div class="ob-nav">
+      <button class="ob-btn-back" id="ob-btn-back" onclick="obStep(obAtual-1)" style="display:none">← Voltar</button>
+      <button class="ob-btn-next" id="ob-btn-next" onclick="obProximo()">Próximo →</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════
 // OrganizaADV v3.0 — JavaScript Principal
@@ -2927,6 +3076,136 @@ async function salvarCfg(){
   escData.nome=document.getElementById('cfg-nome').value;renderSBInfo();toast('Configurações salvas!');
 }
 
+// ── ONBOARDING ──
+const OB_TEMAS={
+  'preto-dourado':{sb:'#1C1F2E',gd:'#C9A84C',gd2:'#E2C470',gdp:'#FFFBEB',gdb:'rgba(201,168,76,.2)'},
+  'azul-profundo':{sb:'#0F2552',gd:'#3B82F6',gd2:'#60A5FA',gdp:'#EFF6FF',gdb:'rgba(59,130,246,.2)'},
+  'verde-justica':{sb:'#0D2B1A',gd:'#059669',gd2:'#34D399',gdp:'#ECFDF5',gdb:'rgba(5,150,105,.2)'},
+  'roxo-prestige':{sb:'#1E0A3C',gd:'#7C3AED',gd2:'#A78BFA',gdp:'#F5F3FF',gdb:'rgba(124,58,237,.2)'},
+  'vermelho-poder':{sb:'#3B0A0A',gd:'#DC2626',gd2:'#F87171',gdp:'#FEF2F2',gdb:'rgba(220,38,38,.2)'},
+  'cinza-platina':{sb:'#1F2937',gd:'#94A3B8',gd2:'#CBD5E1',gdp:'#F8FAFC',gdb:'rgba(148,163,184,.2)'},
+};
+let obAtual=1,obTemaSel='preto-dourado',obMembros=[],obLogoFile=null;
+
+function obAplicarTema(tema){
+  const t=OB_TEMAS[tema]||OB_TEMAS['preto-dourado'];
+  const r=document.documentElement.style;
+  r.setProperty('--sb',t.sb);r.setProperty('--gd',t.gd);r.setProperty('--gd2',t.gd2);
+  r.setProperty('--gdp',t.gdp);r.setProperty('--gdb',t.gdb);
+}
+function obSelecionarTema(tema){
+  obAplicarTema(tema);obTemaSel=tema;
+  document.querySelectorAll('.ob-tema-card').forEach(c=>c.classList.toggle('ativo',c.dataset.tema===tema));
+}
+function obPreviewLogo(inp){
+  if(!inp.files[0])return;
+  obLogoFile=inp.files[0];
+  const reader=new FileReader();
+  reader.onload=e=>{
+    document.getElementById('ob-logo-preview-wrap').innerHTML=`<img src="${e.target.result}" style="max-height:80px;max-width:200px;object-fit:contain"/><div class="ob-logo-txt" style="color:var(--gr);margin-top:6px">Logo carregada ✓</div>`;
+  };
+  reader.readAsDataURL(obLogoFile);
+}
+function obAdicionarMembro(){
+  const inp=document.getElementById('ob-membro-inp');
+  const nome=inp.value.trim();
+  if(!nome)return;
+  if(obMembros.includes(nome)){toast('Nome já adicionado','te');return;}
+  obMembros.push(nome);inp.value='';obRenderMembros();
+}
+function obRemoverMembro(i){obMembros.splice(i,1);obRenderMembros();}
+function obRenderMembros(){
+  const el=document.getElementById('ob-membros-lista');
+  if(!obMembros.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--tx3);font-size:13px">Nenhum membro adicionado ainda</div>';return;}
+  el.innerHTML=obMembros.map((n,i)=>`<div class="ob-membro-item"><span>${n}</span><button class="ob-membro-rm" onclick="obRemoverMembro(${i})" title="Remover">×</button></div>`).join('');
+}
+function obStep(n){
+  if(n<1||n>4)return;
+  document.getElementById('ob-p'+obAtual).style.display='none';
+  obAtual=n;
+  document.getElementById('ob-p'+obAtual).style.display='';
+  // update step dots
+  for(let i=1;i<=4;i++){
+    const dot=document.getElementById('ob-dot-'+i);
+    dot.classList.toggle('feito',i<obAtual);
+    dot.classList.toggle('ativo',i===obAtual);
+    if(i<4){const line=document.getElementById('ob-line-'+i);line.classList.toggle('feito',i<obAtual);}
+  }
+  document.getElementById('ob-btn-back').style.display=obAtual>1?'':'none';
+  const btn=document.getElementById('ob-btn-next');
+  btn.textContent=obAtual===4?'Concluir e Começar →':'Próximo →';
+}
+function obProximo(){
+  if(obAtual===1){
+    const nome=document.getElementById('ob-nome').value.trim();
+    if(!nome){toast('Informe o nome do escritório','te');return;}
+    obStep(2);
+  } else if(obAtual===2){
+    obStep(3);obRenderMembros();
+  } else if(obAtual===3){
+    obStep(4);
+  } else if(obAtual===4){
+    obConcluir();
+  }
+}
+function obIniciar(){
+  // pre-fill office name if already set
+  if(escData.nome)document.getElementById('ob-nome').value=escData.nome;
+  // pre-select current theme
+  if(escData.tema){obTemaSel=escData.tema;document.querySelectorAll('.ob-tema-card').forEach(c=>c.classList.toggle('ativo',c.dataset.tema===escData.tema));}
+  document.getElementById('ob').classList.add('on');
+}
+async function obConcluir(){
+  const btn=document.getElementById('ob-btn-next');
+  btn.disabled=true;btn.textContent='Salvando...';
+  const nome=document.getElementById('ob-nome').value.trim();
+  const area=document.getElementById('ob-area').value;
+  // upload logo if provided
+  let logoUrl=null;
+  if(obLogoFile){
+    const ext=obLogoFile.name.split('.').pop();
+    const path=`${escData.id}/logo.${ext}`;
+    const{error:upErr}=await db.storage.from('logos').upload(path,obLogoFile,{upsert:true});
+    if(!upErr){const{data:pub}=db.storage.from('logos').getPublicUrl(path);logoUrl=pub.publicUrl;}
+  }
+  // update escritorio
+  const upd={nome,onboarding_completo:true,tema:obTemaSel};
+  if(area)upd.area_principal=area;
+  if(logoUrl)upd.logo_url=logoUrl;
+  const{error:upErr2}=await db.from('escritorios').update(upd).eq('id',escData.id);
+  if(upErr2){toast('Erro ao salvar: '+upErr2.message,'te');btn.disabled=false;btn.textContent='Concluir e Começar →';return;}
+  Object.assign(escData,upd);
+  // create team members
+  if(obMembros.length){
+    const rows=obMembros.map(n=>({escritorio_id:escData.id,nome:n,perfil:'colaborador'}));
+    const{data:novosColabs}=await db.from('colab_escritorio').insert(rows).select();
+    if(novosColabs)colabs.push(...novosColabs);
+  }
+  // create 2 demo clients
+  const hoje=new Date().toISOString().split('T')[0];
+  const demos=[
+    {escritorio_id:escData.id,nome_cliente:'Ana Paula Ferreira',cpf_cnpj:'321.654.987-00',tipo:'Direito de Família',etapa:ETAPAS[0],status:'Em andamento',criado_por:escData.responsavel||'Gestor'},
+    {escritorio_id:escData.id,nome_cliente:'Comércio Central Ltda',cpf_cnpj:'12.345.678/0001-99',tipo:'Direito Empresarial',etapa:ETAPAS[0],status:'Em andamento',criado_por:escData.responsavel||'Gestor'},
+  ];
+  const{data:dd}=await db.from('demandas_escritorio').insert(demos).select();
+  if(dd)demandas.push(...dd);
+  // hide onboarding and start app
+  document.getElementById('ob').classList.remove('on');
+  renderSBInfo();renderKanban();
+  toast('Configuração concluída! Bem-vindo ao OrganizaADV.');
+  // apply saved theme to settings display
+  if(escData.tema)obAplicarTema(escData.tema);
+  // show login or auto-login
+  obFinalizarInicio();
+}
+function obFinalizarInicio(){
+  const u=sessionStorage.getItem('oadv_user');
+  if(u&&colabs.find(c=>c.nome===u))loginComo(u);
+  else if(colabs.length>0)mostrarLogin();
+  else{userAtual=escData.responsavel||'Gestor';document.getElementById('sb-uav').textContent=iniciais(userAtual);document.getElementById('sb-unm').textContent=userAtual;const nf=document.getElementById('n-fin');if(nf)nf.style.display='flex';}
+  mostrarResumoDiario();
+}
+
 // ── INIT ──
 window.addEventListener('load',async()=>{
   const{data:{session}}=await db.auth.getSession();
@@ -2935,15 +3214,21 @@ window.addEventListener('load',async()=>{
   if(!esc){window.location.href='cadastro.html';return;}
   escData=esc;
   if(esc.etapas?.length)ETAPAS=esc.etapas;
+  if(esc.tema)obAplicarTema(esc.tema);
   renderSBInfo();verificarTrial();loadFin();loadNotifs();
   const[{data:d},{data:c}]=await Promise.all([
     db.from('demandas_escritorio').select('*').eq('escritorio_id',esc.id).order('created_at',{ascending:false}),
     db.from('colab_escritorio').select('*').eq('escritorio_id',esc.id).order('created_at',{ascending:true})
   ]);
   demandas=d||[];colabs=c||[];initEtapaSel();initRespSel();renderKanban();
-  // Nota: rode no Supabase:
+  // Nota: rode no Supabase SQL Editor:
+  // ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS onboarding_completo boolean DEFAULT false;
+  // ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS logo_url text;
+  // ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS tema text DEFAULT 'preto-dourado';
+  // ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS area_principal text;
   // ALTER TABLE colab_escritorio ADD COLUMN IF NOT EXISTS perfil text DEFAULT 'colaborador';
   // ALTER TABLE demandas_escritorio ADD COLUMN IF NOT EXISTS criado_por text;
+  if(!esc.onboarding_completo){obIniciar();return;}
   const u=sessionStorage.getItem('oadv_user');
   if(u&&colabs.find(c=>c.nome===u))loginComo(u);
   else if(colabs.length>0)mostrarLogin();
