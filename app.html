@@ -532,7 +532,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><path d="M12 5A4 4 0 004 5c0 5-2 6-2 6h12s-2-1-2-6"/><path d="M9.15 14a2 2 0 01-2.3 0"/></svg>
         <span id="topbar-ndot" style="position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--rd);display:none;"></span>
       </button>
-      <button class="btn btn-p" onclick="abrirNovaDemanda()">
+      <button class="btn btn-p" onclick="abrirNovaDemanda()" id="btn-nova-demanda">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg>
         Nova demanda
       </button>
@@ -645,7 +645,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         </button>
       </div>
       <div class="tbl-wrap">
-        <table><thead><tr><th>Membro</th><th>Perfil</th><th>WhatsApp</th><th>Demandas ativas</th><th>Concluídas</th><th>Fases realizadas</th></tr></thead>
+        <table><thead><tr><th>Membro</th><th>Perfil</th><th>WhatsApp</th><th>Demandas ativas</th><th>Concluídas</th><th>Fases realizadas</th><th>Permissões</th></tr></thead>
         <tbody id="tb-eq"></tbody></table>
       </div>
     </div>
@@ -1253,6 +1253,27 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
   </div>
 </div>
 
+<!-- ══ MODAL PERMISSÕES ══ -->
+<div class="mov" id="m-permissoes">
+  <div class="mbox narrow">
+    <div class="mhead">
+      <div><div class="mtitle">Permissões de acesso</div><div class="msubt" id="perm-sub">Configurar acesso individual</div></div>
+      <div class="mx" onclick="closeM('m-permissoes')">✕</div>
+    </div>
+    <div class="mbody">
+      <div style="font-size:12.5px;color:var(--tx3);background:var(--s2);border-radius:8px;padding:10px 12px;margin-bottom:18px;border:1px solid var(--bd)">Permissões individuais sobrescrevem os padrões do perfil para este usuário.</div>
+      <div id="perm-lista"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-gh" onclick="resetarPermissoes()">Restaurar padrões</button>
+      <div class="mfoot-r">
+        <button class="btn btn-gh" onclick="closeM('m-permissoes')">Cancelar</button>
+        <button class="btn btn-gd" onclick="salvarPermissoes()">Salvar permissões</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ══ MODAL NOVO ATENDIMENTO ══ -->
 <div class="mov" id="m-atend">
   <div class="mbox">
@@ -1757,15 +1778,16 @@ function loginComo(n){
     else{badge.textContent='Colaborador';badge.className='sb-badge ess';}
   }
 
-  // Financeiro só para titular
+  // Módulos por permissão
   const nf=document.getElementById('n-fin');
-  if(nf)nf.style.display=isTitular(n)?'flex':'none';
-
-  // Configurações só para titular
+  if(nf)nf.style.display=temPermissao('ver_financeiro')?'flex':'none';
   const ncfg=document.getElementById('n-cfg');
   if(ncfg)ncfg.style.display=isTitular(n)?'flex':'none';
-
-  // Botão nova demanda visível para todos
+  const nat=document.getElementById('n-atendimentos');
+  if(nat)nat.style.display=temPermissao('ver_atendimentos')?'flex':'none';
+  // Botão nova demanda
+  const btnNova=document.getElementById('btn-nova-demanda');
+  if(btnNova)btnNova.style.display=temPermissao('criar_demandas')?'':'none';
   renderKanban();
 }
 function trocarUser(){userAtual=null;sessionStorage.removeItem('oadv_user');renderLoginGrid();document.getElementById('ls').classList.add('on');}
@@ -1815,6 +1837,10 @@ function initRespSel(){
 const VIEWS=['kanban','demandas','clientes','atendimentos','notif','equipe','relatorio','fin','cfg'];
 const VTITLES={kanban:'Fluxo de trabalho',demandas:'Todas as demandas',clientes:'Clientes',atendimentos:'Atendimentos',notif:'Tribunal & IA',equipe:'Advogados e colaboradores',relatorio:'Relatório mensal',fin:'Financeiro',cfg:'Configurações'};
 function showView(v){
+  // bloqueia views por permissão
+  if(v==='fin'&&!temPermissao('ver_financeiro')){toast('Sem permissão para acessar o financeiro.','te');return;}
+  if(v==='atendimentos'&&!temPermissao('ver_atendimentos')){toast('Sem permissão para acessar os atendimentos.','te');return;}
+  if(v==='equipe'&&!temPermissao('gerenciar_equipe')&&!isTitular(userAtual)){toast('Sem permissão para gerenciar a equipe.','te');return;}
   VIEWS.forEach(x=>{
     document.getElementById('v-'+x).style.display=x===v?'block':'none';
     const n=document.getElementById('n-'+x);if(n)n.classList.remove('on');
@@ -2319,6 +2345,7 @@ function renderEqTabela(){
     const at=demandas.filter(d=>statusD(d)==='Em andamento'&&d.responsavel===c.nome).length;
     const conc=demandas.filter(d=>statusD(d)==='Concluído'&&d.responsavel===c.nome).length;
     const perfil=c.perfil||'colaborador';
+    const temCustom=c.permissoes&&Object.keys(c.permissoes).length>0;
     return`<tr>
       <td><div class="td-av"><div class="av">${iniciais(c.nome)}</div><div style="font-weight:500;">${c.nome}</div></div></td>
       <td><span class="bdg ${perfilBdg[perfil]||'b-conc'}">${perfilLabel[perfil]||'Colaborador'}</span></td>
@@ -2326,6 +2353,7 @@ function renderEqTabela(){
       <td><strong>${at}</strong></td>
       <td><strong>${conc}</strong></td>
       <td><span class="bdg b-gd">${fases.length} fases</span></td>
+      <td><button class="btn btn-gh btn-sm" onclick="abrirPermissoes('${c.id}')">${temCustom?'<span style="color:var(--am)">●</span> ':''}Editar</button></td>
     </tr>`;
   }).join('');
 }
@@ -3175,6 +3203,63 @@ async function salvarCfg(){
   const{error}=await db.from('escritorios').update({nome:document.getElementById('cfg-nome').value,tel:document.getElementById('cfg-tel').value}).eq('id',escId);
   if(error){toast('Erro: '+error.message,'te');return;}
   escData.nome=document.getElementById('cfg-nome').value;renderSBInfo();toast('Configurações salvas!');
+}
+
+// ── PERMISSÕES GRANULARES ──
+const PERMS_DEF={
+  titular:{ver_financeiro:true,ver_todas_demandas:true,criar_demandas:true,editar_demandas:true,ver_atendimentos:true,gerenciar_equipe:true,exportar:true},
+  advogado:{ver_financeiro:false,ver_todas_demandas:true,criar_demandas:true,editar_demandas:true,ver_atendimentos:true,gerenciar_equipe:false,exportar:true},
+  colaborador:{ver_financeiro:false,ver_todas_demandas:false,criar_demandas:false,editar_demandas:false,ver_atendimentos:false,gerenciar_equipe:false,exportar:false},
+};
+const PERMS_LABEL={
+  ver_financeiro:'Ver módulo financeiro',
+  ver_todas_demandas:'Ver todas as demandas (não só as próprias)',
+  criar_demandas:'Criar novas demandas',
+  editar_demandas:'Editar demandas existentes',
+  ver_atendimentos:'Ver módulo de atendimentos',
+  gerenciar_equipe:'Gerenciar equipe (adicionar/remover membros)',
+  exportar:'Exportar relatórios',
+};
+function temPermissao(perm){
+  if(!userAtual)return true;
+  const colab=colabs.find(c=>c.nome===userAtual);
+  if(!colab)return true;
+  const perfil=colab.perfil||'colaborador';
+  if(perfil==='titular')return true;
+  const individual=colab.permissoes||{};
+  if(perm in individual)return!!individual[perm];
+  return PERMS_DEF[perfil]?.[perm]??false;
+}
+let permEditId=null;
+function abrirPermissoes(id){
+  const c=colabs.find(x=>x.id===id);if(!c)return;
+  permEditId=id;
+  document.getElementById('perm-sub').textContent=c.nome+' · '+({titular:'Titular',advogado:'Advogado',colaborador:'Colaborador'}[c.perfil||'colaborador']);
+  const perfil=c.perfil||'colaborador';
+  const individual=c.permissoes||{};
+  const def=PERMS_DEF[perfil]||PERMS_DEF.colaborador;
+  document.getElementById('perm-lista').innerHTML=Object.entries(PERMS_LABEL).map(([k,label])=>{
+    const val=k in individual?!!individual[k]:def[k];
+    return`<label style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--div);cursor:pointer">
+      <input type="checkbox" id="perm-${k}" ${val?'checked':''} style="width:16px;height:16px;accent-color:var(--gd);flex-shrink:0"/>
+      <span style="font-size:13.5px;color:var(--tx)">${label}</span>
+    </label>`;
+  }).join('')+'<div style="height:4px"></div>';
+  openM('m-permissoes');
+}
+async function salvarPermissoes(){
+  const perms={};
+  Object.keys(PERMS_LABEL).forEach(k=>{perms[k]=document.getElementById('perm-'+k)?.checked??false;});
+  const{error}=await db.from('colab_escritorio').update({permissoes:perms}).eq('id',permEditId);
+  if(error){toast('Erro: '+error.message,'te');return;}
+  const c=colabs.find(x=>x.id===permEditId);if(c)c.permissoes=perms;
+  closeM('m-permissoes');toast('Permissões salvas!');
+}
+async function resetarPermissoes(){
+  const{error}=await db.from('colab_escritorio').update({permissoes:{}}).eq('id',permEditId);
+  if(error){toast('Erro: '+error.message,'te');return;}
+  const c=colabs.find(x=>x.id===permEditId);if(c)c.permissoes={};
+  closeM('m-permissoes');toast('Permissões restauradas ao padrão do perfil.');
 }
 
 // ── ATENDIMENTOS ──
