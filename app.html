@@ -1678,13 +1678,15 @@ function renderSBInfo(){
   document.getElementById('sb-esc').textContent=escData.nome||'Escritório';
   document.getElementById('ls-esc').textContent=escData.nome||'OrganizaADV';
   const b=document.getElementById('sb-badge');
-  if(escData.plano==='avancado'){b.textContent='Avançado';b.className='sb-badge adv';}
-  else{b.textContent='Essencial';b.className='sb-badge ess';}
+  if(escData.plano==='pro'||escData.plano==='avancado'){b.textContent='Pro';b.className='sb-badge adv';}
+  else if(escData.plano==='essencial'){b.textContent='Essencial';b.className='sb-badge ess';}
+  else{b.textContent='Trial';b.className='sb-badge';}
 }
 
 // ── TRIAL ──
 function verificarTrial(){
-  if(!escData.trial_expira||escData.plano==='avancado'||escData.plano==='essencial')return;
+  if(escData.plano==='pro'||escData.plano==='avancado'||escData.plano==='essencial'||escData.ativo)return;
+  if(!escData.trial_expira)return;
   const dias=calcPrazo(escData.trial_expira.split('T')[0]);
   if(dias!==null&&dias<=7){
     document.getElementById('tb').classList.add('on');
