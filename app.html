@@ -476,6 +476,11 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       Tribunal &amp; IA
       <span class="ni-badge" id="n-notif-badge" style="display:none">0</span>
     </div>
+    <div class="ni" id="n-agenda" onclick="showView('agenda')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><rect x="1" y="2" width="14" height="13" rx="2"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/><line x1="1" y1="7" x2="15" y2="7"/></svg>
+      Agenda
+      <span class="ni-badge" id="n-agenda-badge" style="display:none">0</span>
+    </div>
     <div class="nav-sec">Equipe</div>
     <div class="ni" id="n-equipe" onclick="showView('equipe')">
       <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><circle cx="5" cy="5" r="2.5"/><circle cx="11" cy="5" r="2.5"/><path d="M0 13c0-2.5 2-4 5-4"/><path d="M16 13c0-2.5-2-4-5-4"/><path d="M5 13c0-2.5 1.3-4 3-4s3 1.5 3 4"/></svg>
@@ -636,6 +641,18 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <div class="tbl-wrap"><div id="notif-list"></div></div>
     </div>
 
+    <!-- AGENDA -->
+    <div id="v-agenda" style="display:none">
+      <div class="fbar">
+        <button class="fc on" data-agf="proximos" onclick="setFiltroAgenda(this)">Próximos</button>
+        <button class="fc" data-agf="hoje" onclick="setFiltroAgenda(this)">Hoje</button>
+        <button class="fc" data-agf="passados" onclick="setFiltroAgenda(this)">Passados</button>
+        <button class="fc" data-agf="todos" onclick="setFiltroAgenda(this)">Todos</button>
+        <button class="btn btn-gd" onclick="abrirNovoEvento()" style="margin-left:auto">+ Novo evento</button>
+      </div>
+      <div id="agenda-lista"></div>
+    </div>
+
     <!-- EQUIPE -->
     <div id="v-equipe" style="display:none">
       <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
@@ -645,7 +662,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         </button>
       </div>
       <div class="tbl-wrap">
-        <table><thead><tr><th>Membro</th><th>Perfil</th><th>WhatsApp</th><th>Demandas ativas</th><th>Concluídas</th><th>Fases realizadas</th><th>Permissões</th></tr></thead>
+        <table><thead><tr><th>Membro</th><th>Perfil</th><th>OAB</th><th>WhatsApp</th><th>Ativas</th><th>Concluídas</th><th>Permissões</th></tr></thead>
         <tbody id="tb-eq"></tbody></table>
       </div>
     </div>
@@ -1156,11 +1173,15 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         <div class="field">
           <label class="flabel">Perfil de acesso <span class="req">*</span></label>
           <select class="fsel" id="eq-perfil" onchange="updatePerfilInfo()">
-            <option value="titular">Titular — acesso total</option>
-            <option value="advogado">Advogado — vê todas as demandas</option>
-            <option value="colaborador">Colaborador — vê apenas as suas</option>
+            <option value="advogado">Advogado — acesso completo</option>
+            <option value="colaborador">Colaborador — acesso limitado</option>
           </select>
         </div>
+      </div>
+      <div class="field" id="eq-oab-wrap">
+        <label class="flabel">Número OAB <span class="req">*</span></label>
+        <input type="text" class="finp" id="eq-oab" placeholder="OAB/XX 000000"/>
+        <div class="fhint">Obrigatório para advogados — garante acesso completo ao sistema</div>
       </div>
       <div class="field">
         <label class="flabel">WhatsApp (com DDI e DDD, sem espaços)</label>
@@ -1250,6 +1271,62 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <div id="fd-parcs"></div>
     </div>
     <div class="mfoot"><button class="btn btn-danger" onclick="excluirContrato()">Excluir contrato</button><div class="mfoot-r"><button class="btn btn-gh" onclick="closeM('m-fin-det')">Fechar</button></div></div>
+  </div>
+</div>
+
+<!-- ══ MODAL NOVO EVENTO ══ -->
+<div class="mov" id="m-agenda">
+  <div class="mbox">
+    <div class="mhead">
+      <div><div class="mtitle" id="mag-titulo">Novo evento</div><div class="msubt">Audiência, reunião, prazo ou outro compromisso</div></div>
+      <div class="mx" onclick="closeM('m-agenda')">✕</div>
+    </div>
+    <div class="mbody">
+      <div class="field"><label class="flabel">Título <span class="req">*</span></label><input type="text" class="finp" id="ag-titulo" placeholder="Ex.: Audiência de conciliação — João Silva"/></div>
+      <div class="fg2">
+        <div class="field"><label class="flabel">Tipo</label>
+          <select class="fsel" id="ag-tipo">
+            <option value="Audiência">⚖️ Audiência</option>
+            <option value="Reunião">🤝 Reunião</option>
+            <option value="Prazo">⏰ Prazo processual</option>
+            <option value="Protocolo">📋 Protocolo / petição</option>
+            <option value="Perícia">🔬 Perícia</option>
+            <option value="Outro">📌 Outro</option>
+          </select>
+        </div>
+        <div class="field"><label class="flabel">Responsável</label><select class="fsel" id="ag-resp"><option value="">Selecione...</option></select></div>
+      </div>
+      <div class="fg2">
+        <div class="field"><label class="flabel">Data <span class="req">*</span></label><input type="date" class="finp" id="ag-data"/></div>
+        <div class="field"><label class="flabel">Horário</label><input type="time" class="finp" id="ag-hora"/></div>
+      </div>
+      <div class="field"><label class="flabel">Local / fórum</label><input type="text" class="finp" id="ag-local" placeholder="Ex.: 2ª Vara Cível de Salvador — Sala 3"/></div>
+      <div class="field"><label class="flabel">Demanda vinculada</label><select class="fsel" id="ag-demanda"><option value="">Nenhuma</option></select></div>
+      <div class="field"><label class="flabel">Descrição / observações</label><textarea class="fta" id="ag-desc" placeholder="Detalhes relevantes sobre o evento..." style="min-height:60px"></textarea></div>
+      <div style="background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:4px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);margin-bottom:10px;">Lembrete por WhatsApp</div>
+        <div class="fg2">
+          <div class="field" style="margin-bottom:0"><label class="flabel">Número WhatsApp</label><input type="tel" class="finp" id="ag-wpp" placeholder="5571900000000 (sem +)"/></div>
+          <div class="field" style="margin-bottom:0"><label class="flabel">Antecedência</label>
+            <select class="fsel" id="ag-notif-ant">
+              <option value="no dia">No dia do evento</option>
+              <option value="1 dia" selected>1 dia antes</option>
+              <option value="2 dias">2 dias antes</option>
+              <option value="3 dias">3 dias antes</option>
+              <option value="1 semana">1 semana antes</option>
+            </select>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--tx3);margin-top:8px;">💡 O lembrete será enviado manualmente via botão — ou automaticamente se você configurar uma API de WhatsApp em Configurações.</div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-danger" id="ag-btn-excluir" onclick="excluirEvento()" style="display:none">Excluir</button>
+      <div class="mfoot-r">
+        <button class="btn btn-gh" onclick="closeM('m-agenda')">Cancelar</button>
+        <button class="btn btn-gd" id="ag-btn-salvar" onclick="salvarEvento()">Salvar evento</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1828,14 +1905,15 @@ function initEtapaSel(){
 function initRespSel(){
   const nomes=colabs.map(c=>c.nome);
   const opts='<option value="">Selecione...</option>'+nomes.map(n=>`<option value="${n}">${n}</option>`).join('');
-  ['f-resp','ato-resp','at-resp'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
+  ['f-resp','ato-resp','at-resp','ag-resp'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
+  initAgendaDemandaSel();
   const del=document.getElementById('ato-deleg');
   if(del)del.innerHTML='<option value="">Não delegar</option>'+nomes.map(n=>`<option value="${n}">${n}</option>`).join('');
 }
 
 // ── VIEWS ──
-const VIEWS=['kanban','demandas','clientes','atendimentos','notif','equipe','relatorio','fin','cfg'];
-const VTITLES={kanban:'Fluxo de trabalho',demandas:'Todas as demandas',clientes:'Clientes',atendimentos:'Atendimentos',notif:'Tribunal & IA',equipe:'Advogados e colaboradores',relatorio:'Relatório mensal',fin:'Financeiro',cfg:'Configurações'};
+const VIEWS=['kanban','demandas','clientes','atendimentos','agenda','notif','equipe','relatorio','fin','cfg'];
+const VTITLES={kanban:'Fluxo de trabalho',demandas:'Todas as demandas',clientes:'Clientes',atendimentos:'Atendimentos',agenda:'Agenda',notif:'Tribunal & IA',equipe:'Advogados e colaboradores',relatorio:'Relatório mensal',fin:'Financeiro',cfg:'Configurações'};
 function showView(v){
   // bloqueia views por permissão
   if(v==='fin'&&!temPermissao('ver_financeiro')){toast('Sem permissão para acessar o financeiro.','te');return;}
@@ -1850,6 +1928,7 @@ function showView(v){
   if(v==='demandas')renderLista();
   if(v==='clientes')renderClientes();
   if(v==='atendimentos')renderAtendimentos();
+  if(v==='agenda')renderAgenda();
   if(v==='equipe'){renderEqTabela();renderEqCfg();}
   if(v==='relatorio'){initRel();renderRel();}
   if(v==='fin')renderFin();
@@ -2347,12 +2426,12 @@ function renderEqTabela(){
     const perfil=c.perfil||'colaborador';
     const temCustom=c.permissoes&&Object.keys(c.permissoes).length>0;
     return`<tr>
-      <td><div class="td-av"><div class="av">${iniciais(c.nome)}</div><div style="font-weight:500;">${c.nome}</div></div></td>
+      <td><div class="td-av"><div class="av">${iniciais(c.nome)}</div><div><div style="font-weight:500">${c.nome}</div>${c.oab?`<div style="font-size:11px;color:var(--tx3)">${c.oab}</div>`:''}</div></div></td>
       <td><span class="bdg ${perfilBdg[perfil]||'b-conc'}">${perfilLabel[perfil]||'Colaborador'}</span></td>
-      <td style="font-size:13px;color:var(--tx2);">${c.wpp||'—'}</td>
+      <td style="font-size:13px;color:var(--tx2)">${c.oab||'—'}</td>
+      <td style="font-size:13px;color:var(--tx2)">${c.wpp||'—'}</td>
       <td><strong>${at}</strong></td>
       <td><strong>${conc}</strong></td>
-      <td><span class="bdg b-gd">${fases.length} fases</span></td>
       <td><button class="btn btn-gh btn-sm" onclick="abrirPermissoes('${c.id}')">${temCustom?'<span style="color:var(--am)">●</span> ':''}Editar</button></td>
     </tr>`;
   }).join('');
@@ -2377,10 +2456,11 @@ function renderEqCfg(){
 function updatePerfilInfo(){
   const perfil=document.getElementById('eq-perfil').value;
   const el=document.getElementById('eq-perfil-info');
+  const oabWrap=document.getElementById('eq-oab-wrap');
+  if(oabWrap)oabWrap.style.display=perfil==='advogado'?'':'none';
   const infos={
-    titular:{bg:'var(--gdp)',border:'var(--gdb)',color:'var(--am)',texto:'<strong>Titular:</strong> Acesso completo ao sistema, incluindo financeiro, configurações e todas as demandas do escritório.'},
-    advogado:{bg:'var(--blb)',border:'var(--blbd)',color:'var(--bl)',texto:'<strong>Advogado:</strong> Vê todas as demandas do escritório, pode criar e editar. Não acessa o financeiro.'},
-    colaborador:{bg:'var(--grb)',border:'var(--grbd)',color:'var(--gr)',texto:'<strong>Colaborador:</strong> Vê apenas as demandas onde é responsável, tem ato delegado ou que criou — mesmo que já tenha passado para outro responsável.'},
+    advogado:{bg:'var(--gdp)',border:'var(--gdb)',color:'var(--am)',texto:'<strong>Advogado:</strong> Acesso completo ao sistema — financeiro, todas as demandas, configurações e equipe. Requer número OAB.'},
+    colaborador:{bg:'var(--grb)',border:'var(--grbd)',color:'var(--gr)',texto:'<strong>Colaborador:</strong> Acesso limitado — vê apenas as demandas onde é responsável ou foi delegado. Financeiro e configurações bloqueados.'},
   };
   const info=infos[perfil]||infos.colaborador;
   el.style.background=info.bg;el.style.borderColor=info.border;el.style.color=info.color;
@@ -2391,14 +2471,17 @@ async function addMembro(){
   const nome=document.getElementById('eq-nome').value.trim();
   const wpp=document.getElementById('eq-wpp').value.trim();
   const perfil=document.getElementById('eq-perfil').value||'colaborador';
+  const oab=document.getElementById('eq-oab')?.value.trim()||null;
   if(!nome){toast('Informe o nome do membro.','te');return;}
+  if(perfil==='advogado'&&!oab){toast('Informe o número OAB do advogado.','te');return;}
   const escId=escData.id;
-  const{data,error}=await db.from('colab_escritorio').insert([{nome,wpp:wpp||null,perfil,escritorio_id:escId}]).select();
+  const{data,error}=await db.from('colab_escritorio').insert([{nome,wpp:wpp||null,perfil,oab:oab||null,escritorio_id:escId}]).select();
   if(error){toast('Erro: '+error.message,'te');return;}
   colabs.push(data[0]);
   document.getElementById('eq-nome').value='';
   document.getElementById('eq-wpp').value='';
-  document.getElementById('eq-perfil').value='colaborador';
+  if(document.getElementById('eq-oab'))document.getElementById('eq-oab').value='';
+  document.getElementById('eq-perfil').value='advogado';
   updatePerfilInfo();
   renderEqCfg();renderEqTabela();initRespSel();toast('Membro adicionado!');
 }
@@ -3205,10 +3288,152 @@ async function salvarCfg(){
   escData.nome=document.getElementById('cfg-nome').value;renderSBInfo();toast('Configurações salvas!');
 }
 
+// ── AGENDA ──
+let agenda=[],filtroAgenda='proximos',agEditId=null;
+const TIPO_ICONE={Audiência:'⚖️',Reunião:'🤝',Prazo:'⏰',Protocolo:'📋',Perícia:'🔬',Outro:'📌'};
+
+async function loadAgenda(){
+  const{data}=await db.from('agenda').select('*').eq('escritorio_id',escData.id).order('data_evento',{ascending:true});
+  agenda=data||[];atualizarBadgeAgenda();
+}
+function atualizarBadgeAgenda(){
+  const hoje=new Date().toISOString().split('T')[0];
+  const hj=agenda.filter(a=>a.data_evento===hoje).length;
+  const badge=document.getElementById('n-agenda-badge');
+  if(badge){badge.textContent=hj;badge.style.display=hj?'':'none';}
+}
+function setFiltroAgenda(el){
+  document.querySelectorAll('[data-agf]').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');filtroAgenda=el.dataset.agf;renderAgenda();
+}
+function renderAgenda(){
+  const hoje=new Date().toISOString().split('T')[0];
+  let lista=[...agenda];
+  if(filtroAgenda==='hoje')lista=lista.filter(a=>a.data_evento===hoje);
+  else if(filtroAgenda==='proximos')lista=lista.filter(a=>a.data_evento>=hoje);
+  else if(filtroAgenda==='passados')lista=lista.filter(a=>a.data_evento<hoje).reverse();
+  const el=document.getElementById('agenda-lista');
+  if(!el)return;
+  if(!lista.length){el.innerHTML=`<div class="empty"><div class="empty-ico">📅</div><div class="empty-title">Nenhum evento encontrado</div><div class="empty-sub">Adicione audiências, reuniões e prazos à agenda</div></div>`;return;}
+  // Agrupa por data
+  const grupos={};
+  lista.forEach(a=>{if(!grupos[a.data_evento])grupos[a.data_evento]=[];grupos[a.data_evento].push(a);});
+  const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const diasSem=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  el.innerHTML=Object.entries(grupos).map(([data,eventos])=>{
+    const d=new Date(data+'T12:00:00');
+    const isHoje=data===hoje;
+    const isFut=data>hoje;
+    const label=isHoje?'Hoje':diasSem[d.getDay()]+', '+d.getDate()+' de '+meses[d.getMonth()];
+    const headerColor=isHoje?'var(--gd)':isFut?'var(--tx)':'var(--tx3)';
+    return`<div style="margin-bottom:20px">
+      <div style="font-size:12px;font-weight:700;color:${headerColor};text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+        ${isHoje?'<span style="background:var(--gd);color:#fff;padding:2px 8px;border-radius:99px;font-size:11px">HOJE</span>':''}${label}
+      </div>
+      ${eventos.map(a=>{
+        const isPast=a.data_evento<hoje;
+        return`<div style="background:var(--surface);border:1px solid ${isHoje?'var(--gdb)':'var(--bd)'};border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:flex-start;gap:14px;cursor:pointer;opacity:${isPast?.7:1};transition:box-shadow .15s" onclick="abrirEvento('${a.id}')" onmouseover="this.style.boxShadow='var(--s2s)'" onmouseout="this.style.boxShadow='none'">
+          <div style="font-size:22px;flex-shrink:0;margin-top:1px">${TIPO_ICONE[a.tipo]||'📌'}</div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:13.5px;color:var(--tx);margin-bottom:3px">${a.titulo}</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--tx3)">
+              ${a.hora_evento?`<span>🕐 ${a.hora_evento.slice(0,5)}</span>`:''}
+              ${a.local?`<span>📍 ${a.local}</span>`:''}
+              ${a.responsavel?`<span>👤 ${a.responsavel}</span>`:''}
+            </div>
+          </div>
+          ${a.wpp_notif?`<button class="btn btn-sm" style="background:#DCFCE7;border:1px solid #A7F3D0;color:#065F46;flex-shrink:0" onclick="event.stopPropagation();enviarLembrete('${a.id}')">📲 Lembrete</button>`:''}
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+function abrirEvento(id){
+  const a=agenda.find(x=>x.id===id);if(!a)return;
+  agEditId=id;
+  document.getElementById('mag-titulo').textContent='Editar evento';
+  document.getElementById('ag-titulo').value=a.titulo||'';
+  document.getElementById('ag-tipo').value=a.tipo||'Reunião';
+  document.getElementById('ag-data').value=a.data_evento||'';
+  document.getElementById('ag-hora').value=a.hora_evento||'';
+  document.getElementById('ag-local').value=a.local||'';
+  document.getElementById('ag-desc').value=a.descricao||'';
+  document.getElementById('ag-resp').value=a.responsavel||'';
+  document.getElementById('ag-wpp').value=a.wpp_notif||'';
+  document.getElementById('ag-notif-ant').value=a.notif_antecedencia||'1 dia';
+  // vincula demanda
+  const sel=document.getElementById('ag-demanda');
+  if(sel)sel.value=a.demanda_id||'';
+  document.getElementById('ag-btn-excluir').style.display='';
+  openM('m-agenda');
+}
+function abrirNovoEvento(){
+  agEditId=null;
+  document.getElementById('mag-titulo').textContent='Novo evento';
+  ['ag-titulo','ag-hora','ag-local','ag-desc','ag-wpp'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('ag-tipo').value='Audiência';
+  document.getElementById('ag-data').value=new Date().toISOString().split('T')[0];
+  document.getElementById('ag-notif-ant').value='1 dia';
+  document.getElementById('ag-btn-excluir').style.display='none';
+  openM('m-agenda');
+}
+function initAgendaDemandaSel(){
+  const sel=document.getElementById('ag-demanda');
+  if(!sel)return;
+  sel.innerHTML='<option value="">Nenhuma</option>'+demandas.filter(d=>d.status!=='Cancelado').map(d=>`<option value="${d.id}">${d.nome} — ${d.tipo||'Sem tipo'}</option>`).join('');
+}
+async function salvarEvento(){
+  const titulo=document.getElementById('ag-titulo').value.trim();
+  const data=document.getElementById('ag-data').value;
+  if(!titulo||!data){toast('Preencha título e data.','te');return;}
+  const btn=document.getElementById('ag-btn-salvar');
+  btn.disabled=true;btn.textContent='Salvando...';
+  const payload={
+    escritorio_id:escData.id,
+    titulo,tipo:document.getElementById('ag-tipo').value,
+    data_evento:data,hora_evento:document.getElementById('ag-hora').value||null,
+    local:document.getElementById('ag-local').value.trim()||null,
+    descricao:document.getElementById('ag-desc').value.trim()||null,
+    responsavel:document.getElementById('ag-resp').value||null,
+    demanda_id:document.getElementById('ag-demanda').value||null,
+    wpp_notif:document.getElementById('ag-wpp').value.trim()||null,
+    notif_antecedencia:document.getElementById('ag-notif-ant').value,
+  };
+  let error;
+  if(agEditId){
+    const r=await db.from('agenda').update(payload).eq('id',agEditId);
+    error=r.error;
+    if(!error){const i=agenda.findIndex(x=>x.id===agEditId);if(i>=0)agenda[i]={...agenda[i],...payload};}
+  } else {
+    const r=await db.from('agenda').insert([payload]).select().single();
+    error=r.error;if(!error)agenda.push(r.data);
+  }
+  btn.disabled=false;btn.textContent='Salvar evento';
+  if(error){toast('Erro: '+error.message,'te');return;}
+  agenda.sort((a,b)=>a.data_evento.localeCompare(b.data_evento));
+  closeM('m-agenda');renderAgenda();atualizarBadgeAgenda();
+  toast(agEditId?'Evento atualizado!':'Evento criado!');
+}
+async function excluirEvento(){
+  if(!agEditId||!confirm('Excluir este evento?'))return;
+  const{error}=await db.from('agenda').delete().eq('id',agEditId);
+  if(error){toast('Erro: '+error.message,'te');return;}
+  agenda=agenda.filter(x=>x.id!==agEditId);
+  closeM('m-agenda');renderAgenda();atualizarBadgeAgenda();toast('Evento excluído.');
+}
+function enviarLembrete(id){
+  const a=agenda.find(x=>x.id===id);if(!a||!a.wpp_notif)return;
+  const d=a.data_evento?formatarData(a.data_evento):'';
+  const h=a.hora_evento?` às ${a.hora_evento.slice(0,5)}`:'';
+  const loc=a.local?`\n📍 ${a.local}`:'';
+  const texto=encodeURIComponent(`⚖️ *Lembrete — ${a.titulo}*\n📅 ${d}${h}${loc}\n\nOrganizaADV`);
+  window.open(`https://wa.me/${a.wpp_notif}?text=${texto}`,'_blank');
+}
+
 // ── PERMISSÕES GRANULARES ──
 const PERMS_DEF={
   titular:{ver_financeiro:true,ver_todas_demandas:true,criar_demandas:true,editar_demandas:true,ver_atendimentos:true,gerenciar_equipe:true,exportar:true},
-  advogado:{ver_financeiro:false,ver_todas_demandas:true,criar_demandas:true,editar_demandas:true,ver_atendimentos:true,gerenciar_equipe:false,exportar:true},
+  advogado:{ver_financeiro:true,ver_todas_demandas:true,criar_demandas:true,editar_demandas:true,ver_atendimentos:true,gerenciar_equipe:true,exportar:true},
   colaborador:{ver_financeiro:false,ver_todas_demandas:false,criar_demandas:false,editar_demandas:false,ver_atendimentos:false,gerenciar_equipe:false,exportar:false},
 };
 const PERMS_LABEL={
@@ -3541,7 +3766,7 @@ window.addEventListener('load',async()=>{
     db.from('demandas_escritorio').select('*').eq('escritorio_id',esc.id).order('created_at',{ascending:false}),
     db.from('colab_escritorio').select('*').eq('escritorio_id',esc.id).order('created_at',{ascending:true})
   ]);
-  demandas=d||[];colabs=c||[];initEtapaSel();initRespSel();renderKanban();loadAtendimentos();
+  demandas=d||[];colabs=c||[];initEtapaSel();initRespSel();renderKanban();loadAtendimentos();loadAgenda();
   // Nota: rode no Supabase SQL Editor:
   // ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS onboarding_completo boolean DEFAULT false;
   // ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS logo_url text;
