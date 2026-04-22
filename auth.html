@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OrganizaADV — Entrar</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+
+/* ── LAYOUT ── */
+.pg{display:grid;grid-template-columns:420px 1fr;min-height:100vh}
+@media(max-width:860px){.pg{grid-template-columns:1fr}}
+
+/* ── PAINEL ESQUERDO ── */
+.left{background:#1C1F2E;display:flex;flex-direction:column;padding:40px;position:relative;overflow:hidden}
+.left::before{content:'';position:absolute;top:-120px;right:-80px;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.12) 0%,transparent 70%);pointer-events:none}
+.left::after{content:'';position:absolute;bottom:-100px;left:-60px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.07) 0%,transparent 70%);pointer-events:none}
+.l-logo{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:#C9A84C;letter-spacing:-.4px;margin-bottom:4px}
+.l-logo span{color:rgba(255,255,255,.5)}
+.l-tag{font-size:11px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:auto}
+.l-body{padding:40px 0 0}
+.l-title{font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:#fff;line-height:1.2;margin-bottom:12px;letter-spacing:-.5px}
+.l-title em{font-style:italic;color:#C9A84C}
+.l-sub{font-size:14px;color:rgba(255,255,255,.45);line-height:1.7;margin-bottom:36px}
+.l-points{display:flex;flex-direction:column;gap:14px;margin-bottom:36px}
+.l-pt{display:flex;align-items:flex-start;gap:12px;font-size:13.5px;color:rgba(255,255,255,.7);line-height:1.5}
+.l-pt-icon{width:24px;height:24px;border-radius:6px;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.25);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:1px}
+.l-trial{background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:14px}
+.l-trial-num{font-family:'Fraunces',serif;font-size:36px;font-weight:700;color:#C9A84C;line-height:1}
+.l-trial-txt{font-size:12px;color:rgba(255,255,255,.5);line-height:1.5}
+.l-trial-txt strong{display:block;font-size:14px;color:rgba(255,255,255,.8);font-weight:600;margin-bottom:2px}
+@media(max-width:860px){.left{display:none}}
+
+/* ── PAINEL DIREITO ── */
+.right{background:#F4F6FB;display:flex;align-items:center;justify-content:center;padding:40px 24px}
+.form-card{background:#fff;border-radius:20px;width:100%;max-width:420px;box-shadow:0 4px 24px rgba(13,19,33,.07),0 1px 4px rgba(13,19,33,.04);border:1px solid #DDE2EE;overflow:hidden}
+.mob-logo{display:none;padding:24px 28px 0;font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:#C9A84C}
+.mob-logo span{color:#48556A}
+@media(max-width:860px){.mob-logo{display:block}}
+
+/* ── ABAS ── */
+.tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #DDE2EE}
+.tab{padding:16px 12px;text-align:center;font-size:13.5px;font-weight:500;color:#96A3B5;cursor:pointer;border:none;background:none;font-family:'DM Sans',sans-serif;transition:all .15s;position:relative}
+.tab::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;background:#C9A84C;transform:scaleX(0);transition:transform .2s}
+.tab.on{color:#0D1321;font-weight:600}
+.tab.on::after{transform:scaleX(1)}
+.tab-badge{display:inline-block;background:#FFFBEB;border:1px solid rgba(201,168,76,.3);color:#92701A;font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px;margin-left:6px;vertical-align:middle}
+
+/* ── FORM BODY ── */
+.fbody{padding:28px}
+
+/* ── FIELDS ── */
+.field{margin-bottom:14px}
+.flabel{display:block;font-size:12px;font-weight:600;color:#48556A;margin-bottom:5px;letter-spacing:.1px}
+.finp{width:100%;padding:10px 13px;border:1px solid #DDE2EE;border-radius:8px;background:#fff;color:#0D1321;font-size:13.5px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s,box-shadow .15s}
+.finp:focus{border-color:#C9A84C;box-shadow:0 0 0 3px rgba(201,168,76,.1)}
+.finp.err{border-color:#DC2626;box-shadow:0 0 0 3px rgba(220,38,38,.08)}
+.finp::placeholder{color:#96A3B5}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* ── SENHA ── */
+.pw-wrap{position:relative}
+.pw-wrap .finp{padding-right:42px}
+.pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#96A3B5;padding:2px;display:flex;transition:color .15s}
+.pw-eye:hover{color:#48556A}
+
+/* ── BOTÃO ── */
+.btn-sub{width:100%;padding:12px;border-radius:9px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;border:none;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-sub.primary{background:#1C1F2E;color:#fff}
+.btn-sub.primary:hover:not(:disabled){background:#C9A84C}
+.btn-sub.trial{background:#C9A84C;color:#fff}
+.btn-sub.trial:hover:not(:disabled){background:#B8974A;transform:translateY(-1px);box-shadow:0 4px 14px rgba(201,168,76,.35)}
+.btn-sub:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+
+/* ── SPINNER ── */
+.spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:rot .6s linear infinite;flex-shrink:0}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* ── LINKS ── */
+.form-link{font-size:12.5px;color:#96A3B5;text-align:center;margin-top:16px}
+.form-link a,.form-link button{color:#0D1321;font-weight:600;text-decoration:none;background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12.5px}
+.form-link a:hover,.form-link button:hover{color:#C9A84C}
+
+/* ── ALERTA ── */
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none}
+.alert.show{display:block}
+.alert.err{background:#FEF2F2;color:#991B1B;border:1px solid #FECACA}
+.alert.ok{background:#ECFDF5;color:#065F46;border:1px solid #A7F3D0}
+
+/* ── DIVISOR ── */
+.divider{display:flex;align-items:center;gap:12px;margin:18px 0;font-size:12px;color:#96A3B5}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:#DDE2EE}
+
+/* ── HINT ── */
+.hint{font-size:12px;color:#96A3B5;margin-top:4px}
+.hint.ok{color:#059669}
+
+/* ── FORÇA DA SENHA ── */
+.pw-strength{height:3px;border-radius:99px;margin-top:6px;background:#EEF1F8;overflow:hidden}
+.pw-bar{height:100%;width:0;transition:width .3s,background .3s;border-radius:99px}
+
+/* ── SUCCESS ── */
+#success-panel{display:none;padding:40px 28px;text-align:center}
+#success-panel.show{display:block}
+.suc-ico{font-size:48px;margin-bottom:16px}
+.suc-title{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:#0D1321;margin-bottom:8px}
+.suc-sub{font-size:14px;color:#48556A;line-height:1.65;margin-bottom:24px}
+
+/* ── ESQUECI SENHA ── */
+#forgot-panel{display:none;padding:28px}
+#forgot-panel.show{display:block}
+</style>
+</head>
+<body>
+<div class="pg">
+
+  <!-- ── PAINEL ESQUERDO ── -->
+  <div class="left">
+    <div>
+      <div class="l-logo">Organiza<span>ADV</span></div>
+      <div class="l-tag">Gestão jurídica</div>
+    </div>
+    <div class="l-body">
+      <div class="l-title">Cada demanda no lugar certo.<br><em>Cada ato registrado.</em></div>
+      <div class="l-sub">O sistema que mostra não só a fase da demanda, mas o ato específico em que ela está parada — para qualquer membro da equipe ver de relance.</div>
+      <div class="l-points">
+        <div class="l-pt"><div class="l-pt-icon">⚖️</div>Kanban jurídico com 6 fases e atos rastreáveis dentro de cada fase</div>
+        <div class="l-pt"><div class="l-pt-icon">🔀</div>Delegação de atos com instrução, responsável e auditoria permanente</div>
+        <div class="l-pt"><div class="l-pt-icon">💰</div>Controle financeiro vinculado a cada demanda, sem lançamento duplo</div>
+        <div class="l-pt"><div class="l-pt-icon">📋</div>14 fluxos prontos por área do direito, editáveis pelo titular</div>
+      </div>
+      <div class="l-trial">
+        <div class="l-trial-num">7</div>
+        <div class="l-trial-txt"><strong>Dias de teste gratuito</strong>Sem cartão de crédito. Cancele quando quiser.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAINEL DIREITO ── -->
+  <div class="right">
+    <div class="form-card">
+      <div class="mob-logo">Organiza<span style="color:#48556A">ADV</span></div>
+
+      <!-- ABAS -->
+      <div class="tabs">
+        <button class="tab on" id="tab-login" onclick="setTab('login')">Entrar</button>
+        <button class="tab" id="tab-signup" onclick="setTab('signup')">Teste grátis <span class="tab-badge">7 dias</span></button>
+      </div>
+
+      <!-- ── FORM LOGIN ── -->
+      <div id="panel-login" class="fbody">
+        <div class="alert err" id="login-err"></div>
+        <div class="field">
+          <label class="flabel">E-mail</label>
+          <input class="finp" id="l-email" type="email" placeholder="seu@email.com.br" autocomplete="email"/>
+        </div>
+        <div class="field">
+          <label class="flabel" style="display:flex;justify-content:space-between">
+            Senha
+            <button type="button" onclick="showForgot()" style="background:none;border:none;font-size:12px;color:#96A3B5;cursor:pointer;font-family:'DM Sans',sans-serif;padding:0;transition:color .15s" onmouseover="this.style.color='#C9A84C'" onmouseout="this.style.color='#96A3B5'">Esqueci a senha</button>
+          </label>
+          <div class="pw-wrap">
+            <input class="finp" id="l-senha" type="password" placeholder="••••••••" autocomplete="current-password"/>
+            <button class="pw-eye" type="button" onclick="toggleSenha('l-senha',this)" title="Mostrar senha">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <button class="btn-sub primary" id="btn-login" onclick="login()">Entrar na minha conta</button>
+        <div class="form-link" style="margin-top:20px">Ainda não tem conta? <button onclick="setTab('signup')">Testar grátis por 7 dias</button></div>
+      </div>
+
+      <!-- ── FORM SIGNUP ── -->
+      <div id="panel-signup" class="fbody" style="display:none">
+        <div class="alert err" id="signup-err"></div>
+        <div class="field">
+          <label class="flabel">Nome completo <span style="color:#DC2626">*</span></label>
+          <input class="finp" id="s-nome" type="text" placeholder="Dr. João Silva" autocomplete="name"/>
+        </div>
+        <div class="field">
+          <label class="flabel">Nome do escritório <span style="color:#DC2626">*</span></label>
+          <input class="finp" id="s-esc" type="text" placeholder="Silva & Associados"/>
+        </div>
+        <div class="field">
+          <label class="flabel">E-mail <span style="color:#DC2626">*</span></label>
+          <input class="finp" id="s-email" type="email" placeholder="seu@email.com.br" autocomplete="email"/>
+        </div>
+        <div class="field">
+          <label class="flabel">Senha <span style="color:#DC2626">*</span></label>
+          <div class="pw-wrap">
+            <input class="finp" id="s-senha" type="password" placeholder="Mín. 8 caracteres" autocomplete="new-password" oninput="avaliarSenha(this.value)"/>
+            <button class="pw-eye" type="button" onclick="toggleSenha('s-senha',this)" title="Mostrar senha">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="pw-strength"><div class="pw-bar" id="pw-bar"></div></div>
+          <div class="hint" id="pw-hint"></div>
+        </div>
+        <button class="btn-sub trial" id="btn-signup" onclick="signup()">Começar teste gratuito →</button>
+        <div class="hint" style="text-align:center;margin-top:10px">Sem cartão de crédito · 7 dias grátis · Cancele quando quiser</div>
+        <div class="form-link" style="margin-top:16px">Já tem conta? <button onclick="setTab('login')">Entrar</button></div>
+      </div>
+
+      <!-- ── ESQUECI SENHA ── -->
+      <div id="panel-forgot" class="fbody" style="display:none">
+        <div style="margin-bottom:18px">
+          <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#0D1321;margin-bottom:6px">Recuperar senha</div>
+          <div style="font-size:13px;color:#48556A;line-height:1.6">Informe seu e-mail e enviaremos um link para criar uma nova senha.</div>
+        </div>
+        <div class="alert err" id="forgot-err"></div>
+        <div class="alert ok" id="forgot-ok"></div>
+        <div class="field">
+          <label class="flabel">E-mail</label>
+          <input class="finp" id="f-email" type="email" placeholder="seu@email.com.br"/>
+        </div>
+        <button class="btn-sub primary" id="btn-forgot" onclick="recuperar()">Enviar link de recuperação</button>
+        <div class="form-link" style="margin-top:16px"><button onclick="setTab('login')">← Voltar para o login</button></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const SB_URL='https://cfoastlckbscoggiiqlr.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmb2FzdGxja2JzY29nZ2lpcWxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NTIwODYsImV4cCI6MjA5MTIyODA4Nn0.sJPwSXCTE8xkC8vxz69kxs_ViWDvmOZGS1UctORuZRA';
+const{createClient}=supabase;
+const db=createClient(SB_URL,SB_KEY);
+
+// ── ABAS ──
+function setTab(t){
+  ['login','signup','forgot'].forEach(p=>{
+    document.getElementById('panel-'+p).style.display=p===t?'':'none';
+    const tab=document.getElementById('tab-'+p);
+    if(tab)tab.classList.toggle('on',p===t);
+  });
+  ['login-err','signup-err','forgot-err','forgot-ok'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.classList.remove('show');el.textContent='';}
+  });
+}
+
+function showForgot(){
+  ['panel-login','panel-signup','panel-forgot'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('panel-forgot').style.display='';
+  document.getElementById('tab-login').classList.remove('on');
+  document.getElementById('tab-signup').classList.remove('on');
+}
+
+// ── UTILS ──
+function showErr(id,msg){
+  const el=document.getElementById(id);
+  el.textContent=msg;el.classList.add('show');
+}
+function clearErr(id){
+  const el=document.getElementById(id);
+  if(el){el.classList.remove('show');el.textContent='';}
+}
+function setLoading(btnId,on,label){
+  const btn=document.getElementById(btnId);
+  btn.disabled=on;
+  btn.innerHTML=on?'<div class="spin"></div>':label;
+}
+function toggleSenha(id,btn){
+  const inp=document.getElementById(id);
+  const show=inp.type==='password';
+  inp.type=show?'text':'password';
+  btn.innerHTML=show
+    ?'<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+    :'<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+}
+
+function avaliarSenha(v){
+  const bar=document.getElementById('pw-bar');
+  const hint=document.getElementById('pw-hint');
+  let score=0;
+  if(v.length>=8)score++;
+  if(/[A-Z]/.test(v))score++;
+  if(/[0-9]/.test(v))score++;
+  if(/[^A-Za-z0-9]/.test(v))score++;
+  const cores=['','#DC2626','#D97706','#2563EB','#059669'];
+  const labels=['','Muito fraca','Fraca','Boa','Forte'];
+  bar.style.width=(score*25)+'%';
+  bar.style.background=cores[score]||'';
+  hint.textContent=v.length?labels[score]||'':'';
+  hint.style.color=cores[score]||'';
+}
+
+// ── RATE LIMIT ──
+const attempts={};
+function checkRL(email){
+  const now=Date.now();
+  if(!attempts[email])attempts[email]={n:0,until:0};
+  const r=attempts[email];
+  if(r.until>now){const m=Math.ceil((r.until-now)/60000);showErr('login-err',`Muitas tentativas. Aguarde ${m} min.`);return false;}
+  return true;
+}
+function failRL(email){
+  if(!attempts[email])attempts[email]={n:0,until:0};
+  attempts[email].n++;
+  if(attempts[email].n>=5){attempts[email].until=Date.now()+15*60*1000;attempts[email].n=0;}
+}
+
+// ── LOGIN ──
+async function login(){
+  clearErr('login-err');
+  const email=document.getElementById('l-email').value.trim();
+  const senha=document.getElementById('l-senha').value;
+  if(!email){document.getElementById('l-email').classList.add('err');return;}
+  if(!senha){document.getElementById('l-senha').classList.add('err');return;}
+  if(!checkRL(email))return;
+  setLoading('btn-login',true,'');
+  try{
+    const{error}=await db.auth.signInWithPassword({email,password:senha});
+    if(error)throw error;
+    delete attempts[email];
+    window.location.href='app.html';
+  }catch(e){
+    failRL(email);
+    showErr('login-err','E-mail ou senha incorretos. Verifique e tente novamente.');
+    document.getElementById('l-email').classList.add('err');
+    document.getElementById('l-senha').classList.add('err');
+  }finally{
+    setLoading('btn-login',false,'Entrar na minha conta');
+  }
+}
+
+// ── SIGNUP ──
+async function signup(){
+  clearErr('signup-err');
+  const nome=document.getElementById('s-nome').value.trim();
+  const esc=document.getElementById('s-esc').value.trim();
+  const email=document.getElementById('s-email').value.trim();
+  const senha=document.getElementById('s-senha').value;
+
+  if(!nome){document.getElementById('s-nome').classList.add('err');showErr('signup-err','Informe seu nome completo.');return;}
+  if(!esc){document.getElementById('s-esc').classList.add('err');showErr('signup-err','Informe o nome do escritório.');return;}
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){document.getElementById('s-email').classList.add('err');showErr('signup-err','Informe um e-mail válido.');return;}
+  if(senha.length<8){document.getElementById('s-senha').classList.add('err');showErr('signup-err','A senha precisa ter pelo menos 8 caracteres.');return;}
+
+  setLoading('btn-signup',true,'');
+  try{
+    // 1. Criar usuário no Supabase Auth
+    const{data:authData,error:authErr}=await db.auth.signUp({email,password:senha,options:{data:{nome}}});
+    if(authErr)throw authErr;
+
+    const userId=authData.user.id;
+    const trialFim=new Date();
+    trialFim.setDate(trialFim.getDate()+7);
+
+    // 2. Criar registro do escritório
+    const{data:escData,error:escErr}=await db.from('escritorios').insert([{
+      user_id:userId,
+      nome:esc,
+      responsavel:nome,
+      email,
+      plano:'trial',
+      trial_inicio:new Date().toISOString(),
+      trial_fim:trialFim.toISOString(),
+      trial_expira:trialFim.toISOString(),
+      ativo:true,
+      onboarding_completo:false,
+      tema:'preto-dourado'
+    }]).select().single();
+    if(escErr)throw escErr;
+
+    // 3. Criar registro do usuário titular
+    const{error:uErr}=await db.from('usuarios').insert([{
+      id:userId,
+      escritorio_id:escData.id,
+      nome,
+      perfil:'titular',
+      perm_admin:true,
+      perm_financeiro:true,
+      perm_demandas:true,
+      perm_atendimentos:true,
+      perm_diario_oficial:true,
+      perm_relatorios:true
+    }]);
+    if(uErr)throw uErr;
+
+    // 4. Ir para o app (onboarding vai aparecer automaticamente)
+    window.location.href='app.html';
+  }catch(e){
+    const msgs={
+      'User already registered':'Este e-mail já está cadastrado. Faça login.',
+      'Password should be at least 6 characters':'A senha precisa ter pelo menos 8 caracteres.',
+    };
+    showErr('signup-err',msgs[e.message]||e.message||'Erro ao criar conta. Tente novamente.');
+  }finally{
+    setLoading('btn-signup',false,'Começar teste gratuito →');
+  }
+}
+
+// ── RECUPERAR SENHA ──
+async function recuperar(){
+  clearErr('forgot-err');clearErr('forgot-ok');
+  const email=document.getElementById('f-email').value.trim();
+  if(!email){document.getElementById('f-email').classList.add('err');return;}
+  setLoading('btn-forgot',true,'');
+  const{error}=await db.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+'/auth.html'});
+  setLoading('btn-forgot',false,'Enviar link de recuperação');
+  if(error){showErr('forgot-err',error.message);return;}
+  showErr('forgot-ok','Link enviado para '+email+'. Verifique sua caixa de entrada.');
+  document.getElementById('forgot-ok').className='alert ok show';
+}
+
+// ── ENTER KEY ──
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  if(document.getElementById('panel-login').style.display!=='none')login();
+  else if(document.getElementById('panel-signup').style.display!=='none')signup();
+  else if(document.getElementById('panel-forgot').style.display!=='none')recuperar();
+});
+
+// Limpa classe err ao digitar
+document.addEventListener('input',e=>{
+  if(e.target.classList.contains('finp'))e.target.classList.remove('err');
+});
+
+// ── DEFINIR SENHA (fluxo de convite ou reset) ──
+let _tipoToken=null;
+
+function mostrarDefinirSenha(tipo){
+  _tipoToken=tipo;
+  // Esconde tudo e mostra painel especial
+  ['panel-login','panel-signup','panel-forgot'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('tab-login').classList.remove('on');
+  document.getElementById('tab-signup').classList.remove('on');
+
+  const titulo=tipo==='invite'?'Definir sua senha':'Nova senha';
+  const sub=tipo==='invite'
+    ?'Você foi convidado para o OrganizaADV. Defina uma senha para acessar o sistema.'
+    :'Informe sua nova senha abaixo.';
+
+  // Injeta painel
+  const card=document.querySelector('.form-card');
+  let painel=document.getElementById('panel-setpw');
+  if(!painel){
+    painel=document.createElement('div');
+    painel.id='panel-setpw';
+    painel.className='fbody';
+    card.appendChild(painel);
+  }
+  painel.innerHTML=`
+    <div style="margin-bottom:20px">
+      <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#0D1321;margin-bottom:6px">${titulo}</div>
+      <div style="font-size:13px;color:#48556A;line-height:1.6">${sub}</div>
+    </div>
+    <div class="alert err" id="setpw-err"></div>
+    <div class="field">
+      <label class="flabel">Nova senha <span style="color:#DC2626">*</span></label>
+      <div class="pw-wrap">
+        <input class="finp" id="setpw-senha" type="password" placeholder="Mín. 8 caracteres" autocomplete="new-password" oninput="avaliarSenha(this.value)"/>
+        <button class="pw-eye" type="button" onclick="toggleSenha('setpw-senha',this)" title="Mostrar senha">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <div class="pw-strength"><div class="pw-bar" id="pw-bar"></div></div>
+      <div class="hint" id="pw-hint"></div>
+    </div>
+    <div class="field">
+      <label class="flabel">Confirmar senha <span style="color:#DC2626">*</span></label>
+      <input class="finp" id="setpw-conf" type="password" placeholder="Repita a senha"/>
+    </div>
+    <button class="btn-sub trial" id="btn-setpw" onclick="definirSenha()">${tipo==='invite'?'Entrar no sistema →':'Salvar nova senha →'}</button>`;
+  painel.style.display='';
+}
+
+async function definirSenha(){
+  const senha=document.getElementById('setpw-senha').value;
+  const conf=document.getElementById('setpw-conf').value;
+  if(senha.length<8){showErr('setpw-err','A senha precisa ter pelo menos 8 caracteres.');return;}
+  if(senha!==conf){showErr('setpw-err','As senhas não coincidem.');return;}
+  setLoading('btn-setpw',true,'');
+  const{error}=await db.auth.updateUser({password:senha});
+  if(error){setLoading('btn-setpw',false,_tipoToken==='invite'?'Entrar no sistema →':'Salvar nova senha →');showErr('setpw-err',error.message);return;}
+  window.location.href='app.html';
+}
+
+// ── REDIRECT SE JÁ LOGADO ──
+window.addEventListener('load',async()=>{
+  // Verifica se há token de convite ou reset na URL (Supabase coloca no hash)
+  const hash=new URLSearchParams(window.location.hash.replace('#',''));
+  const tipo=hash.get('type'); // 'invite' ou 'recovery'
+
+  if(tipo==='invite'||tipo==='recovery'){
+    // Supabase já processou o token → usuário está logado em estado temporário
+    const{data:{session}}=await db.auth.getSession();
+    if(session){
+      mostrarDefinirSenha(tipo);
+      return;
+    }
+  }
+
+  const{data:{session}}=await db.auth.getSession();
+  if(session)window.location.href='app.html';
+
+  // Auto-focus
+  document.getElementById('l-email').focus();
+});
+</script>
+</body>
+</html>

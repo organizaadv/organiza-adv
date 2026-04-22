@@ -512,8 +512,6 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <div class="sb-unm" id="sb-unm">—</div>
     </div>
     <div class="sb-uacts">
-      <button class="sb-uact" onclick="trocarUser()">Trocar usuário</button>
-      <span style="color:rgba(255,255,255,.15)">·</span>
       <button class="sb-uact" onclick="sair()">Sair</button>
     </div>
   </div>
@@ -671,13 +669,18 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         </div>
       </div>
       <!-- Publicações registradas -->
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div style="font-size:13px;color:var(--tx2)">Publicações registradas manualmente</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div class="fbar" style="margin-bottom:0">
+          <button class="fc on" data-djf="pendentes" onclick="setFiltroDj(this)">Pendentes</button>
+          <button class="fc" data-djf="concluidas" onclick="setFiltroDj(this)">Concluídas</button>
+          <button class="fc" data-djf="descartadas" onclick="setFiltroDj(this)">Descartadas</button>
+          <button class="fc" data-djf="todas" onclick="setFiltroDj(this)">Todas</button>
+        </div>
         <button class="btn btn-gd" onclick="novaPublicacao()">+ Registrar publicação</button>
       </div>
       <div class="tbl-wrap">
         <table><thead><tr>
-          <th>Data</th><th>Advogado</th><th>Fonte</th><th>Assunto</th><th>Ação necessária</th>
+          <th>Data</th><th>Advogado</th><th>Fonte</th><th>Assunto</th><th>Status</th><th>Ação</th>
         </tr></thead>
         <tbody id="tb-diario"></tbody></table>
       </div>
@@ -686,9 +689,9 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
     <!-- EQUIPE -->
     <div id="v-equipe" style="display:none">
       <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
-        <button class="btn btn-p" onclick="openM('m-equipe')">
+        <button class="btn btn-p" onclick="abrirModalEquipe()">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg>
-          Adicionar membro
+          Convidar membro
         </button>
       </div>
       <div class="tbl-wrap">
@@ -771,6 +774,21 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
           <div class="cfg-title">Plano atual</div>
           <div class="cfg-sub" id="cfg-plano">Carregando...</div>
           <a href="contratar.html" class="btn btn-gh" style="text-decoration:none;">Gerenciar assinatura</a>
+        </div>
+
+        <!-- MEU PERFIL -->
+        <div class="cfg-sec">
+          <div class="cfg-title">Meu perfil</div>
+          <div class="cfg-sub">Suas informações de acesso ao sistema</div>
+          <div class="field"><label class="flabel">Nome</label><input type="text" class="finp" id="meu-nome" placeholder="Seu nome completo"/></div>
+          <div class="field"><label class="flabel">WhatsApp (com DDI e DDD, sem espaços)</label><input type="tel" class="finp" id="meu-wpp" placeholder="5577999990000"/></div>
+          <button class="btn btn-p" onclick="salvarMeuPerfil()" style="margin-bottom:16px">Salvar dados</button>
+          <div style="border-top:1px solid var(--div);padding-top:16px;margin-top:4px">
+            <div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:12px">Alterar senha</div>
+            <div class="field"><label class="flabel">Nova senha</label><input type="password" class="finp" id="meu-pw1" placeholder="Mín. 8 caracteres"/></div>
+            <div class="field"><label class="flabel">Confirmar nova senha</label><input type="password" class="finp" id="meu-pw2" placeholder="Repita a nova senha"/></div>
+            <button class="btn btn-gh" onclick="alterarSenha()">Alterar senha</button>
+          </div>
         </div>
       </div>
     </div>
@@ -863,6 +881,15 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         </div>
       </div>
       <div class="fhint" style="margin-top:-8px;margin-bottom:12px;">Se informado, o contrato será criado automaticamente no financeiro</div>
+
+      <!-- BLOCO 3.5: PREVIEW DO FLUXO DE ATOS -->
+      <div id="f-tmpl-preview" style="display:none;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--div)">
+          Fluxo de atos carregado automaticamente
+          <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--tx3);margin-left:4px">(você pode editar após criar a demanda)</span>
+        </div>
+        <div id="f-tmpl-fases" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
 
       <!-- BLOCO 4: PROCESSO E OBS -->
       <div class="field">
@@ -1191,39 +1218,72 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
 
 <!-- EQUIPE -->
 <div class="mov" id="m-equipe">
-  <div class="mbox">
-    <div class="mhead"><div><div class="mtitle">Gerenciar equipe</div><div class="msubt">Adicione e gerencie os membros do escritório</div></div><button class="mx" onclick="closeM('m-equipe')">✕</button></div>
+  <div class="mbox wide">
+    <div class="mhead">
+      <div><div class="mtitle">Convidar membro</div><div class="msubt">O membro receberá um e-mail para definir a senha e acessar o sistema</div></div>
+      <button class="mx" onclick="closeM('m-equipe')">✕</button>
+    </div>
     <div class="mbody">
-      <div id="eq-lista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;"></div>
+      <div class="alert" id="eq-err" style="display:none"></div>
       <div class="fg2">
         <div class="field">
-          <label class="flabel">Nome do membro <span class="req">*</span></label>
-          <input type="text" class="finp" id="eq-nome" placeholder="Nome completo"/>
+          <label class="flabel">Nome completo <span class="req">*</span></label>
+          <input type="text" class="finp" id="eq-nome" placeholder="Dra. Ana Silva"/>
         </div>
         <div class="field">
-          <label class="flabel">Perfil de acesso <span class="req">*</span></label>
-          <select class="fsel" id="eq-perfil" onchange="updatePerfilInfo()">
-            <option value="advogado">Advogado — acesso completo</option>
-            <option value="colaborador">Colaborador — acesso limitado</option>
-          </select>
+          <label class="flabel">E-mail <span class="req">*</span></label>
+          <input type="email" class="finp" id="eq-email" placeholder="ana@escritorio.com.br"/>
         </div>
       </div>
-      <div class="field" id="eq-oab-wrap">
-        <label class="flabel">Número OAB <span class="req">*</span></label>
-        <input type="text" class="finp" id="eq-oab" placeholder="OAB/XX 000000"/>
-        <div class="fhint">Obrigatório para advogados — garante acesso completo ao sistema</div>
+      <div class="fg2">
+        <div class="field">
+          <label class="flabel">Perfil</label>
+          <select class="fsel" id="eq-perfil" onchange="updatePerfilInfo()">
+            <option value="advogado">Advogado</option>
+            <option value="estagiario">Estagiário</option>
+            <option value="secretaria">Secretária / Recepcionista</option>
+            <option value="colaborador">Colaborador</option>
+          </select>
+        </div>
+        <div class="field" id="eq-oab-wrap">
+          <label class="flabel">Número OAB</label>
+          <input type="text" class="finp" id="eq-oab" placeholder="OAB/BA 000000"/>
+          <div class="fhint">Obrigatório para busca no Diário Oficial</div>
+        </div>
       </div>
-      <div class="field">
-        <label class="flabel">WhatsApp (com DDI e DDD, sem espaços)</label>
-        <input type="text" class="finp" id="eq-wpp" placeholder="5577999990000"/>
-        <div class="fhint">Necessário para receber notificações e alertas automáticos</div>
+      <div id="eq-perfil-info" style="border-radius:var(--rmd);padding:10px 14px;margin-bottom:14px;font-size:13px;background:var(--blb);border:1px solid var(--blbd);color:var(--bl);"></div>
+
+      <!-- Permissões granulares -->
+      <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);margin-bottom:10px">Módulos com acesso</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px" id="eq-perms">
+        <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--s2);border-radius:8px;border:1px solid var(--bd);cursor:pointer;font-size:13px">
+          <input type="checkbox" id="ep-demandas" checked style="accent-color:var(--gd)"/> Demandas e kanban
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--s2);border-radius:8px;border:1px solid var(--bd);cursor:pointer;font-size:13px">
+          <input type="checkbox" id="ep-atendimentos" style="accent-color:var(--gd)"/> Atendimentos
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--s2);border-radius:8px;border:1px solid var(--bd);cursor:pointer;font-size:13px">
+          <input type="checkbox" id="ep-financeiro" style="accent-color:var(--gd)"/> Financeiro
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--s2);border-radius:8px;border:1px solid var(--bd);cursor:pointer;font-size:13px">
+          <input type="checkbox" id="ep-diario" style="accent-color:var(--gd)"/> Diário Oficial
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--s2);border-radius:8px;border:1px solid var(--bd);cursor:pointer;font-size:13px">
+          <input type="checkbox" id="ep-relatorios" style="accent-color:var(--gd)"/> Relatórios
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--s2);border-radius:8px;border:1px solid var(--bd);cursor:pointer;font-size:13px">
+          <input type="checkbox" id="ep-admin" style="accent-color:var(--gd)"/> Administração / Equipe
+        </label>
       </div>
-      <div id="eq-perfil-info" style="border-radius:var(--rmd);padding:12px 14px;margin-bottom:14px;font-size:13px;background:var(--blb);border:1px solid var(--blbd);color:var(--bl);">
-        <strong>Titular:</strong> Acesso completo ao sistema, incluindo financeiro e configurações.
-      </div>
-      <button class="btn btn-p" onclick="addMembro()">Adicionar membro</button>
+      <div style="font-size:12px;color:var(--tx3);margin-bottom:16px">O titular sempre tem acesso total independente dessas configurações.</div>
     </div>
-    <div class="mfoot"><div class="mfoot-r"><button class="btn btn-p" onclick="closeM('m-equipe')">Concluir</button></div></div>
+    <div class="mfoot">
+      <div style="font-size:12.5px;color:var(--tx3)">Um e-mail de convite será enviado automaticamente</div>
+      <div class="mfoot-r">
+        <button class="btn btn-gh" onclick="closeM('m-equipe')">Cancelar</button>
+        <button class="btn btn-p" id="btn-convidar" onclick="convidarMembro()">Enviar convite →</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1391,11 +1451,13 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       </div>
       <div class="field"><label class="flabel">Assunto / resumo <span class="req">*</span></label><input type="text" class="finp" id="dj-assunto" placeholder="Ex.: Intimação para manifestação em 15 dias — Proc. 0001234-56.2024"/></div>
       <div class="field"><label class="flabel">Conteúdo completo</label><textarea class="fta" id="dj-conteudo" placeholder="Cole aqui o texto da publicação..."></textarea></div>
+      <div id="dj-ia-sugestao" style="margin-bottom:12px"></div>
       <div class="fg2">
         <div class="field"><label class="flabel">Prazo para resposta</label><input type="date" class="finp" id="dj-prazo"/></div>
         <div class="field"><label class="flabel">Link da publicação</label><input type="url" class="finp" id="dj-link" placeholder="https://..."/></div>
       </div>
       <div class="field"><label class="flabel">Ação necessária</label><input type="text" class="finp" id="dj-acao" placeholder="Ex.: Protocolar contestação até DD/MM"/></div>
+      <div id="dj-status-btns" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px"></div>
     </div>
     <div class="mfoot">
       <button class="btn btn-danger" id="dj-btn-excluir" onclick="excluirPublicacao()" style="display:none">Excluir</button>
@@ -1535,30 +1597,30 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
           <div class="ob-tema-acc" style="background:#C9A84C"></div>
           <div class="ob-tema-nome">Preto &amp; Dourado</div>
         </div>
-        <div class="ob-tema-card" data-tema="azul-profundo" onclick="obSelecionarTema('azul-profundo')">
-          <div class="ob-tema-sb" style="background:#0F2552"></div>
-          <div class="ob-tema-acc" style="background:#3B82F6"></div>
-          <div class="ob-tema-nome">Azul Profundo</div>
+        <div class="ob-tema-card" data-tema="azul-marinho" onclick="obSelecionarTema('azul-marinho')">
+          <div class="ob-tema-sb" style="background:#0E2240"></div>
+          <div class="ob-tema-acc" style="background:#E2E8F0"></div>
+          <div class="ob-tema-nome">Azul Marinho &amp; Branco</div>
         </div>
-        <div class="ob-tema-card" data-tema="verde-justica" onclick="obSelecionarTema('verde-justica')">
+        <div class="ob-tema-card" data-tema="vermelho-dourado" onclick="obSelecionarTema('vermelho-dourado')">
+          <div class="ob-tema-sb" style="background:#3D0B0B"></div>
+          <div class="ob-tema-acc" style="background:#C9A84C"></div>
+          <div class="ob-tema-nome">Vermelho &amp; Dourado</div>
+        </div>
+        <div class="ob-tema-card" data-tema="bege-marrom" onclick="obSelecionarTema('bege-marrom')">
+          <div class="ob-tema-sb" style="background:#2D1C10"></div>
+          <div class="ob-tema-acc" style="background:#A0785A"></div>
+          <div class="ob-tema-nome">Bege &amp; Marrom</div>
+        </div>
+        <div class="ob-tema-card" data-tema="verde-bege" onclick="obSelecionarTema('verde-bege')">
           <div class="ob-tema-sb" style="background:#0D2B1A"></div>
-          <div class="ob-tema-acc" style="background:#059669"></div>
-          <div class="ob-tema-nome">Verde Justiça</div>
+          <div class="ob-tema-acc" style="background:#C8B560"></div>
+          <div class="ob-tema-nome">Verde Escuro &amp; Bege</div>
         </div>
-        <div class="ob-tema-card" data-tema="roxo-prestige" onclick="obSelecionarTema('roxo-prestige')">
-          <div class="ob-tema-sb" style="background:#1E0A3C"></div>
-          <div class="ob-tema-acc" style="background:#7C3AED"></div>
-          <div class="ob-tema-nome">Roxo Prestígio</div>
-        </div>
-        <div class="ob-tema-card" data-tema="vermelho-poder" onclick="obSelecionarTema('vermelho-poder')">
-          <div class="ob-tema-sb" style="background:#3B0A0A"></div>
-          <div class="ob-tema-acc" style="background:#DC2626"></div>
-          <div class="ob-tema-nome">Vermelho Poder</div>
-        </div>
-        <div class="ob-tema-card" data-tema="cinza-platina" onclick="obSelecionarTema('cinza-platina')">
-          <div class="ob-tema-sb" style="background:#1F2937"></div>
-          <div class="ob-tema-acc" style="background:#94A3B8"></div>
-          <div class="ob-tema-nome">Cinza Platina</div>
+        <div class="ob-tema-card" data-tema="cinza-azul" onclick="obSelecionarTema('cinza-azul')">
+          <div class="ob-tema-sb" style="background:#1E2A38"></div>
+          <div class="ob-tema-acc" style="background:#4A90D9"></div>
+          <div class="ob-tema-nome">Cinza &amp; Azul</div>
         </div>
       </div>
     </div>
@@ -1785,7 +1847,7 @@ function getAtosTemplate(tipo,etapa){
 }
 
 // ── ESTADO ──
-let demandas=[],colabs=[],escData={},userAtual=null,filtroAtivo='todos',filtroFinAtivo='todos',detId=null;
+let demandas=[],colabs=[],escData={},userAtual=null,usuarioAtual=null,filtroAtivo='todos',filtroFinAtivo='todos',detId=null;
 let sortDem={col:null,asc:true},sortCli={col:null,asc:true};
 let finLanc=[],finNextId=1,finDetId=null,notifs=[],notifNextId=1;
 
@@ -1893,6 +1955,7 @@ function getPerfilUser(nome){
 }
 
 function isTitular(nome){
+  if(usuarioAtual&&nome===usuarioAtual.nome)return usuarioAtual.perfil==='titular';
   return getPerfilUser(nome)==='titular'||nome===escData.responsavel;
 }
 
@@ -1944,8 +2007,8 @@ function loginComo(n){
   if(btnNova)btnNova.style.display=temPermissao('criar_demandas')?'':'none';
   renderKanban();
 }
-function trocarUser(){userAtual=null;sessionStorage.removeItem('oadv_user');renderLoginGrid();document.getElementById('ls').classList.add('on');}
-async function sair(){await db.auth.signOut();window.location.href='cadastro.html';}
+function trocarUser(){sair();}
+async function sair(){await db.auth.signOut();window.location.href='auth.html';}
 
 // ── SIDEBAR INFO ──
 function renderSBInfo(){
@@ -1959,19 +2022,51 @@ function renderSBInfo(){
 
 // ── TRIAL ──
 function verificarTrial(){
-  if(escData.plano==='pro'||escData.plano==='avancado'||escData.plano==='essencial'||escData.ativo)return;
-  if(!escData.trial_expira)return;
-  const dias=calcPrazo(escData.trial_expira.split('T')[0]);
+  // Planos pagos nunca bloqueiam
+  const planosPagos=['essencial','avancado','pro'];
+  if(planosPagos.includes(escData.plano))return;
+
+  // Pega a data de expiração (campo novo ou legado)
+  const expISO=escData.trial_fim||escData.trial_expira;
+  if(!expISO)return;
+
+  const expDate=expISO.split('T')[0];
+  const dias=calcPrazo(expDate);
+
+  // Mostra banner quando faltar 7 dias ou menos
   if(dias!==null&&dias<=7){
-    document.getElementById('tb').classList.add('on');
-    document.getElementById('tb-msg').textContent=dias<=0?'Seu período de teste expirou.':dias<=1?'Seu teste expira hoje!':'Seu teste expira em '+dias+' dias.';
+    const tb=document.getElementById('tb');
+    const tbMsg=document.getElementById('tb-msg');
+    tb.classList.add('on');
+    if(dias<=0)tbMsg.textContent='Seu período de teste gratuito expirou.';
+    else if(dias===1)tbMsg.textContent='Seu teste expira hoje!';
+    else tbMsg.textContent=`Seu teste gratuito expira em ${dias} dias.`;
     if(dias<=0)bloqueioTrial();
   }
 }
 function bloqueioTrial(){
   const o=document.createElement('div');
-  o.style.cssText='position:fixed;inset:0;background:rgba(20,24,32,.96);z-index:9998;display:flex;align-items:center;justify-content:center;padding:24px;';
-  o.innerHTML=`<div style="text-align:center;max-width:440px;"><div style="font-size:52px;margin-bottom:20px;">⏰</div><div style="font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:#fff;margin-bottom:10px;">Período de teste encerrado</div><div style="font-size:15px;color:rgba(255,255,255,.55);line-height:1.75;margin-bottom:28px;">Seu teste chegou ao fim. Assine para continuar usando o OrganizaADV com todos os dados preservados.</div><a href="contratar.html" style="background:var(--gd);color:#1A1A1F;padding:14px 32px;border-radius:10px;font-size:15px;font-weight:600;text-decoration:none;display:inline-block;">Assinar agora →</a></div>`;
+  o.style.cssText='position:fixed;inset:0;background:rgba(20,24,32,.97);z-index:9998;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px)';
+  o.innerHTML=`
+    <div style="text-align:center;max-width:460px;">
+      <div style="font-size:52px;margin-bottom:20px">⏰</div>
+      <div style="font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:#fff;margin-bottom:10px;letter-spacing:-.4px">Período de teste encerrado</div>
+      <div style="font-size:15px;color:rgba(255,255,255,.55);line-height:1.75;margin-bottom:10px">Seus 7 dias gratuitos chegaram ao fim. Assine para continuar usando o OrganizaADV — todos os seus dados estão preservados.</div>
+      <div style="display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap">
+        <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:16px 24px;min-width:160px">
+          <div style="font-size:11px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Essencial</div>
+          <div style="font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:#fff">R$ 99<span style="font-size:14px;font-family:'DM Sans',sans-serif;color:rgba(255,255,255,.4)">/mês</span></div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px">2 advogados · 10 colaboradores</div>
+        </div>
+        <div style="background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);border-radius:12px;padding:16px 24px;min-width:160px">
+          <div style="font-size:11px;color:rgba(201,168,76,.7);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Avançado</div>
+          <div style="font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:#C9A84C">R$ 149<span style="font-size:14px;font-family:'DM Sans',sans-serif;color:rgba(201,168,76,.5)">/mês</span></div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px">5 advogados · 25 colaboradores</div>
+        </div>
+      </div>
+      <a href="contratar.html" style="background:#C9A84C;color:#1A1A1F;padding:14px 36px;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;display:inline-block;transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Assinar agora →</a>
+      <div style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.25)">Seus dados ficam preservados. Cancele quando quiser.</div>
+    </div>`;
   document.body.appendChild(o);
 }
 
@@ -2531,43 +2626,101 @@ function renderEqCfg(){
       <button onclick="rmMembro(${c.id})" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:18px;padding:4px;border-radius:var(--rsm);transition:color .15s;" onmouseover="this.style.color='var(--rd)'" onmouseout="this.style.color='var(--tx3)'">×</button>
     </div>`).join('');
 }
+const PERFIL_INFO={
+  advogado:{bg:'var(--gdp)',border:'var(--gdb)',color:'var(--am)',
+    texto:'Advogado vê todas as demandas do escritório. Configure os módulos individuais ao lado.',
+    perms:{demandas:true,atendimentos:true,financeiro:true,diario:true,relatorios:true,admin:false}},
+  estagiario:{bg:'var(--blb)',border:'var(--blbd)',color:'var(--bl)',
+    texto:'Estagiário vê apenas as demandas onde foi designado ou recebeu delegação.',
+    perms:{demandas:true,atendimentos:true,financeiro:false,diario:false,relatorios:false,admin:false}},
+  secretaria:{bg:'var(--grb)',border:'var(--grbd)',color:'var(--gr)',
+    texto:'Secretária tem acesso a atendimentos e agenda. Sem acesso ao financeiro.',
+    perms:{demandas:false,atendimentos:true,financeiro:false,diario:false,relatorios:false,admin:false}},
+  colaborador:{bg:'var(--s3)',border:'var(--bd2)',color:'var(--tx3)',
+    texto:'Colaborador vê apenas demandas onde foi delegado.',
+    perms:{demandas:true,atendimentos:false,financeiro:false,diario:false,relatorios:false,admin:false}},
+};
 function updatePerfilInfo(){
   const perfil=document.getElementById('eq-perfil').value;
   const el=document.getElementById('eq-perfil-info');
+  const info=PERFIL_INFO[perfil]||PERFIL_INFO.colaborador;
+  el.style.background=info.bg;el.style.borderColor=info.border;el.style.color=info.color;
+  el.textContent=info.texto;
+  Object.entries(info.perms).forEach(([k,v])=>{
+    const cb=document.getElementById('ep-'+k);if(cb)cb.checked=v;
+  });
+  // Mostra campo OAB só para advogados
   const oabWrap=document.getElementById('eq-oab-wrap');
   if(oabWrap)oabWrap.style.display=perfil==='advogado'?'':'none';
-  const infos={
-    advogado:{bg:'var(--gdp)',border:'var(--gdb)',color:'var(--am)',texto:'<strong>Advogado:</strong> Acesso completo ao sistema — financeiro, todas as demandas, configurações e equipe. Requer número OAB.'},
-    colaborador:{bg:'var(--grb)',border:'var(--grbd)',color:'var(--gr)',texto:'<strong>Colaborador:</strong> Acesso limitado — vê apenas as demandas onde é responsável ou foi delegado. Financeiro e configurações bloqueados.'},
-  };
-  const info=infos[perfil]||infos.colaborador;
-  el.style.background=info.bg;el.style.borderColor=info.border;el.style.color=info.color;
-  el.innerHTML=info.texto;
 }
 
-async function addMembro(){
+async function convidarMembro(){
   const nome=document.getElementById('eq-nome').value.trim();
-  const wpp=document.getElementById('eq-wpp').value.trim();
+  const email=document.getElementById('eq-email').value.trim();
   const perfil=document.getElementById('eq-perfil').value||'colaborador';
-  const oab=document.getElementById('eq-oab')?.value.trim()||null;
-  if(!nome){toast('Informe o nome do membro.','te');return;}
-  if(perfil==='advogado'&&!oab){toast('Informe o número OAB do advogado.','te');return;}
-  const escId=escData.id;
-  const{data,error}=await db.from('colab_escritorio').insert([{nome,wpp:wpp||null,perfil,oab:oab||null,escritorio_id:escId}]).select();
-  if(error){toast('Erro: '+error.message,'te');return;}
-  colabs.push(data[0]);
-  document.getElementById('eq-nome').value='';
-  document.getElementById('eq-wpp').value='';
-  if(document.getElementById('eq-oab'))document.getElementById('eq-oab').value='';
-  document.getElementById('eq-perfil').value='advogado';
-  updatePerfilInfo();
-  renderEqCfg();renderEqTabela();initRespSel();toast('Membro adicionado!');
+  const errEl=document.getElementById('eq-err');
+  errEl.style.display='none';
+
+  if(!nome){errEl.textContent='Informe o nome do membro.';errEl.style.display='block';errEl.style.background='#FEF2F2';errEl.style.color='#991B1B';errEl.style.border='1px solid #FECACA';errEl.style.borderRadius='8px';errEl.style.padding='10px 14px';return;}
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){errEl.textContent='Informe um e-mail válido.';errEl.style.display='block';errEl.style.background='#FEF2F2';errEl.style.color='#991B1B';errEl.style.border='1px solid #FECACA';errEl.style.borderRadius='8px';errEl.style.padding='10px 14px';return;}
+
+  const btn=document.getElementById('btn-convidar');
+  btn.disabled=true;btn.textContent='Enviando...';
+
+  try{
+    const{data:{session:invSession}}=await db.auth.getSession();
+    const r=await fetch(`${SB_URL}/functions/v1/invite-member`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+(invSession?.access_token||SB_KEY)},
+      body:JSON.stringify({
+        email,nome,perfil,
+        perm_admin:document.getElementById('ep-admin').checked,
+        perm_financeiro:document.getElementById('ep-financeiro').checked,
+        perm_demandas:document.getElementById('ep-demandas').checked,
+        perm_atendimentos:document.getElementById('ep-atendimentos').checked,
+        perm_diario_oficial:document.getElementById('ep-diario').checked,
+        perm_relatorios:document.getElementById('ep-relatorios').checked,
+      })
+    });
+    const json=await r.json();
+    if(json.error)throw new Error(json.error);
+
+    const oab=document.getElementById('eq-oab')?.value.trim()||null;
+    // Adiciona também em colab_escritorio para manter compatibilidade com seletores de responsável
+    await db.from('colab_escritorio').insert([{nome,escritorio_id:escData.id,perfil,oab:oab||null}]);
+    const{data:novos}=await db.from('colab_escritorio').select('*').eq('escritorio_id',escData.id).order('created_at',{ascending:true});
+    if(novos)colabs=novos;
+
+    closeM('m-equipe');
+    renderEqTabela();initRespSel();
+    document.getElementById('eq-nome').value='';
+    document.getElementById('eq-email').value='';
+    toast('Convite enviado para '+email+' ✓');
+  }catch(e){
+    errEl.textContent=e.message;errEl.style.display='block';
+    errEl.style.background='#FEF2F2';errEl.style.color='#991B1B';errEl.style.border='1px solid #FECACA';errEl.style.borderRadius='8px';errEl.style.padding='10px 14px';
+  }finally{
+    btn.disabled=false;btn.textContent='Enviar convite →';
+  }
 }
+
 async function rmMembro(id){
-  if(!confirm('Remover este membro da equipe?'))return;
+  if(!confirm('Remover este membro da equipe? Ele perderá o acesso ao sistema.'))return;
+  const colab=colabs.find(c=>c.id===id);
   const{error}=await db.from('colab_escritorio').delete().eq('id',id);
   if(error){toast('Erro: '+error.message,'te');return;}
+  // Se houver usuario com mesmo nome no mesmo escritório, remove também
+  if(colab?.nome){
+    const{data:usr}=await db.from('usuarios').select('id').eq('escritorio_id',escData.id).eq('nome',colab.nome).maybeSingle();
+    if(usr)await db.from('usuarios').delete().eq('id',usr.id);
+  }
   colabs=colabs.filter(c=>c.id!==id);renderEqCfg();renderEqTabela();initRespSel();toast('Membro removido.');
+}
+
+// Inicializa info do perfil ao abrir o modal
+function abrirModalEquipe(){
+  updatePerfilInfo();
+  openM('m-equipe');
 }
 
 // ── RELATÓRIO ──
@@ -2661,6 +2814,26 @@ function selecionarClienteAuto(nome){
 function toggleTipoOutro(){
   const sel=document.getElementById('f-tipo-sel').value;
   document.getElementById('f-tipo-outro-wrap').style.display=sel==='Outro'?'block':'none';
+  renderTmplPreview(sel==='Outro'?'':sel);
+}
+function renderTmplPreview(tipo){
+  const wrap=document.getElementById('f-tmpl-preview');
+  const fasesEl=document.getElementById('f-tmpl-fases');
+  if(!tipo||tipo==='Outro'){wrap.style.display='none';return;}
+  const fases=ETAPAS.map(e=>({nome:e.nome,atos:getAtosTemplate(tipo,e.nome)})).filter(e=>e.atos.length);
+  if(!fases.length){wrap.style.display='none';return;}
+  fasesEl.innerHTML=fases.map(f=>`
+    <div style="background:var(--s2);border:1px solid var(--bd);border-radius:8px;overflow:hidden">
+      <div style="padding:8px 12px;background:var(--s3);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3)">${f.nome}</span>
+        <span style="font-size:11px;color:var(--tx3)">${f.atos.length} ato${f.atos.length>1?'s':''}</span>
+      </div>
+      ${f.atos.map((a,i)=>`<div style="padding:6px 12px;font-size:12.5px;color:var(--tx2);border-bottom:${i<f.atos.length-1?'1px solid var(--div)':'none'};display:flex;align-items:center;gap:8px">
+        <span style="width:16px;height:16px;border-radius:50%;border:1.5px solid var(--bd2);display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:var(--tx3);flex-shrink:0">${i+1}</span>
+        ${a}
+      </div>`).join('')}
+    </div>`).join('');
+  wrap.style.display='block';
 }
 
 async function salvarDemanda(){
@@ -2697,7 +2870,20 @@ async function salvarDemanda(){
   btn.disabled=false;btn.textContent='Salvar demanda';
   if(error){toast('Erro ao salvar: '+error.message,'te');return;}
 
-  demandas.unshift(data[0]);
+  const novaDemanda=data[0];
+  // Auto-popular atos do fluxo pré-definido para a área selecionada
+  const atosIniciais=[];
+  ETAPAS.forEach(e=>{
+    const lista=getAtosTemplate(tipo,e.nome);
+    lista.forEach(nome=>{
+      atosIniciais.push({id:crypto.randomUUID(),nome,etapa:e.nome,feito:false,prioridade:'normal',obrigatorio:false});
+    });
+  });
+  if(atosIniciais.length){
+    await db.from('demandas_escritorio').update({atos:JSON.stringify(atosIniciais)}).eq('id',novaDemanda.id);
+    novaDemanda.atos=JSON.stringify(atosIniciais);
+  }
+  demandas.unshift(novaDemanda);
 
   // Se informou honorários, criar contrato automaticamente
   const honorario=parseFloat(document.getElementById('f-honorario').value)||0;
@@ -3300,9 +3486,43 @@ function renderCfg(){
   document.getElementById('cfg-nome').value=escData.nome||'';
   document.getElementById('cfg-email').value=escData.email||'';
   document.getElementById('cfg-tel').value=escData.tel||'';
-  const dias=calcPrazo(escData.trial_expira?.split('T')[0]);
+  const trialFim=escData.trial_fim||escData.trial_expira;
+  const dias=calcPrazo(trialFim?.split('T')[0]);
   document.getElementById('cfg-plano').textContent=escData.plano==='avancado'?'Plano Avançado ativo — R$ 149/mês · Até 5 advogados e 25 colaboradores':escData.plano==='essencial'?'Plano Essencial ativo — R$ 99/mês · Até 2 advogados e 10 colaboradores':`Período de teste${dias!==null?` — ${dias>0?dias+' dias restantes':'Expirado'}`:''}.`;
+  // Preenche campos do perfil pessoal
+  const nomeEl=document.getElementById('meu-nome');
+  const wppEl=document.getElementById('meu-wpp');
+  if(nomeEl)nomeEl.value=usuarioAtual?.nome||'';
+  if(wppEl)wppEl.value=usuarioAtual?.whatsapp||'';
+  document.getElementById('meu-pw1').value='';
+  document.getElementById('meu-pw2').value='';
   renderCfgEtapas();
+}
+
+async function salvarMeuPerfil(){
+  const nome=document.getElementById('meu-nome').value.trim();
+  const wpp=document.getElementById('meu-wpp').value.trim();
+  if(!nome){toast('Informe seu nome.','te');return;}
+  const{error}=await db.from('usuarios').update({nome,whatsapp:wpp||null}).eq('id',usuarioAtual.id);
+  if(error){toast('Erro: '+error.message,'te');return;}
+  usuarioAtual.nome=nome;
+  usuarioAtual.whatsapp=wpp||null;
+  userAtual=nome;
+  renderSBInfo();
+  toast('Perfil atualizado!');
+}
+
+async function alterarSenha(){
+  const pw1=document.getElementById('meu-pw1').value;
+  const pw2=document.getElementById('meu-pw2').value;
+  if(!pw1||!pw2){toast('Preencha os dois campos de senha.','te');return;}
+  if(pw1.length<8){toast('A senha deve ter ao menos 8 caracteres.','te');return;}
+  if(pw1!==pw2){toast('As senhas não coincidem.','te');return;}
+  const{error}=await db.auth.updateUser({password:pw1});
+  if(error){toast('Erro: '+error.message,'te');return;}
+  document.getElementById('meu-pw1').value='';
+  document.getElementById('meu-pw2').value='';
+  toast('Senha alterada com sucesso!');
 }
 
 function renderCfgEtapas(){
@@ -3378,12 +3598,14 @@ const DIARIOS_LINKS=[
   {nome:'TRT5',label:'TRT 5ª Região (BA)',url:'https://www.trt5.jus.br/diario?q={nome}',cor:'#DC2626'},
 ];
 
+let filtroDj='pendentes';
+function setFiltroDj(el){
+  document.querySelectorAll('[data-djf]').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');filtroDj=el.dataset.djf;renderDiario();
+}
 async function loadDiario(){
   const{data}=await db.from('publicacoes_diario').select('*').eq('escritorio_id',escData.id).order('data_publicacao',{ascending:false});
-  publicacoes=data||[];
-  const badge=document.getElementById('n-diario-badge');
-  const semAcao=publicacoes.filter(p=>!p.lida).length;
-  if(badge){badge.textContent=semAcao;badge.style.display=semAcao?'':'none';}
+  publicacoes=data||[];atualizarBadgeDiario();
 }
 function renderDiario(){
   // Bloco de advogados com OAB
@@ -3417,15 +3639,24 @@ function renderDiario(){
   initDjSelects();
   const tbody=document.getElementById('tb-diario');
   if(!tbody)return;
-  if(!publicacoes.length){tbody.innerHTML=`<tr><td colspan="5"><div class="empty" style="padding:28px"><div class="empty-ico">📋</div><div class="empty-title">Nenhuma publicação registrada</div><div class="empty-sub">Registre as publicações encontradas no Diário Oficial</div></div></td></tr>`;return;}
-  tbody.innerHTML=publicacoes.map(p=>`
-    <tr onclick="abrirPublicacao('${p.id}')" style="${!p.lida?'background:#EFF6FF;font-weight:500':''}">
+  let lista=[...publicacoes];
+  const hoje2=new Date().toISOString().split('T')[0];
+  if(filtroDj==='pendentes')lista=lista.filter(p=>!p.status_dj||p.status_dj==='pendente');
+  else if(filtroDj==='concluidas')lista=lista.filter(p=>p.status_dj==='concluida');
+  else if(filtroDj==='descartadas')lista=lista.filter(p=>p.status_dj==='descartada');
+  if(!lista.length){tbody.innerHTML=`<tr><td colspan="6"><div class="empty" style="padding:28px"><div class="empty-ico">📋</div><div class="empty-title">Nenhuma publicação neste filtro</div><div class="empty-sub">Registre publicações encontradas no Diário Oficial</div></div></td></tr>`;return;}
+  const statusLabel={pendente:{txt:'Pendente',cls:'b-av'},concluida:{txt:'Concluída',cls:'b-conc'},descartada:{txt:'Descartada',cls:'b-can'}};
+  tbody.innerHTML=lista.map(p=>{
+    const st=statusLabel[p.status_dj||'pendente']||statusLabel.pendente;
+    return`<tr onclick="abrirPublicacao('${p.id}')" style="${(!p.status_dj||p.status_dj==='pendente')&&!p.lida?'background:#EFF6FF;font-weight:500':''}">
       <td>${p.data_publicacao?formatarData(p.data_publicacao):'—'}</td>
       <td>${p.advogado||'—'}</td>
       <td><span class="bdg b-bl" style="font-size:10px">${p.fonte||'—'}</span></td>
-      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.assunto||'—'}</td>
-      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${p.prazo_resposta?'var(--rd)':'var(--tx2)'}">${p.acao||'—'}${p.prazo_resposta?' ('+formatarData(p.prazo_resposta)+')':''}</td>
-    </tr>`).join('');
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.assunto||'—'}</td>
+      <td><span class="bdg ${st.cls}" style="font-size:10px">${st.txt}</span></td>
+      <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:${p.prazo_resposta?'var(--rd)':'var(--tx2)'}">${p.acao||'—'}${p.prazo_resposta?' ('+formatarData(p.prazo_resposta)+')':''}</td>
+    </tr>`;
+  }).join('');
 }
 function initDjSelects(){
   const advs=colabs.filter(c=>c.oab);
@@ -3447,9 +3678,55 @@ function abrirPublicacao(id){
   document.getElementById('dj-acao').value=p.acao||'';
   document.getElementById('dj-demanda').value=p.demanda_id||'';
   document.getElementById('dj-btn-excluir').style.display='';
+  // Botões de status
+  const stEl=document.getElementById('dj-status-btns');
+  if(stEl){
+    const st=p.status_dj||'pendente';
+    stEl.innerHTML=`
+      <button class="btn btn-sm ${st==='concluida'?'btn-gd':''}" onclick="setStatusDj('concluida')" style="${st==='concluida'?'':'background:var(--s2);color:var(--tx2)'}">✓ Concluída</button>
+      <button class="btn btn-sm ${st==='descartada'?'':'btn-gh'}" onclick="setStatusDj('descartada')" style="${st==='descartada'?'background:var(--rdb);color:var(--rd);border-color:var(--rdbd)':''}">✕ Descartar</button>
+      ${p.link?`<a href="${p.link}" target="_blank" class="btn btn-sm btn-gh">🔗 Ver publicação</a>`:''}
+    `;
+  }
+  // Lógica de sugestão IA
+  const iaEl=document.getElementById('dj-ia-sugestao');
+  if(iaEl)iaEl.innerHTML='<button class="btn btn-sm btn-gh" onclick="gerarSugestaoDj()">✨ Gerar sugestão IA</button>';
   // marca como lida
   if(!p.lida){db.from('publicacoes_diario').update({lida:true}).eq('id',id).then(()=>{p.lida=true;atualizarBadgeDiario();});}
   openM('m-diario');
+}
+async function setStatusDj(status){
+  if(!djEditId)return;
+  const{error}=await db.from('publicacoes_diario').update({status_dj:status,lida:true}).eq('id',djEditId);
+  if(error){toast('Erro: '+error.message,'te');return;}
+  const p=publicacoes.find(x=>x.id===djEditId);
+  if(p){p.status_dj=status;p.lida=true;}
+  closeM('m-diario');renderDiario();atualizarBadgeDiario();
+  toast(status==='concluida'?'Publicação marcada como concluída.':'Publicação descartada.');
+}
+async function gerarSugestaoDj(){
+  const p=publicacoes.find(x=>x.id===djEditId);if(!p)return;
+  const iaEl=document.getElementById('dj-ia-sugestao');
+  if(iaEl)iaEl.innerHTML='<span class="spin" style="border-color:var(--bd2);border-top-color:var(--gd)"></span> Analisando...';
+  try{
+    const r=await fetch(`${SB_URL}/functions/v1/resumir-ia`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+SB_KEY},
+      body:JSON.stringify({movimentacao:{assunto:p.assunto,conteudo:p.conteudo,fonte:p.fonte,data:p.data_publicacao},demandaNome:p.advogado||'—',demandaTipo:'Diário Oficial'})
+    });
+    const res=await r.json();
+    if(res&&res.acao){
+      if(iaEl)iaEl.innerHTML=`<div style="background:var(--gdp);border:1px solid var(--gdb);border-radius:8px;padding:12px 14px;font-size:13px">
+        <div style="font-weight:600;margin-bottom:4px;color:var(--tx)">✨ Sugestão IA</div>
+        <div style="color:var(--tx2);margin-bottom:6px">${res.resumo||''}</div>
+        <div style="font-weight:500;color:var(--tx)">Ação: ${res.acao}</div>
+        ${res.prazo?`<div style="color:var(--rd);font-size:12px;margin-top:4px">Prazo sugerido: ${res.prazo}</div>`:''}
+        <button class="btn btn-sm btn-gd" style="margin-top:8px" onclick="document.getElementById('dj-acao').value='${(res.acao||'').replace(/'/g,"\\'")}';document.getElementById('dj-prazo').value='${res.prazo||''}';toast('Ação copiada para o campo abaixo.')">Usar esta sugestão</button>
+      </div>`;
+    } else {
+      if(iaEl)iaEl.innerHTML='<span style="font-size:12px;color:var(--tx3)">Não foi possível gerar sugestão.</span>';
+    }
+  }catch(e){if(iaEl)iaEl.innerHTML='<span style="font-size:12px;color:var(--rd)">Erro ao chamar IA.</span>';}
 }
 function novaPublicacao(){
   djEditId=null;
@@ -3502,7 +3779,7 @@ async function excluirPublicacao(){
   closeM('m-diario');renderDiario();atualizarBadgeDiario();toast('Publicação excluída.');
 }
 function atualizarBadgeDiario(){
-  const n=publicacoes.filter(p=>!p.lida).length;
+  const n=publicacoes.filter(p=>(!p.status_dj||p.status_dj==='pendente')&&!p.lida).length;
   const badge=document.getElementById('n-diario-badge');
   if(badge){badge.textContent=n;badge.style.display=n?'':'none';}
 }
@@ -3664,7 +3941,26 @@ const PERMS_LABEL={
   gerenciar_equipe:'Gerenciar equipe (adicionar/remover membros)',
   exportar:'Exportar relatórios',
 };
+// Mapeamento das permissões legadas → colunas na tabela usuarios
+const PERM_MAP={
+  ver_financeiro:'perm_financeiro',
+  ver_todas_demandas:'perm_demandas',
+  criar_demandas:'perm_demandas',
+  editar_demandas:'perm_demandas',
+  ver_atendimentos:'perm_atendimentos',
+  gerenciar_equipe:'perm_admin',
+  exportar:'perm_relatorios',
+};
 function temPermissao(perm){
+  // Titular sempre tem tudo
+  if(usuarioAtual?.perfil==='titular')return true;
+  // Usa colunas granulares do usuário logado
+  if(usuarioAtual){
+    const campo=PERM_MAP[perm];
+    if(campo)return!!usuarioAtual[campo];
+    return false;
+  }
+  // Fallback legado (contas antigas sem tabela usuarios)
   if(!userAtual)return true;
   const colab=colabs.find(c=>c.nome===userAtual);
   if(!colab)return true;
@@ -3845,11 +4141,11 @@ async function salvarAtendimento(){
 // ── ONBOARDING ──
 const OB_TEMAS={
   'preto-dourado':{sb:'#1C1F2E',gd:'#C9A84C',gd2:'#E2C470',gdp:'#FFFBEB',gdb:'rgba(201,168,76,.2)'},
-  'azul-profundo':{sb:'#0F2552',gd:'#3B82F6',gd2:'#60A5FA',gdp:'#EFF6FF',gdb:'rgba(59,130,246,.2)'},
-  'verde-justica':{sb:'#0D2B1A',gd:'#059669',gd2:'#34D399',gdp:'#ECFDF5',gdb:'rgba(5,150,105,.2)'},
-  'roxo-prestige':{sb:'#1E0A3C',gd:'#7C3AED',gd2:'#A78BFA',gdp:'#F5F3FF',gdb:'rgba(124,58,237,.2)'},
-  'vermelho-poder':{sb:'#3B0A0A',gd:'#DC2626',gd2:'#F87171',gdp:'#FEF2F2',gdb:'rgba(220,38,38,.2)'},
-  'cinza-platina':{sb:'#1F2937',gd:'#94A3B8',gd2:'#CBD5E1',gdp:'#F8FAFC',gdb:'rgba(148,163,184,.2)'},
+  'azul-marinho':{sb:'#0E2240',gd:'#E2E8F0',gd2:'#F8FAFC',gdp:'#EFF6FF',gdb:'rgba(226,232,240,.2)'},
+  'vermelho-dourado':{sb:'#3D0B0B',gd:'#C9A84C',gd2:'#E2C470',gdp:'#FFFBEB',gdb:'rgba(201,168,76,.2)'},
+  'bege-marrom':{sb:'#2D1C10',gd:'#A0785A',gd2:'#C4987A',gdp:'#FDF6EE',gdb:'rgba(160,120,90,.2)'},
+  'verde-bege':{sb:'#0D2B1A',gd:'#C8B560',gd2:'#DDD090',gdp:'#FDFAEC',gdb:'rgba(200,181,96,.2)'},
+  'cinza-azul':{sb:'#1E2A38',gd:'#4A90D9',gd2:'#74B0E8',gdp:'#EFF6FF',gdb:'rgba(74,144,217,.2)'},
 };
 let obAtual=1,obTemaSel='preto-dourado',obMembros=[],obLogoFile=null;
 
@@ -3941,7 +4237,16 @@ async function obConcluir(){
   const{error:upErr2}=await db.from('escritorios').update(upd).eq('id',escData.id);
   if(upErr2){toast('Erro ao salvar: '+upErr2.message,'te');btn.disabled=false;btn.textContent='Concluir e Começar →';return;}
   Object.assign(escData,upd);
-  // create team members
+  // Garante que o titular tem registro em usuarios
+  if(usuarioAtual&&usuarioAtual.perfil==='titular'){
+    await db.from('usuarios').upsert({
+      id:usuarioAtual.id,escritorio_id:escData.id,
+      nome:usuarioAtual.nome,perfil:'titular',
+      perm_admin:true,perm_financeiro:true,perm_demandas:true,
+      perm_atendimentos:true,perm_diario_oficial:true,perm_relatorios:true
+    },{onConflict:'id'});
+  }
+  // Adiciona membros da equipe em colab_escritorio (serão migrados para usuarios depois)
   if(obMembros.length){
     const rows=obMembros.map(n=>({escritorio_id:escData.id,nome:n,perfil:'colaborador'}));
     const{data:novosColabs}=await db.from('colab_escritorio').insert(rows).select();
@@ -3954,53 +4259,106 @@ async function obConcluir(){
   ];
   const{data:dd}=await db.from('demandas_escritorio').insert(demos).select();
   if(dd)demandas.push(...dd);
-  // hide onboarding and start app
+  // Fecha onboarding e inicia o app com o usuário já identificado
   document.getElementById('ob').classList.remove('on');
-  renderSBInfo();renderKanban();
-  toast('Configuração concluída! Bem-vindo ao OrganizaADV.');
-  // apply saved theme to settings display
   if(escData.tema)obAplicarTema(escData.tema);
-  // show login or auto-login
-  obFinalizarInicio();
-}
-function obFinalizarInicio(){
-  const u=sessionStorage.getItem('oadv_user');
-  if(u&&colabs.find(c=>c.nome===u))loginComo(u);
-  else if(colabs.length>0)mostrarLogin();
-  else{userAtual=escData.responsavel||'Gestor';document.getElementById('sb-uav').textContent=iniciais(userAtual);document.getElementById('sb-unm').textContent=userAtual;const nf=document.getElementById('n-fin');if(nf)nf.style.display='flex';}
+  renderSBInfo();renderKanban();
   mostrarResumoDiario();
+  toast('Configuração concluída! Bem-vindo ao OrganizaADV.');
 }
 
 // ── INIT ──
 window.addEventListener('load',async()=>{
   const{data:{session}}=await db.auth.getSession();
-  if(!session){window.location.href='cadastro.html';return;}
-  const{data:esc}=await db.from('escritorios').select('*').eq('user_id',session.user.id).single();
-  if(!esc){window.location.href='cadastro.html';return;}
-  escData=esc;
-  if(esc.etapas?.length)ETAPAS=esc.etapas;
-  if(esc.tema)obAplicarTema(esc.tema);
+  if(!session){window.location.href='auth.html';return;}
+
+  // Tenta tabela usuarios (novo modelo)
+  const{data:usuario}=await db.from('usuarios').select('*').eq('id',session.user.id).single();
+
+  if(usuario){
+    // Novo modelo: usuário tem seu próprio registro
+    usuarioAtual=usuario;
+    userAtual=usuario.nome;
+    const{data:esc}=await db.from('escritorios').select('*').eq('id',usuario.escritorio_id).single();
+    if(!esc){window.location.href='auth.html';return;}
+    escData=esc;
+  } else {
+    // Pode ser: (a) conta antiga keyed por user_id, ou (b) membro convidado aguardando convite
+    const{data:esc}=await db.from('escritorios').select('*').eq('user_id',session.user.id).single();
+
+    if(esc){
+      // (a) Conta antiga — cria registro sintético e migra
+      escData=esc;
+      usuarioAtual={
+        id:session.user.id,escritorio_id:esc.id,
+        nome:esc.responsavel||session.user.email,perfil:'titular',
+        perm_admin:true,perm_financeiro:true,perm_demandas:true,
+        perm_atendimentos:true,perm_diario_oficial:true,perm_relatorios:true
+      };
+      userAtual=usuarioAtual.nome;
+    } else {
+      // (b) Usuário convidado: busca convite pelo e-mail
+      const email=session.user.email;
+      const{data:convite}=await db.from('convites').select('*').eq('email',email).eq('status','pendente').order('created_at',{ascending:false}).limit(1).maybeSingle();
+      if(!convite){window.location.href='auth.html';return;}
+
+      // Cria o registro do usuário a partir do convite
+      const novoUsuario={
+        id:session.user.id,
+        escritorio_id:convite.escritorio_id,
+        nome:convite.nome,
+        perfil:convite.perfil,
+        perm_admin:convite.perm_admin,
+        perm_financeiro:convite.perm_financeiro,
+        perm_demandas:convite.perm_demandas,
+        perm_atendimentos:convite.perm_atendimentos,
+        perm_diario_oficial:convite.perm_diario_oficial,
+        perm_relatorios:convite.perm_relatorios,
+      };
+      await db.from('usuarios').upsert([novoUsuario],{onConflict:'id'});
+      await db.from('convites').update({status:'aceito',aceito_em:new Date().toISOString()}).eq('id',convite.id);
+
+      usuarioAtual=novoUsuario;
+      userAtual=novoUsuario.nome;
+      const{data:escConv}=await db.from('escritorios').select('*').eq('id',convite.escritorio_id).single();
+      if(!escConv){window.location.href='auth.html';return;}
+      escData=escConv;
+    }
+  }
+
+  if(escData.etapas?.length)ETAPAS=escData.etapas;
+  if(escData.tema)obAplicarTema(escData.tema);
   renderSBInfo();verificarTrial();loadFin();loadNotifs();
+
   const[{data:d},{data:c}]=await Promise.all([
-    db.from('demandas_escritorio').select('*').eq('escritorio_id',esc.id).order('created_at',{ascending:false}),
-    db.from('colab_escritorio').select('*').eq('escritorio_id',esc.id).order('created_at',{ascending:true})
+    db.from('demandas_escritorio').select('*').eq('escritorio_id',escData.id).order('created_at',{ascending:false}),
+    db.from('colab_escritorio').select('*').eq('escritorio_id',escData.id).order('created_at',{ascending:true})
   ]);
-  demandas=d||[];colabs=c||[];initEtapaSel();initRespSel();renderKanban();loadAtendimentos();loadAgenda();loadDiario();
-  // Nota: rode no Supabase SQL Editor:
-  // ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS onboarding_completo boolean DEFAULT false;
-  // ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS logo_url text;
-  // ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS tema text DEFAULT 'preto-dourado';
-  // ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS area_principal text;
-  // ALTER TABLE colab_escritorio ADD COLUMN IF NOT EXISTS perfil text DEFAULT 'colaborador';
-  // ALTER TABLE demandas_escritorio ADD COLUMN IF NOT EXISTS criado_por text;
-  if(!esc.onboarding_completo){obIniciar();return;}
-  const u=sessionStorage.getItem('oadv_user');
-  if(u&&colabs.find(c=>c.nome===u))loginComo(u);
-  else if(colabs.length>0)mostrarLogin();
-  else{userAtual=escData.responsavel||'Gestor';document.getElementById('sb-uav').textContent=iniciais(userAtual);document.getElementById('sb-unm').textContent=userAtual;const nf=document.getElementById('n-fin');if(nf)nf.style.display='flex';}
-  // Resumo diário
+  demandas=d||[];colabs=c||[];
+  initEtapaSel();initRespSel();renderKanban();loadAtendimentos();loadAgenda();loadDiario();
+
+  // Exibe usuário logado na sidebar
+  document.getElementById('sb-uav').textContent=iniciais(userAtual);
+  document.getElementById('sb-unm').textContent=userAtual;
+  const badge=document.getElementById('sb-badge');
+  if(badge){
+    const perfis={titular:['Titular','adv'],advogado:['Advogado','ess']};
+    const[lbl,cls]=perfis[usuarioAtual.perfil]||['Colaborador','ess'];
+    badge.textContent=lbl;badge.className='sb-badge '+cls;
+  }
+
+  // Aplica permissões nos itens do menu
+  const nf=document.getElementById('n-fin');
+  if(nf)nf.style.display=temPermissao('ver_financeiro')?'flex':'none';
+  const ncfg=document.getElementById('n-cfg');
+  if(ncfg)ncfg.style.display=temPermissao('gerenciar_equipe')?'flex':'none';
+  const nat=document.getElementById('n-atendimentos');
+  if(nat)nat.style.display=temPermissao('ver_atendimentos')?'flex':'none';
+  const btnNova=document.getElementById('btn-nova-demanda');
+  if(btnNova)btnNova.style.display=temPermissao('criar_demandas')?'':'none';
+
+  if(!escData.onboarding_completo){obIniciar();return;}
   mostrarResumoDiario();
-  // Verificação auto a cada 4h
   setTimeout(()=>{if(demandas.some(d=>d.processo))verificarTrib();},15000);
   setInterval(()=>verificarTrib(),4*60*60*1000);
 });

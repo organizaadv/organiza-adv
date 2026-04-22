@@ -335,18 +335,23 @@ function showView(v){
   if(v==='receita')renderReceita();
 }
 
+function trialFimEsc(e){return e.trial_fim||e.trial_expira||null;}
+function planoLabel(p){return{essencial:'Essencial',avancado:'Avançado',pro:'Pro',trial:'Trial',teste:'Trial'}[p]||p;}
+function planoValor(p){return{essencial:99,avancado:149,pro:99}[p]||0;}
+function isPago(p){return['essencial','avancado','pro'].includes(p);}
+
 function statusEsc(e){
-  const dias=diasRestantes(e.trial_expira);
-  if(e.plano==='pro'&&e.ativo)return{label:'Ativo',cls:'badge-ativo',dot:'dot-green'};
-  if(e.plano==='teste'&&dias!==null&&dias>0)return{label:'Trial ('+dias+'d)',cls:'badge-trial',dot:'dot-amber'};
-  if(dias!==null&&dias<=0)return{label:'Expirado',cls:'badge-expirado',dot:'dot-red'};
+  const dias=diasRestantes(trialFimEsc(e));
+  if(isPago(e.plano)&&e.ativo)return{label:planoLabel(e.plano)+' ativo',cls:'badge-ativo',dot:'dot-green'};
+  if((e.plano==='trial'||e.plano==='teste')&&dias!==null&&dias>0)return{label:'Trial ('+dias+'d)',cls:'badge-trial',dot:'dot-amber'};
+  if(dias!==null&&dias<=0&&!isPago(e.plano))return{label:'Expirado',cls:'badge-expirado',dot:'dot-red'};
   return{label:'Inativo',cls:'badge-inativo',dot:'dot-gray'};
 }
 
 function renderDash(){
-  const ativos=escritorios.filter(e=>e.plano==='pro'&&e.ativo);
-  const trial=escritorios.filter(e=>e.plano==='teste'&&diasRestantes(e.trial_expira)>0);
-  const mrr=ativos.length*99;
+  const ativos=escritorios.filter(e=>isPago(e.plano)&&e.ativo);
+  const trial=escritorios.filter(e=>(e.plano==='trial'||e.plano==='teste')&&diasRestantes(trialFimEsc(e))>0);
+  const mrr=ativos.reduce((s,e)=>s+planoValor(e.plano),0);
   document.getElementById('m-ativos').textContent=ativos.length;
   document.getElementById('m-trial').textContent=trial.length;
   document.getElementById('m-total').textContent=escritorios.length;
@@ -359,17 +364,17 @@ function renderDash(){
       <td style="font-weight:500;">${e.nome}</td>
       <td>${e.responsavel||'—'}</td>
       <td style="font-size:12px;color:var(--gray);">${e.email||'—'}</td>
-      <td><span style="font-size:11px;font-weight:500;color:${e.plano==='pro'?'var(--green)':'var(--amber)'};">${e.plano==='pro'?'Pro':'Trial'}</span></td>
+      <td><span style="font-size:11px;font-weight:500;color:${isPago(e.plano)?'var(--green)':'var(--amber)'};">${planoLabel(e.plano)}</span></td>
       <td style="font-size:12px;color:var(--gray);">${fmtData(e.created_at)}</td>
       <td><span class="badge ${st.cls}"><span class="dot ${st.dot}"></span>${st.label}</span></td>
     </tr>`;
   }).join('');
-  const expirando=escritorios.filter(e=>e.plano==='teste'&&diasRestantes(e.trial_expira)>=0&&diasRestantes(e.trial_expira)<=3).sort((a,b)=>diasRestantes(a.trial_expira)-diasRestantes(b.trial_expira));
+  const expirando=escritorios.filter(e=>(e.plano==='trial'||e.plano==='teste')&&diasRestantes(trialFimEsc(e))>=0&&diasRestantes(trialFimEsc(e))<=3).sort((a,b)=>diasRestantes(trialFimEsc(a))-diasRestantes(trialFimEsc(b)));
   const tbody2=document.getElementById('tabela-expirando');
   tbody2.innerHTML=expirando.length?expirando.map(e=>`
     <tr><td style="font-weight:500;">${e.nome}</td>
-    <td><span style="color:var(--red);font-weight:500;">${diasRestantes(e.trial_expira)} dias</span></td>
-    <td><button class="btn-sm" onclick="converterPro('${e.id}')">Converter Pro</button></td></tr>`
+    <td><span style="color:var(--red);font-weight:500;">${diasRestantes(trialFimEsc(e))} dias</span></td>
+    <td><button class="btn-sm" onclick="abrirConverterPlano('${e.id}')">Converter →</button></td></tr>`
   ).join(''):'<tr><td colspan="3"><div class="empty">Nenhum trial expirando em breve.</div></td></tr>';
 }
 
@@ -383,25 +388,26 @@ function filtrarEsc(el){
 function renderEscritorios(){
   const search=(document.getElementById('esc-search')?.value||'').toLowerCase();
   let lista=[...escritorios];
-  if(filtroEsc==='ativo')lista=lista.filter(e=>e.plano==='pro'&&e.ativo);
-  else if(filtroEsc==='trial')lista=lista.filter(e=>e.plano==='teste'&&diasRestantes(e.trial_expira)>0);
-  else if(filtroEsc==='expirado')lista=lista.filter(e=>diasRestantes(e.trial_expira)<=0&&e.plano!=='pro');
+  if(filtroEsc==='ativo')lista=lista.filter(e=>isPago(e.plano)&&e.ativo);
+  else if(filtroEsc==='trial')lista=lista.filter(e=>(e.plano==='trial'||e.plano==='teste')&&diasRestantes(trialFimEsc(e))>0);
+  else if(filtroEsc==='expirado')lista=lista.filter(e=>diasRestantes(trialFimEsc(e))<=0&&!isPago(e.plano));
   if(search)lista=lista.filter(e=>(e.nome||'').toLowerCase().includes(search)||(e.email||'').toLowerCase().includes(search));
   const tbody=document.getElementById('tabela-escritorios');
   if(!lista.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty">Nenhum escritorio encontrado.</div></td></tr>';return;}
   tbody.innerHTML=lista.map(e=>{
     const st=statusEsc(e);
-    const dias=diasRestantes(e.trial_expira);
+    const tfim=trialFimEsc(e);
+    const dias=diasRestantes(tfim);
     return`<tr>
       <td style="font-weight:500;cursor:pointer;" onclick="abrirEsc('${e.id}')">${e.nome}</td>
       <td>${e.responsavel||'—'}</td>
       <td style="font-size:12px;color:var(--gray);">${e.tel||'—'}</td>
-      <td><span style="font-size:11px;font-weight:500;color:${e.plano==='pro'?'var(--green)':'var(--amber)'};">${e.plano==='pro'?'Pro':'Trial'}</span></td>
-      <td style="font-size:12px;color:${dias!==null&&dias<=3?'var(--red)':'var(--gray)'};">${dias!==null?fmtData(e.trial_expira):'—'}</td>
+      <td><span style="font-size:11px;font-weight:500;color:${isPago(e.plano)?'var(--green)':'var(--amber)'};">${planoLabel(e.plano)}</span></td>
+      <td style="font-size:12px;color:${dias!==null&&dias<=3?'var(--red)':'var(--gray)'};">${tfim?fmtData(tfim):'—'}</td>
       <td><span class="badge ${st.cls}"><span class="dot ${st.dot}"></span>${st.label}</span></td>
       <td style="display:flex;gap:4px;">
         <button class="btn-sm" onclick="abrirEsc('${e.id}')">Ver</button>
-        ${e.plano!=='pro'?`<button class="btn-sm" onclick="converterPro('${e.id}')">Converter Pro</button>`:''}
+        ${!isPago(e.plano)?`<button class="btn-sm" onclick="abrirConverterPlano('${e.id}')">Converter</button>`:''}
         <button class="btn-sm danger" onclick="suspender('${e.id}')">Suspender</button>
       </td>
     </tr>`;
@@ -409,11 +415,11 @@ function renderEscritorios(){
 }
 
 function renderTrial(){
-  const trial=escritorios.filter(e=>e.plano==='teste').sort((a,b)=>diasRestantes(a.trial_expira)-diasRestantes(b.trial_expira));
+  const trial=escritorios.filter(e=>e.plano==='trial'||e.plano==='teste').sort((a,b)=>diasRestantes(trialFimEsc(a))-diasRestantes(trialFimEsc(b)));
   const tbody=document.getElementById('tabela-trial');
   if(!trial.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty">Nenhum escritorio em teste.</div></td></tr>';return;}
   tbody.innerHTML=trial.map(e=>{
-    const dias=diasRestantes(e.trial_expira);
+    const dias=diasRestantes(trialFimEsc(e));
     return`<tr>
       <td style="font-weight:500;">${e.nome}</td>
       <td>${e.responsavel||'—'}</td>
@@ -421,7 +427,7 @@ function renderTrial(){
       <td style="font-size:12px;color:var(--gray);">${fmtData(e.created_at)}</td>
       <td><span style="color:${dias<=0?'var(--red)':dias<=3?'var(--amber)':'var(--green)'};font-weight:500;">${dias<=0?'Expirado':dias+'d restantes'}</span></td>
       <td style="display:flex;gap:4px;">
-        <button class="btn-sm" onclick="converterPro('${e.id}')">Converter Pro</button>
+        <button class="btn-sm" onclick="abrirConverterPlano('${e.id}')">Converter</button>
         <button class="btn-sm" onclick="extenderTrial('${e.id}')">+7 dias</button>
       </td>
     </tr>`;
@@ -445,8 +451,8 @@ function renderPagamentos(){
 }
 
 function renderReceita(){
-  const ativos=escritorios.filter(e=>e.plano==='pro'&&e.ativo);
-  const mrr=ativos.length*99;
+  const ativos=escritorios.filter(e=>isPago(e.plano)&&e.ativo);
+  const mrr=ativos.reduce((s,e)=>s+planoValor(e.plano),0);
   const total=pagamentos.reduce((s,p)=>s+(parseFloat(p.valor)||0),0);
   const ticket=ativos.length>0?mrr/ativos.length:0;
   const totalCad=escritorios.length;
@@ -470,38 +476,52 @@ function renderReceita(){
 
 function abrirEsc(id){
   const e=escritorios.find(x=>x.id===id);if(!e)return;
-  const dias=diasRestantes(e.trial_expira);
+  const tfim=trialFimEsc(e);
+  const dias=diasRestantes(tfim);
   document.getElementById('modal-esc-title').textContent=e.nome;
   document.getElementById('modal-esc-body').innerHTML=`
     <div class="detalhe-item"><div class="detalhe-label">Responsavel</div><div class="detalhe-val">${e.responsavel||'—'}</div></div>
     <div class="detalhe-item"><div class="detalhe-label">Email</div><div class="detalhe-val">${e.email||'—'}</div></div>
     <div class="detalhe-item"><div class="detalhe-label">WhatsApp</div><div class="detalhe-val">${e.tel||'—'}</div></div>
-    <div class="detalhe-item"><div class="detalhe-label">Plano</div><div class="detalhe-val">${e.plano==='pro'?'Pro R$99/mes':'Teste gratis'}</div></div>
+    <div class="detalhe-item"><div class="detalhe-label">Plano</div><div class="detalhe-val">${planoLabel(e.plano)}${isPago(e.plano)?' — R$'+planoValor(e.plano)+'/mês':' grátis'}</div></div>
     <div class="detalhe-item"><div class="detalhe-label">Cadastro</div><div class="detalhe-val">${fmtData(e.created_at)}</div></div>
-    <div class="detalhe-item"><div class="detalhe-label">Trial expira</div><div class="detalhe-val" style="color:${dias!==null&&dias<=3?'var(--red)':'inherit'}">${dias!==null?fmtData(e.trial_expira)+' ('+dias+'d)':'—'}</div></div>`;
+    <div class="detalhe-item"><div class="detalhe-label">Trial expira</div><div class="detalhe-val" style="color:${dias!==null&&dias<=3?'var(--red)':'inherit'}">${tfim?fmtData(tfim)+' ('+dias+'d)':'—'}</div></div>`;
   document.getElementById('modal-esc-acoes').innerHTML=`
-    ${e.plano!=='pro'?`<button class="btn-prim" onclick="converterPro('${e.id}');closeModal('modal-esc')">Converter para Pro</button>`:''}
+    ${!isPago(e.plano)?`<button class="btn-prim" onclick="abrirConverterPlano('${e.id}');closeModal('modal-esc')">Converter plano</button>`:''}
     <button class="btn-prim" style="background:var(--gold);color:var(--ink);" onclick="extenderTrial('${e.id}');closeModal('modal-esc')">+7 dias de trial</button>
     ${e.tel?`<button class="btn-prim" style="background:rgba(37,211,102,0.15);color:#25D366;border:1px solid rgba(37,211,102,0.3);" onclick="window.open('https://wa.me/${e.tel.replace(/\D/g,'')}','_blank')">WhatsApp</button>`:''}`;
   openModal('modal-esc');
 }
 
-async function converterPro(id){
-  if(!confirm('Converter este escritorio para o Plano Pro?'))return;
-  const{error}=await db.from('escritorios').update({plano:'pro',ativo:true}).eq('id',id);
+function abrirConverterPlano(id){
+  const e=escritorios.find(x=>x.id===id);if(!e)return;
+  const plano=prompt(`Converter "${e.nome}" para qual plano?\n\n1 → Essencial (R$99/mês · 2 advogados)\n2 → Avançado (R$149/mês · 5 advogados)\n\nDigite 1 ou 2:`,'1');
+  if(!plano)return;
+  const novoPlano=plano.trim()==='2'?'avancado':'essencial';
+  converterPlano(id,novoPlano);
+}
+
+async function converterPlano(id,novoPlano){
+  const{error}=await db.from('escritorios').update({plano:novoPlano,ativo:true}).eq('id',id);
   if(error){toast('Erro: '+error.message);return;}
-  const e=escritorios.find(x=>x.id===id);if(e){e.plano='pro';e.ativo=true;}
-  renderDash();renderEscritorios();toast('Convertido para Pro!');
+  const e=escritorios.find(x=>x.id===id);if(e){e.plano=novoPlano;e.ativo=true;}
+  renderDash();renderEscritorios();renderTrial();
+  toast('Convertido para '+planoLabel(novoPlano)+'!');
 }
 
 async function extenderTrial(id){
   const e=escritorios.find(x=>x.id===id);if(!e)return;
-  const atual=new Date(e.trial_expira||new Date());
+  const tfim=trialFimEsc(e);
+  const atual=new Date(tfim||new Date());
   atual.setDate(atual.getDate()+7);
-  const{error}=await db.from('escritorios').update({trial_expira:atual.toISOString()}).eq('id',id);
+  const novoVal=atual.toISOString();
+  const updates={trial_fim:novoVal};
+  if(e.trial_expira)updates.trial_expira=novoVal;
+  const{error}=await db.from('escritorios').update(updates).eq('id',id);
   if(error){toast('Erro: '+error.message);return;}
-  e.trial_expira=atual.toISOString();
-  renderDash();renderTrial();toast('Trial extendido por 7 dias!');
+  e.trial_fim=novoVal;
+  if(e.trial_expira)e.trial_expira=novoVal;
+  renderDash();renderTrial();toast('Trial estendido por 7 dias!');
 }
 
 async function suspender(id){
