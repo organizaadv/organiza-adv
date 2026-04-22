@@ -17,12 +17,10 @@ serve(async (req) => {
     const anonKey     = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     const siteUrl     = Deno.env.get('SITE_URL') ?? 'https://organiza-adv.vercel.app'
 
-    // Cliente admin (service role) para operações privilegiadas
     const admin = createClient(supabaseUrl, serviceKey, {
       auth: { autoRefreshToken: false, persistSession: false }
     })
 
-    // Cliente do usuário logado (para verificar quem está chamando)
     const authHeader = req.headers.get('Authorization') ?? ''
     const caller = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } }
@@ -31,15 +29,33 @@ serve(async (req) => {
     const { data: { user } } = await caller.auth.getUser()
     if (!user) throw new Error('Não autorizado')
 
-    // Verifica se o chamador é titular do escritório
+    // Tenta encontrar o usuário na tabela usuarios (novo modelo)
+    let escritorioId: string | null = null
+    let nomeRemetente = 'Titular'
+
     const { data: meuUsuario } = await admin
       .from('usuarios')
       .select('perfil, escritorio_id, nome')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (!meuUsuario || meuUsuario.perfil !== 'titular') {
-      throw new Error('Apenas o titular pode convidar membros')
+    if (meuUsuario) {
+      if (meuUsuario.perfil !== 'titular') {
+        throw new Error('Apenas o titular pode convidar membros')
+      }
+      escritorioId = meuUsuario.escritorio_id
+      nomeRemetente = meuUsuario.nome
+    } else {
+      // Fallback: modelo antigo — verifica se é titular pelo escritorios.user_id
+      const { data: esc } = await admin
+        .from('escritorios')
+        .select('id, responsavel')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (!esc) throw new Error('Apenas o titular pode convidar membros')
+      escritorioId = esc.id
+      nomeRemetente = esc.responsavel || 'Titular'
     }
 
     const body = await req.json()
@@ -54,21 +70,11 @@ serve(async (req) => {
 
     const emailNorm = email.toLowerCase().trim()
 
-    // Verifica se já existe um usuário com esse email no mesmo escritório
-    const { data: existente } = await admin
-      .from('usuarios')
-      .select('id')
-      .eq('escritorio_id', meuUsuario.escritorio_id)
-      .eq('id', (await admin.auth.admin.listUsers()).data.users.find(u => u.email === emailNorm)?.id ?? '')
-      .maybeSingle()
-
-    if (existente) throw new Error('Este e-mail já faz parte do escritório')
-
     // Cancela convites anteriores pendentes para o mesmo email/escritório
     await admin
       .from('convites')
       .update({ status: 'cancelado' })
-      .eq('escritorio_id', meuUsuario.escritorio_id)
+      .eq('escritorio_id', escritorioId)
       .eq('email', emailNorm)
       .eq('status', 'pendente')
 
@@ -76,7 +82,7 @@ serve(async (req) => {
     const { data: convite, error: conviteErr } = await admin
       .from('convites')
       .insert([{
-        escritorio_id: meuUsuario.escritorio_id,
+        escritorio_id: escritorioId,
         email: emailNorm, nome, perfil,
         perm_admin, perm_financeiro, perm_demandas,
         perm_atendimentos, perm_diario_oficial, perm_relatorios,
@@ -93,14 +99,13 @@ serve(async (req) => {
       redirectTo: `${siteUrl}/auth.html`,
       data: {
         nome,
-        escritorio_id: meuUsuario.escritorio_id,
+        escritorio_id: escritorioId,
         convite_id: convite.id,
-        convidado_por: meuUsuario.nome,
+        convidado_por: nomeRemetente,
       }
     })
 
     if (inviteErr) {
-      // Desfaz o convite se o email falhou
       await admin.from('convites').delete().eq('id', convite.id)
       throw inviteErr
     }

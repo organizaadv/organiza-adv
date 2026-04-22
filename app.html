@@ -93,7 +93,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 
 /* ── MAIN ── */
 .main{margin-left:var(--sbw);min-height:100vh;display:flex;flex-direction:column}
-.topbar{height:var(--tbh);background:var(--surface);border-bottom:1px solid var(--bd);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 0 var(--bd)}
+.topbar{height:var(--tbh);background:var(--surface);border-bottom:1px solid var(--bd);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:var(--trial-offset,0px);z-index:50;box-shadow:0 1px 0 var(--bd)}
 .tb-title{font-family:'Fraunces',serif;font-size:19px;font-weight:700;color:var(--tx);letter-spacing:-.3px}
 .tb-right{display:flex;align-items:center;gap:8px}
 .tb-date{font-size:12px;color:var(--tx3);font-weight:400}
@@ -448,7 +448,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
 <!-- ══ SIDEBAR ══ -->
 <aside class="sb">
   <div class="sb-head">
-    <div class="sb-mark">Organiza<span>ADV</span></div>
+    <div id="sb-logo-wrap"><div class="sb-mark">Organiza<span>ADV</span></div></div>
     <div class="sb-esc" id="sb-esc">Carregando...</div>
     <div class="sb-badge ess" id="sb-badge">Essencial</div>
   </div>
@@ -930,6 +930,14 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
 
       <!-- ABA: ATOS -->
       <div id="det-tab-atos">
+        <!-- Banner de Protocolo -->
+        <div id="det-prot-banner" style="display:none;background:var(--blb);border:1px solid var(--blbd);border-radius:var(--rmd);padding:14px 16px;margin:14px 0 4px;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--bl);margin-bottom:2px;">📋 Esta demanda está no Protocolo</div>
+            <div style="font-size:12px;color:var(--tx3);">Após protocolar, registre o número do processo e converta em processo judicial.</div>
+          </div>
+          <button class="btn btn-sm" style="background:var(--bl);color:#fff;white-space:nowrap;" onclick="abrirConverterProcesso()">Registrar número do processo →</button>
+        </div>
         <div class="detsec">
           <div class="detsec-title"><span>Atos da etapa atual</span><button class="btn btn-gh btn-sm" onclick="abrirModalAto()">+ Adicionar ato</button></div>
           <div class="atos-wrap">
@@ -941,10 +949,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
             <div id="det-atos"></div>
           </div>
         </div>
-        <div class="detsec" style="border-bottom:none;margin-bottom:0;padding-bottom:0;">
-          <div class="detsec-title">Observações por etapa</div>
-          <div id="det-obs-et"></div>
-        </div>
+        <div id="det-obs-et" style="display:none"></div>
       </div>
 
       <!-- ABA: HISTÓRICO & AVANÇO -->
@@ -953,7 +958,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
           <div class="detsec">
             <div class="detsec-title">Avançar etapa</div>
             <div class="fg2">
-              <div class="field"><label class="flabel">Quem realizou esta etapa <span class="req">*</span></label><input type="text" class="finp" id="det-quem" placeholder="Seu nome"/></div>
+              <div class="field"><label class="flabel">Quem realizou esta etapa <span class="req">*</span></label><select class="fsel" id="det-quem"><option value="">Selecione...</option></select></div>
               <div class="field"><label class="flabel">Observação (opcional)</label><input type="text" class="finp" id="det-obs-av" placeholder="Ex: Documentos enviados"/></div>
             </div>
             <div style="display:flex;gap:8px;margin-top:4px;">
@@ -994,7 +999,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         <div class="detsec" style="border-bottom:none;margin-bottom:0;padding-bottom:0;">
           <div class="detsec-title"><span>Mensagem para o cliente</span><button class="btn btn-gh btn-sm" onclick="gerarMsg()">Gerar mensagem</button></div>
           <div id="msg-wrap" style="display:none;">
-            <div class="msg-prev" id="msg-texto"></div>
+            <textarea class="msg-prev" id="msg-texto" style="resize:vertical;min-height:140px;width:100%;font-family:inherit;" oninput="atualizarLinkWpp()"></textarea>
             <a id="btn-wpp" href="#" target="_blank" class="btn-wpp">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
               Enviar pelo WhatsApp
@@ -1485,6 +1490,41 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <div class="mfoot-r">
         <button class="btn btn-gh" onclick="closeM('m-permissoes')">Cancelar</button>
         <button class="btn btn-gd" onclick="salvarPermissoes()">Salvar permissões</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDITAR PERFIL DO MEMBRO -->
+<div class="mov" id="m-edit-membro">
+  <div class="mbox">
+    <div class="mhead">
+      <div><div class="mtitle">Editar membro</div><div class="msubt">Atualize os dados do colaborador</div></div>
+      <button class="mx" onclick="closeM('m-edit-membro')">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="alert" id="edit-membro-err" style="display:none"></div>
+      <div class="fg2">
+        <div class="field"><label class="flabel">Nome completo <span class="req">*</span></label><input type="text" class="finp" id="em-nome" placeholder="Nome do membro"/></div>
+        <div class="field">
+          <label class="flabel">Perfil</label>
+          <select class="fsel" id="em-perfil" onchange="toggleEMOab()">
+            <option value="advogado">Advogado</option>
+            <option value="estagiario">Estagiário</option>
+            <option value="secretaria">Secretária / Recepcionista</option>
+            <option value="colaborador">Colaborador</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg2">
+        <div class="field"><label class="flabel">WhatsApp</label><input type="tel" class="finp" id="em-wpp" placeholder="(00) 9 0000-0000"/></div>
+        <div class="field" id="em-oab-wrap"><label class="flabel">Número OAB</label><input type="text" class="finp" id="em-oab" placeholder="OAB/BA 000000"/></div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <div class="mfoot-r">
+        <button class="btn btn-gh" onclick="closeM('m-edit-membro')">Cancelar</button>
+        <button class="btn btn-p" onclick="salvarEdicaoMembro()">Salvar alterações</button>
       </div>
     </div>
   </div>
@@ -2014,6 +2054,15 @@ async function sair(){await db.auth.signOut();window.location.href='auth.html';}
 function renderSBInfo(){
   document.getElementById('sb-esc').textContent=escData.nome||'Escritório';
   document.getElementById('ls-esc').textContent=escData.nome||'OrganizaADV';
+  // Logo no cabeçalho da sidebar
+  const sbMark=document.getElementById('sb-logo-wrap');
+  if(sbMark){
+    if(escData.logo_url){
+      sbMark.innerHTML=`<img src="${escData.logo_url}" style="max-height:36px;max-width:160px;object-fit:contain;display:block;margin-bottom:4px;" alt="${escData.nome||''}"/>`;
+    }else{
+      sbMark.innerHTML=`<div class="sb-mark">Organiza<span>ADV</span></div>`;
+    }
+  }
   const b=document.getElementById('sb-badge');
   if(escData.plano==='pro'||escData.plano==='avancado'){b.textContent='Pro';b.className='sb-badge adv';}
   else if(escData.plano==='essencial'){b.textContent='Essencial';b.className='sb-badge ess';}
@@ -2038,6 +2087,7 @@ function verificarTrial(){
     const tb=document.getElementById('tb');
     const tbMsg=document.getElementById('tb-msg');
     tb.classList.add('on');
+    requestAnimationFrame(()=>{ document.documentElement.style.setProperty('--trial-offset', tb.offsetHeight+'px'); });
     if(dias<=0)tbMsg.textContent='Seu período de teste gratuito expirou.';
     else if(dias===1)tbMsg.textContent='Seu teste expira hoje!';
     else tbMsg.textContent=`Seu teste gratuito expira em ${dias} dias.`;
@@ -2097,6 +2147,7 @@ function showView(v){
   });
   const n=document.getElementById('n-'+v);if(n)n.classList.add('on');
   document.getElementById('view-title').textContent=VTITLES[v]||v;
+  if(v==='kanban')renderKanban();
   if(v==='demandas')renderLista();
   if(v==='clientes')renderClientes();
   if(v==='atendimentos')renderAtendimentos();
@@ -2169,8 +2220,12 @@ function renderKanban(){
           const atosFei=atosEt.filter(a=>a.feito).length;
           const temAtos=atosEt.length>0;
           const atosPendAlta=atosEt.filter(a=>!a.feito&&a.prioridade==='alta').length;
+          const isDemo=d.obs?.startsWith('[FICTÍCIO]');
           return`<div class="kcard ${cls}" onclick="abrirDet(${d.id})">
-            <div class="kcard-nome">${d.nome}</div>
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+              <div class="kcard-nome" style="flex:1;min-width:0;">${d.nome}</div>
+              ${isDemo?`<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;background:var(--pub);color:var(--pu);border:1px solid var(--pubd);border-radius:4px;padding:1px 5px;flex-shrink:0;">Fictício</span>`:''}
+            </div>
             <div class="kcard-tipo">${d.tipo||'—'}</div>
             ${temAtos?`<div style="margin:6px 0 4px;">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
@@ -2260,13 +2315,13 @@ function renderPainelAvisos(){
   const urgentes=visíveisPainel.filter(d=>{
     if(statusD(d)!=='Em andamento')return false;
     const p=calcPrazo(d.prazo);
-    return p!==null&&p<=0;
+    return p!==null&&p<=1;
   }).sort((a,b)=>(calcPrazo(a.prazo)??0)-(calcPrazo(b.prazo)??0));
 
   const avisos=visíveisPainel.filter(d=>{
     if(statusD(d)!=='Em andamento')return false;
     const p=calcPrazo(d.prazo);
-    return p!==null&&p>0&&p<=3;
+    return p!==null&&p>1&&p<=4;
   }).sort((a,b)=>(calcPrazo(a.prazo)??0)-(calcPrazo(b.prazo)??0));
 
   let html='';
@@ -2274,14 +2329,14 @@ function renderPainelAvisos(){
   if(urgentes.length){
     html+=`<div class="aviso-panel" style="margin-bottom:10px;">
       <div class="aviso-head">
-        <span class="aviso-head-title">🚨 ${urgentes.length} prazo${urgentes.length>1?'s':''} vencido${urgentes.length>1?'s':''} — ação imediata necessária</span>
+        <span class="aviso-head-title">🚨 ${urgentes.length} prazo${urgentes.length>1?'s':''} crítico${urgentes.length>1?'s':''} — ação imediata necessária</span>
         <button onclick="document.getElementById('painel-avisos').style.display='none'" style="background:none;border:none;cursor:pointer;color:var(--rd);font-size:16px;">×</button>
       </div>
       ${urgentes.map(d=>`
       <div class="aviso-item">
         <div>
           <div class="aviso-nome">${d.nome}</div>
-          <div class="aviso-detalhe">${d.tipo||'—'} · ${d.responsavel?'Responsável: '+d.responsavel:''} · Prazo: ${fmtDt(d.prazo)} <strong style="color:var(--rd);">(${Math.abs(calcPrazo(d.prazo))} dia${Math.abs(calcPrazo(d.prazo))>1?'s':''} atraso)</strong></div>
+          <div class="aviso-detalhe">${d.tipo||'—'} · ${d.responsavel?'Responsável: '+d.responsavel:''} · Prazo: ${fmtDt(d.prazo)} <strong style="color:var(--rd);">${calcPrazo(d.prazo)<=0?'('+Math.abs(calcPrazo(d.prazo))+' dia'+(Math.abs(calcPrazo(d.prazo))>1?'s':'')+' atraso)':calcPrazo(d.prazo)===1?'(amanhã)':'(hoje!)'}</strong></div>
         </div>
         <div class="aviso-acoes">
           <button class="btn btn-sm btn-gh" onclick="abrirDet(${d.id})">Ver demanda</button>
@@ -2621,9 +2676,12 @@ function renderEqCfg(){
           <span style="font-size:13.5px;font-weight:500;">${c.nome}</span>
           <span class="bdg ${pBdg[c.perfil||'colaborador']||'b-conc'}" style="font-size:10px;">${pLabel[c.perfil||'colaborador']}</span>
         </div>
-        <div style="font-size:12px;color:var(--tx3);">${c.wpp?'WhatsApp: '+c.wpp:'Sem WhatsApp cadastrado'}</div>
+        <div style="font-size:12px;color:var(--tx3);">${c.wpp?'WhatsApp: '+c.wpp:'Sem WhatsApp cadastrado'}${c.oab?' · OAB: '+c.oab:''}</div>
       </div>
-      <button onclick="rmMembro(${c.id})" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:18px;padding:4px;border-radius:var(--rsm);transition:color .15s;" onmouseover="this.style.color='var(--rd)'" onmouseout="this.style.color='var(--tx3)'">×</button>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <button class="btn btn-gh btn-sm" onclick="abrirEditMembro(${c.id})">Editar</button>
+        <button onclick="rmMembro(${c.id})" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:18px;padding:4px;border-radius:var(--rsm);transition:color .15s;" onmouseover="this.style.color='var(--rd)'" onmouseout="this.style.color='var(--tx3)'">×</button>
+      </div>
     </div>`).join('');
 }
 const PERFIL_INFO={
@@ -2661,8 +2719,10 @@ async function convidarMembro(){
   const errEl=document.getElementById('eq-err');
   errEl.style.display='none';
 
-  if(!nome){errEl.textContent='Informe o nome do membro.';errEl.style.display='block';errEl.style.background='#FEF2F2';errEl.style.color='#991B1B';errEl.style.border='1px solid #FECACA';errEl.style.borderRadius='8px';errEl.style.padding='10px 14px';return;}
-  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){errEl.textContent='Informe um e-mail válido.';errEl.style.display='block';errEl.style.background='#FEF2F2';errEl.style.color='#991B1B';errEl.style.border='1px solid #FECACA';errEl.style.borderRadius='8px';errEl.style.padding='10px 14px';return;}
+  const showErr=(msg)=>{errEl.textContent=msg;errEl.style.display='block';errEl.style.background='#FEF2F2';errEl.style.color='#991B1B';errEl.style.border='1px solid #FECACA';errEl.style.borderRadius='8px';errEl.style.padding='10px 14px';};
+  if(!nome){showErr('Informe o nome do membro.');return;}
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showErr('Informe um e-mail válido.');return;}
+  if(perfil==='advogado'&&!document.getElementById('eq-oab').value.trim()){showErr('O número da OAB é obrigatório para advogados.');return;}
 
   const btn=document.getElementById('btn-convidar');
   btn.disabled=true;btn.textContent='Enviando...';
@@ -2715,6 +2775,37 @@ async function rmMembro(id){
     if(usr)await db.from('usuarios').delete().eq('id',usr.id);
   }
   colabs=colabs.filter(c=>c.id!==id);renderEqCfg();renderEqTabela();initRespSel();toast('Membro removido.');
+}
+
+let editMembroId=null;
+function abrirEditMembro(id){
+  const c=colabs.find(x=>x.id===id);if(!c)return;
+  editMembroId=id;
+  document.getElementById('em-nome').value=c.nome||'';
+  document.getElementById('em-perfil').value=c.perfil||'colaborador';
+  document.getElementById('em-wpp').value=c.wpp||'';
+  document.getElementById('em-oab').value=c.oab||'';
+  document.getElementById('edit-membro-err').style.display='none';
+  toggleEMOab();
+  openM('m-edit-membro');
+}
+function toggleEMOab(){
+  const p=document.getElementById('em-perfil').value;
+  document.getElementById('em-oab-wrap').style.display=p==='advogado'?'':'none';
+}
+async function salvarEdicaoMembro(){
+  const nome=document.getElementById('em-nome').value.trim();
+  if(!nome){const e=document.getElementById('edit-membro-err');e.textContent='Informe o nome.';e.style.display='block';return;}
+  const perfil=document.getElementById('em-perfil').value;
+  const wpp=document.getElementById('em-wpp').value.trim()||null;
+  const oab=document.getElementById('em-oab').value.trim()||null;
+  const{error}=await db.from('colab_escritorio').update({nome,perfil,wpp,oab}).eq('id',editMembroId);
+  if(error){const e=document.getElementById('edit-membro-err');e.textContent='Erro: '+error.message;e.style.display='block';return;}
+  const c=colabs.find(x=>x.id===editMembroId);
+  if(c){c.nome=nome;c.perfil=perfil;c.wpp=wpp;c.oab=oab;}
+  closeM('m-edit-membro');
+  renderEqCfg();renderEqTabela();initRespSel();
+  toast('Membro atualizado!');
 }
 
 // Inicializa info do perfil ao abrir o modal
@@ -2956,7 +3047,8 @@ function abrirDet(id){
       <div class="hist-top"><span class="hist-et">${h.etapa}</span><span class="hist-dt">${h.data}</span></div>
       <div class="hist-qm">Por: <strong>${h.quem}</strong>${h.obs?' — '+h.obs:''}</div>
     </div>`).join(''):'<div style="font-size:13px;color:var(--tx3);padding:8px 0;">Nenhuma fase concluída ainda.</div>';
-    const qf=document.getElementById('det-quem');if(qf&&userAtual)qf.value=userAtual;
+    const qf=document.getElementById('det-quem');
+    if(qf){qf.innerHTML='<option value="">Selecione...</option>'+colabs.map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('');if(userAtual)qf.value=userAtual;}
     const oa=document.getElementById('det-obs-av');if(oa)oa.value='';
     document.getElementById('msg-wrap').style.display='none';
     initRespSel();
@@ -2968,6 +3060,9 @@ function renderAtosDetalhe(d){
   const et=ETAPAS[d.etapa_atual]?.nome||'';
   const atosEt=atos.filter(a=>a.etapa===et);
   const lista=document.getElementById('det-atos');
+  // Banner de protocolo — exibe quando demanda está na etapa Protocolo e ainda não tem processo
+  const bannerProt=document.getElementById('det-prot-banner');
+  if(bannerProt)bannerProt.style.display=(et==='Protocolo'&&!d.processo)?'flex':'none';
   if(!atosEt.length){lista.innerHTML='<div class="atos-empty">Nenhum ato registrado nesta etapa. Adicione atos para detalhar o trabalho.</div>';return;}
   // Ordenar: alta prioridade primeiro, depois normais, depois baixas. Feitos por último.
   const atosOrdenados=[...atosEt].sort((a,b)=>{
@@ -3145,6 +3240,22 @@ function toggleEditTipoOutro(){
   document.getElementById('e-tipo-outro-wrap').style.display=sel==='Outro'?'block':'none';
 }
 
+function abrirConverterProcesso(){
+  const d=demandas.find(x=>x.id===detId);if(!d)return;
+  const num=prompt('Informe o número do processo (ex: 0001234-56.2026.1.00.0001):');
+  if(num===null)return;
+  const numLimpo=num.trim();
+  if(!numLimpo){toast('Número do processo não informado.','te');return;}
+  db.from('demandas_escritorio').update({processo:numLimpo}).eq('id',detId).then(({error})=>{
+    if(error){toast('Erro: '+error.message,'te');return;}
+    const d2=demandas.find(x=>x.id===detId);if(d2)d2.processo=numLimpo;
+    document.getElementById('det-proc').textContent=numLimpo;
+    const banner=document.getElementById('det-prot-banner');if(banner)banner.style.display='none';
+    renderKanban();
+    toast('Número do processo registrado! ✓');
+  });
+}
+
 function abrirEdicao(){
   const d=demandas.find(x=>x.id===detId);if(!d)return;
 
@@ -3245,10 +3356,20 @@ function gerarMsg(){
   if(atoAt)msg+=`🔄 Em execução: ${atoAt.nome}\n`;
   if(d.prazo){const diff=calcPrazo(d.prazo);if(diff!==null&&diff>0)msg+=`📅 Prazo: ${fmtDt(d.prazo)} (${diff} dias)\n`;}
   msg+=`\nAssim que houver atualizações, entraremos em contato. Estamos à disposição.`;
-  document.getElementById('msg-texto').textContent=msg;document.getElementById('msg-wrap').style.display='block';
+  const ta=document.getElementById('msg-texto');ta.value=msg;document.getElementById('msg-wrap').style.display='block';
   const num=(d.tel||'').replace(/\D/g,'');
   const wn=num.length>=10?'55'+num:num;
-  document.getElementById('btn-wpp').href=num?`https://wa.me/${wn}?text=${encodeURIComponent(msg)}`:`https://wa.me/?text=${encodeURIComponent(msg)}`;
+  const btnWpp=document.getElementById('btn-wpp');
+  btnWpp.dataset.num=num;
+  btnWpp.href=num?`https://wa.me/${wn}?text=${encodeURIComponent(msg)}`:`https://wa.me/?text=${encodeURIComponent(msg)}`;
+}
+function atualizarLinkWpp(){
+  const ta=document.getElementById('msg-texto');
+  const btn=document.getElementById('btn-wpp');
+  if(!ta||!btn)return;
+  const num=btn.dataset.num||'';
+  const wn=num.length>=10?'55'+num:num;
+  btn.href=num?`https://wa.me/${wn}?text=${encodeURIComponent(ta.value)}`:`https://wa.me/?text=${encodeURIComponent(ta.value)}`;
 }
 
 function exportPDF(){
@@ -4254,8 +4375,8 @@ async function obConcluir(){
   }
   // create 2 demo clients
   const demos=[
-    {escritorio_id:escData.id,nome:'Ana Paula Ferreira',cpf:'321.654.987-00',tipo:'Direito de Família',etapa_atual:0,status:'Em andamento',data:hoje(),criado_por:escData.responsavel||'Gestor'},
-    {escritorio_id:escData.id,nome:'Comércio Central Ltda',cpf:'12.345.678/0001-99',tipo:'Direito Empresarial',etapa_atual:0,status:'Em andamento',data:hoje(),criado_por:escData.responsavel||'Gestor'},
+    {escritorio_id:escData.id,nome:'Ana Paula Ferreira',cpf:'321.654.987-00',tipo:'Direito de Família',etapa_atual:0,status:'Em andamento',data:hoje(),criado_por:escData.responsavel||'Gestor',obs:'[FICTÍCIO] Cliente de demonstração. Pode excluir.'},
+    {escritorio_id:escData.id,nome:'Comércio Central Ltda',cpf:'12.345.678/0001-99',tipo:'Direito Empresarial',etapa_atual:0,status:'Em andamento',data:hoje(),criado_por:escData.responsavel||'Gestor',obs:'[FICTÍCIO] Cliente de demonstração. Pode excluir.'},
   ];
   const{data:dd}=await db.from('demandas_escritorio').insert(demos).select();
   if(dd)demandas.push(...dd);
