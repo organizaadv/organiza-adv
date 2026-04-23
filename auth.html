@@ -9,12 +9,8 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-
-/* ── LAYOUT ── */
 .pg{display:grid;grid-template-columns:420px 1fr;min-height:100vh}
 @media(max-width:860px){.pg{grid-template-columns:1fr}}
-
-/* ── PAINEL ESQUERDO ── */
 .left{background:#1C1F2E;display:flex;flex-direction:column;padding:40px;position:relative;overflow:hidden}
 .left::before{content:'';position:absolute;top:-120px;right:-80px;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.12) 0%,transparent 70%);pointer-events:none}
 .left::after{content:'';position:absolute;bottom:-100px;left:-60px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.07) 0%,transparent 70%);pointer-events:none}
@@ -33,91 +29,63 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-sm
 .l-trial-txt{font-size:12px;color:rgba(255,255,255,.5);line-height:1.5}
 .l-trial-txt strong{display:block;font-size:14px;color:rgba(255,255,255,.8);font-weight:600;margin-bottom:2px}
 @media(max-width:860px){.left{display:none}}
-
-/* ── PAINEL DIREITO ── */
 .right{background:#F4F6FB;display:flex;align-items:center;justify-content:center;padding:40px 24px}
 .form-card{background:#fff;border-radius:20px;width:100%;max-width:420px;box-shadow:0 4px 24px rgba(13,19,33,.07),0 1px 4px rgba(13,19,33,.04);border:1px solid #DDE2EE;overflow:hidden}
 .mob-logo{display:none;padding:24px 28px 0;font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:#C9A84C}
 .mob-logo span{color:#48556A}
 @media(max-width:860px){.mob-logo{display:block}}
-
-/* ── ABAS ── */
 .tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #DDE2EE}
 .tab{padding:16px 12px;text-align:center;font-size:13.5px;font-weight:500;color:#96A3B5;cursor:pointer;border:none;background:none;font-family:'DM Sans',sans-serif;transition:all .15s;position:relative}
 .tab::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;background:#C9A84C;transform:scaleX(0);transition:transform .2s}
 .tab.on{color:#0D1321;font-weight:600}
 .tab.on::after{transform:scaleX(1)}
 .tab-badge{display:inline-block;background:#FFFBEB;border:1px solid rgba(201,168,76,.3);color:#92701A;font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px;margin-left:6px;vertical-align:middle}
-
-/* ── FORM BODY ── */
 .fbody{padding:28px}
-
-/* ── FIELDS ── */
 .field{margin-bottom:14px}
 .flabel{display:block;font-size:12px;font-weight:600;color:#48556A;margin-bottom:5px;letter-spacing:.1px}
 .finp{width:100%;padding:10px 13px;border:1px solid #DDE2EE;border-radius:8px;background:#fff;color:#0D1321;font-size:13.5px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s,box-shadow .15s}
 .finp:focus{border-color:#C9A84C;box-shadow:0 0 0 3px rgba(201,168,76,.1)}
 .finp.err{border-color:#DC2626;box-shadow:0 0 0 3px rgba(220,38,38,.08)}
 .finp::placeholder{color:#96A3B5}
-.fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-
-/* ── SENHA ── */
 .pw-wrap{position:relative}
 .pw-wrap .finp{padding-right:42px}
 .pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#96A3B5;padding:2px;display:flex;transition:color .15s}
 .pw-eye:hover{color:#48556A}
-
-/* ── BOTÃO ── */
 .btn-sub{width:100%;padding:12px;border-radius:9px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;border:none;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:8px}
 .btn-sub.primary{background:#1C1F2E;color:#fff}
 .btn-sub.primary:hover:not(:disabled){background:#C9A84C}
 .btn-sub.trial{background:#C9A84C;color:#fff}
 .btn-sub.trial:hover:not(:disabled){background:#B8974A;transform:translateY(-1px);box-shadow:0 4px 14px rgba(201,168,76,.35)}
 .btn-sub:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
-
-/* ── SPINNER ── */
 .spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:rot .6s linear infinite;flex-shrink:0}
 @keyframes rot{to{transform:rotate(360deg)}}
-
-/* ── LINKS ── */
 .form-link{font-size:12.5px;color:#96A3B5;text-align:center;margin-top:16px}
 .form-link a,.form-link button{color:#0D1321;font-weight:600;text-decoration:none;background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12.5px}
 .form-link a:hover,.form-link button:hover{color:#C9A84C}
-
-/* ── ALERTA ── */
 .alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none}
 .alert.show{display:block}
 .alert.err{background:#FEF2F2;color:#991B1B;border:1px solid #FECACA}
 .alert.ok{background:#ECFDF5;color:#065F46;border:1px solid #A7F3D0}
-
-/* ── DIVISOR ── */
 .divider{display:flex;align-items:center;gap:12px;margin:18px 0;font-size:12px;color:#96A3B5}
 .divider::before,.divider::after{content:'';flex:1;height:1px;background:#DDE2EE}
-
-/* ── HINT ── */
 .hint{font-size:12px;color:#96A3B5;margin-top:4px}
 .hint.ok{color:#059669}
-
-/* ── FORÇA DA SENHA ── */
 .pw-strength{height:3px;border-radius:99px;margin-top:6px;background:#EEF1F8;overflow:hidden}
 .pw-bar{height:100%;width:0;transition:width .3s,background .3s;border-radius:99px}
 
-/* ── SUCCESS ── */
-#success-panel{display:none;padding:40px 28px;text-align:center}
-#success-panel.show{display:block}
-.suc-ico{font-size:48px;margin-bottom:16px}
-.suc-title{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:#0D1321;margin-bottom:8px}
-.suc-sub{font-size:14px;color:#48556A;line-height:1.65;margin-bottom:24px}
-
-/* ── ESQUECI SENHA ── */
-#forgot-panel{display:none;padding:28px}
-#forgot-panel.show{display:block}
+/* OTP */
+.otp-wrap{display:flex;gap:8px;margin-bottom:4px}
+.otp-digit{flex:1;height:54px;border:2px solid #DDE2EE;border-radius:10px;background:#fff;color:#0D1321;font-size:22px;font-weight:700;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s,box-shadow .15s;text-align:center;caret-color:transparent}
+.otp-digit:focus{border-color:#C9A84C;box-shadow:0 0 0 3px rgba(201,168,76,.1)}
+.otp-digit.err{border-color:#DC2626;box-shadow:0 0 0 3px rgba(220,38,38,.08)}
+.resend-btn{background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12.5px;color:#C9A84C;font-weight:600;padding:0;transition:color .15s}
+.resend-btn:hover:not(:disabled){color:#B8974A}
+.resend-btn:disabled{color:#96A3B5;cursor:default}
 </style>
 </head>
 <body>
 <div class="pg">
 
-  <!-- ── PAINEL ESQUERDO ── -->
   <div class="left">
     <div>
       <div class="l-logo">Organiza<span>ADV</span></div>
@@ -139,18 +107,16 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-sm
     </div>
   </div>
 
-  <!-- ── PAINEL DIREITO ── -->
   <div class="right">
     <div class="form-card">
       <div class="mob-logo">Organiza<span style="color:#48556A">ADV</span></div>
 
-      <!-- ABAS -->
-      <div class="tabs">
+      <div class="tabs" id="tabs-bar">
         <button class="tab on" id="tab-login" onclick="setTab('login')">Entrar</button>
         <button class="tab" id="tab-signup" onclick="setTab('signup')">Teste grátis <span class="tab-badge">7 dias</span></button>
       </div>
 
-      <!-- ── FORM LOGIN ── -->
+      <!-- LOGIN -->
       <div id="panel-login" class="fbody">
         <div class="alert err" id="login-err"></div>
         <div class="field">
@@ -173,38 +139,78 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-sm
         <div class="form-link" style="margin-top:20px">Ainda não tem conta? <button onclick="setTab('signup')">Testar grátis por 7 dias</button></div>
       </div>
 
-      <!-- ── FORM SIGNUP ── -->
+      <!-- PASSO 1: nome + email -->
       <div id="panel-signup" class="fbody" style="display:none">
+        <div style="margin-bottom:20px">
+          <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#0D1321;margin-bottom:5px">Criar sua conta</div>
+          <div style="font-size:13px;color:#48556A;line-height:1.6">7 dias grátis, sem cartão de crédito.</div>
+        </div>
         <div class="alert err" id="signup-err"></div>
         <div class="field">
-          <label class="flabel">Nome completo <span style="color:#DC2626">*</span></label>
+          <label class="flabel">Seu nome completo <span style="color:#DC2626">*</span></label>
           <input class="finp" id="s-nome" type="text" placeholder="Dr. João Silva" autocomplete="name"/>
         </div>
         <div class="field">
-          <label class="flabel">Nome do escritório <span style="color:#DC2626">*</span></label>
-          <input class="finp" id="s-esc" type="text" placeholder="Silva & Associados"/>
-        </div>
-        <div class="field">
-          <label class="flabel">E-mail <span style="color:#DC2626">*</span></label>
+          <label class="flabel">E-mail profissional <span style="color:#DC2626">*</span></label>
           <input class="finp" id="s-email" type="email" placeholder="seu@email.com.br" autocomplete="email"/>
         </div>
-        <div class="field">
-          <label class="flabel">Senha <span style="color:#DC2626">*</span></label>
-          <div class="pw-wrap">
-            <input class="finp" id="s-senha" type="password" placeholder="Mín. 8 caracteres" autocomplete="new-password" oninput="avaliarSenha(this.value)"/>
-            <button class="pw-eye" type="button" onclick="toggleSenha('s-senha',this)" title="Mostrar senha">
-              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
-          </div>
-          <div class="pw-strength"><div class="pw-bar" id="pw-bar"></div></div>
-          <div class="hint" id="pw-hint"></div>
-        </div>
-        <button class="btn-sub trial" id="btn-signup" onclick="signup()">Começar teste gratuito →</button>
-        <div class="hint" style="text-align:center;margin-top:10px">Sem cartão de crédito · 7 dias grátis · Cancele quando quiser</div>
+        <button class="btn-sub trial" id="btn-signup" onclick="enviarCodigo()">Continuar →</button>
+        <div class="hint" style="text-align:center;margin-top:10px">Enviaremos um código de verificação para o seu e-mail</div>
         <div class="form-link" style="margin-top:16px">Já tem conta? <button onclick="setTab('login')">Entrar</button></div>
       </div>
 
-      <!-- ── ESQUECI SENHA ── -->
+      <!-- PASSO 2: código OTP -->
+      <div id="panel-verify" class="fbody" style="display:none">
+        <div style="margin-bottom:20px">
+          <button onclick="voltarStep1()" style="background:none;border:none;cursor:pointer;font-size:12.5px;color:#96A3B5;font-family:'DM Sans',sans-serif;padding:0;margin-bottom:14px;display:flex;align-items:center;gap:4px" onmouseover="this.style.color='#0D1321'" onmouseout="this.style.color='#96A3B5'">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Trocar e-mail
+          </button>
+          <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#0D1321;margin-bottom:6px">Verifique seu e-mail</div>
+          <div style="font-size:13px;color:#48556A;line-height:1.6">Enviamos um código de <strong>6 dígitos</strong> para<br><span id="v-email-show" style="font-weight:600;color:#1C1F2E"></span></div>
+          <div style="font-size:12px;color:#96A3B5;margin-top:6px">O código expira em 15 minutos.</div>
+        </div>
+        <div class="alert err" id="verify-err"></div>
+        <div class="alert ok" id="verify-ok"></div>
+        <div class="field">
+          <label class="flabel">Código de verificação</label>
+          <div class="otp-wrap" id="otp-boxes"></div>
+        </div>
+        <button class="btn-sub trial" id="btn-verify" onclick="verificarCodigo()" style="margin-top:4px">Confirmar →</button>
+        <div style="text-align:center;margin-top:14px;font-size:12.5px;color:#96A3B5">
+          Não recebeu? <button class="resend-btn" id="btn-resend" onclick="reenviarCodigo()">Reenviar código</button>
+          <span id="resend-timer" style="display:none"></span>
+        </div>
+      </div>
+
+      <!-- PASSO 3: criar senha -->
+      <div id="panel-signup-pw" class="fbody" style="display:none">
+        <div style="margin-bottom:20px">
+          <div style="display:inline-flex;align-items:center;gap:6px;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:99px;padding:4px 12px;font-size:12px;font-weight:600;color:#065F46;margin-bottom:14px">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>E-mail verificado
+          </div>
+          <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#0D1321;margin-bottom:5px">Crie sua senha</div>
+          <div style="font-size:13px;color:#48556A;line-height:1.6">Defina a senha para acessar o OrganizaADV.</div>
+        </div>
+        <div class="alert err" id="spw-err"></div>
+        <div class="field">
+          <label class="flabel">Nova senha <span style="color:#DC2626">*</span></label>
+          <div class="pw-wrap">
+            <input class="finp" id="spw-senha" type="password" placeholder="Mín. 8 caracteres" autocomplete="new-password" oninput="avaliarSenha(this.value,'spw-bar','spw-hint')"/>
+            <button class="pw-eye" type="button" onclick="toggleSenha('spw-senha',this)" title="Mostrar senha">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="pw-strength"><div class="pw-bar" id="spw-bar"></div></div>
+          <div class="hint" id="spw-hint"></div>
+        </div>
+        <div class="field">
+          <label class="flabel">Confirmar senha <span style="color:#DC2626">*</span></label>
+          <input class="finp" id="spw-conf" type="password" placeholder="Repita a senha"/>
+        </div>
+        <button class="btn-sub trial" id="btn-spw" onclick="completarCadastro()">Criar minha conta →</button>
+      </div>
+
+      <!-- RECUPERAR SENHA -->
       <div id="panel-forgot" class="fbody" style="display:none">
         <div style="margin-bottom:18px">
           <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#0D1321;margin-bottom:6px">Recuperar senha</div>
@@ -230,83 +236,120 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const{createClient}=supabase;
 const db=createClient(SB_URL,SB_KEY);
 
-// ── ABAS ──
+// Persiste estado do cadastro pelo localStorage para recuperar ao reabrir
+const OV='_ov_adv';
+const getPV=()=>{try{return JSON.parse(localStorage.getItem(OV)||'null')}catch{return null}};
+const setPV=(d)=>localStorage.setItem(OV,JSON.stringify(d));
+const clearPV=()=>localStorage.removeItem(OV);
+
+// ── OTP BOXES (6 caixas individuais) ──
+function buildOtpBoxes(){
+  const wrap=document.getElementById('otp-boxes');
+  wrap.innerHTML='';
+  for(let i=0;i<6;i++){
+    const inp=document.createElement('input');
+    inp.type='text';inp.inputMode='numeric';inp.maxLength=1;
+    inp.className='otp-digit';inp.dataset.idx=i;
+    inp.addEventListener('keydown',otpKeydown);
+    inp.addEventListener('input',otpInput);
+    inp.addEventListener('paste',otpPaste);
+    wrap.appendChild(inp);
+  }
+}
+function otpDigits(){
+  return Array.from(document.querySelectorAll('.otp-digit')).map(i=>i.value).join('');
+}
+function otpInput(e){
+  const inp=e.target;
+  inp.value=inp.value.replace(/\D/,'').slice(0,1);
+  if(inp.value&&+inp.dataset.idx<5){
+    document.querySelectorAll('.otp-digit')[+inp.dataset.idx+1].focus();
+  }
+}
+function otpKeydown(e){
+  const idx=+e.target.dataset.idx;
+  if(e.key==='Backspace'&&!e.target.value&&idx>0){
+    document.querySelectorAll('.otp-digit')[idx-1].focus();
+  }
+  if(e.key==='Enter'){verificarCodigo();}
+}
+function otpPaste(e){
+  e.preventDefault();
+  const text=(e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
+  const boxes=document.querySelectorAll('.otp-digit');
+  [...text].forEach((c,i)=>{if(boxes[i])boxes[i].value=c;});
+  if(text.length>0)boxes[Math.min(text.length,5)].focus();
+  if(text.length===6)setTimeout(verificarCodigo,100);
+}
+function otpSetErr(on){
+  document.querySelectorAll('.otp-digit').forEach(b=>b.classList.toggle('err',on));
+}
+function otpClear(){
+  document.querySelectorAll('.otp-digit').forEach(b=>{b.value='';b.classList.remove('err');});
+  const first=document.querySelector('.otp-digit');if(first)first.focus();
+}
+
+// ── PAINÉIS ──
+const PANELS=['panel-login','panel-signup','panel-verify','panel-signup-pw','panel-forgot','panel-setpw'];
+function showOnly(id){
+  PANELS.forEach(p=>{const el=document.getElementById(p);if(el)el.style.display=p===id?'':'none';});
+}
+function hideTabs(){document.getElementById('tabs-bar').style.display='none';}
+function showTabs(){document.getElementById('tabs-bar').style.display='';}
+
 function setTab(t){
-  ['login','signup','forgot'].forEach(p=>{
-    document.getElementById('panel-'+p).style.display=p===t?'':'none';
+  showOnly('panel-'+t);
+  showTabs();
+  ['login','signup'].forEach(p=>{
     const tab=document.getElementById('tab-'+p);
     if(tab)tab.classList.toggle('on',p===t);
   });
-  ['login-err','signup-err','forgot-err','forgot-ok'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el){el.classList.remove('show');el.textContent='';}
-  });
+  ['login-err','signup-err'].forEach(id=>{const el=document.getElementById(id);if(el){el.classList.remove('show');el.textContent='';}});
 }
 
 function showForgot(){
-  ['panel-login','panel-signup','panel-forgot'].forEach(id=>document.getElementById(id).style.display='none');
-  document.getElementById('panel-forgot').style.display='';
-  document.getElementById('tab-login').classList.remove('on');
-  document.getElementById('tab-signup').classList.remove('on');
+  showOnly('panel-forgot');hideTabs();
+  ['login','signup'].forEach(id=>{const tab=document.getElementById('tab-'+id);if(tab)tab.classList.remove('on');});
 }
 
 // ── UTILS ──
-function showErr(id,msg){
-  const el=document.getElementById(id);
-  el.textContent=msg;el.classList.add('show');
-}
-function clearErr(id){
-  const el=document.getElementById(id);
-  if(el){el.classList.remove('show');el.textContent='';}
-}
+function showErr(id,msg){const el=document.getElementById(id);if(!el)return;el.textContent=msg;el.className='alert err show';}
+function showOk(id,msg){const el=document.getElementById(id);if(!el)return;el.textContent=msg;el.className='alert ok show';}
+function clearMsg(id){const el=document.getElementById(id);if(el){el.className='alert';el.textContent='';}}
 function setLoading(btnId,on,label){
-  const btn=document.getElementById(btnId);
-  btn.disabled=on;
-  btn.innerHTML=on?'<div class="spin"></div>':label;
+  const btn=document.getElementById(btnId);if(!btn)return;
+  btn.disabled=on;btn.innerHTML=on?'<div class="spin"></div>':label;
 }
 function toggleSenha(id,btn){
-  const inp=document.getElementById(id);
-  const show=inp.type==='password';
-  inp.type=show?'text':'password';
+  const inp=document.getElementById(id);const show=inp.type==='password';inp.type=show?'text':'password';
   btn.innerHTML=show
     ?'<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
     :'<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
 }
-
-function avaliarSenha(v){
-  const bar=document.getElementById('pw-bar');
-  const hint=document.getElementById('pw-hint');
-  let score=0;
-  if(v.length>=8)score++;
-  if(/[A-Z]/.test(v))score++;
-  if(/[0-9]/.test(v))score++;
-  if(/[^A-Za-z0-9]/.test(v))score++;
-  const cores=['','#DC2626','#D97706','#2563EB','#059669'];
-  const labels=['','Muito fraca','Fraca','Boa','Forte'];
-  bar.style.width=(score*25)+'%';
-  bar.style.background=cores[score]||'';
-  hint.textContent=v.length?labels[score]||'':'';
-  hint.style.color=cores[score]||'';
+function avaliarSenha(v,barId,hintId){
+  const bar=document.getElementById(barId);const hint=document.getElementById(hintId);if(!bar||!hint)return;
+  let s=0;if(v.length>=8)s++;if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++;if(/[^A-Za-z0-9]/.test(v))s++;
+  const cores=['','#DC2626','#D97706','#2563EB','#059669'];const labels=['','Muito fraca','Fraca','Boa','Forte'];
+  bar.style.width=(s*25)+'%';bar.style.background=cores[s]||'';
+  hint.textContent=v.length?labels[s]||'':'';hint.style.color=cores[s]||'';
 }
 
-// ── RATE LIMIT ──
+// ── RATE LIMIT LOGIN ──
 const attempts={};
 function checkRL(email){
-  const now=Date.now();
-  if(!attempts[email])attempts[email]={n:0,until:0};
+  const now=Date.now();if(!attempts[email])attempts[email]={n:0,until:0};
   const r=attempts[email];
-  if(r.until>now){const m=Math.ceil((r.until-now)/60000);showErr('login-err',`Muitas tentativas. Aguarde ${m} min.`);return false;}
+  if(r.until>now){showErr('login-err',`Muitas tentativas. Aguarde ${Math.ceil((r.until-now)/60000)} min.`);return false;}
   return true;
 }
 function failRL(email){
-  if(!attempts[email])attempts[email]={n:0,until:0};
-  attempts[email].n++;
+  if(!attempts[email])attempts[email]={n:0,until:0};attempts[email].n++;
   if(attempts[email].n>=5){attempts[email].until=Date.now()+15*60*1000;attempts[email].n=0;}
 }
 
 // ── LOGIN ──
 async function login(){
-  clearErr('login-err');
+  clearMsg('login-err');
   const email=document.getElementById('l-email').value.trim();
   const senha=document.getElementById('l-senha').value;
   if(!email){document.getElementById('l-email').classList.add('err');return;}
@@ -328,35 +371,124 @@ async function login(){
   }
 }
 
-// ── SIGNUP ──
-async function signup(){
-  clearErr('signup-err');
+// ── PASSO 1: enviar código ──
+async function enviarCodigo(){
+  clearMsg('signup-err');
   const nome=document.getElementById('s-nome').value.trim();
-  const esc=document.getElementById('s-esc').value.trim();
   const email=document.getElementById('s-email').value.trim();
-  const senha=document.getElementById('s-senha').value;
-
   if(!nome){document.getElementById('s-nome').classList.add('err');showErr('signup-err','Informe seu nome completo.');return;}
-  if(!esc){document.getElementById('s-esc').classList.add('err');showErr('signup-err','Informe o nome do escritório.');return;}
   if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){document.getElementById('s-email').classList.add('err');showErr('signup-err','Informe um e-mail válido.');return;}
-  if(senha.length<8){document.getElementById('s-senha').classList.add('err');showErr('signup-err','A senha precisa ter pelo menos 8 caracteres.');return;}
-
   setLoading('btn-signup',true,'');
   try{
-    // 1. Criar usuário no Supabase Auth
-    const{data:authData,error:authErr}=await db.auth.signUp({email,password:senha,options:{data:{nome}}});
-    if(authErr)throw authErr;
+    const{error}=await db.auth.signInWithOtp({email,options:{shouldCreateUser:true}});
+    if(error)throw error;
+    setPV({nome,email,step:2});
+    mostrarVerify(email);
+  }catch(e){
+    const msgs={'User already registered':'Este e-mail já possui conta. Use o login.'};
+    showErr('signup-err',msgs[e.message]||e.message||'Erro ao enviar código. Tente novamente.');
+  }finally{
+    setLoading('btn-signup',false,'Continuar →');
+  }
+}
 
-    const userId=authData.user.id;
-    const trialFim=new Date();
-    trialFim.setDate(trialFim.getDate()+7);
+// ── MOSTRAR PASSO 2 ──
+function mostrarVerify(email){
+  hideTabs();showOnly('panel-verify');
+  document.getElementById('v-email-show').textContent=email||'';
+  buildOtpBoxes();
+  clearMsg('verify-err');clearMsg('verify-ok');
+  iniciarTimerResend();
+}
 
-    // 2. Criar registro do escritório
+// ── VOLTAR PARA PASSO 1 ──
+function voltarStep1(){
+  clearPV();
+  if(_resendTmr)clearInterval(_resendTmr);
+  showTabs();setTab('signup');
+}
+
+// ── RESEND TIMER ──
+let _resendTmr=null;
+function iniciarTimerResend(){
+  const btn=document.getElementById('btn-resend');
+  const tim=document.getElementById('resend-timer');
+  if(!btn||!tim)return;
+  let s=60;
+  btn.style.display='none';tim.style.display='';tim.textContent=`Reenviar em ${s}s`;
+  if(_resendTmr)clearInterval(_resendTmr);
+  _resendTmr=setInterval(()=>{
+    s--;tim.textContent=`Reenviar em ${s}s`;
+    if(s<=0){clearInterval(_resendTmr);btn.style.display='';tim.style.display='none';}
+  },1000);
+}
+
+async function reenviarCodigo(){
+  const pv=getPV();if(!pv?.email)return;
+  document.getElementById('btn-resend').disabled=true;
+  clearMsg('verify-err');clearMsg('verify-ok');
+  try{
+    const{error}=await db.auth.signInWithOtp({email:pv.email,options:{shouldCreateUser:true}});
+    if(error)throw error;
+    showOk('verify-ok','Código reenviado! Verifique sua caixa de entrada.');
+    otpClear();iniciarTimerResend();
+  }catch(e){
+    showErr('verify-err',e.message||'Erro ao reenviar. Tente novamente.');
+    document.getElementById('btn-resend').disabled=false;
+  }
+}
+
+// ── PASSO 2: verificar código ──
+async function verificarCodigo(){
+  const pv=getPV();
+  if(!pv?.email){voltarStep1();return;}
+  const token=otpDigits();
+  if(token.length<6){otpSetErr(true);showErr('verify-err','Digite o código de 6 dígitos completo.');return;}
+  clearMsg('verify-err');clearMsg('verify-ok');
+  setLoading('btn-verify',true,'');
+  try{
+    const{error}=await db.auth.verifyOtp({email:pv.email,token,type:'email'});
+    if(error)throw error;
+    setPV({...pv,step:3});
+    mostrarCriarSenha();
+  }catch(e){
+    otpSetErr(true);
+    showErr('verify-err','Código incorreto ou expirado. Verifique e tente novamente.');
+  }finally{
+    setLoading('btn-verify',false,'Confirmar →');
+  }
+}
+
+// ── MOSTRAR PASSO 3 ──
+function mostrarCriarSenha(){
+  hideTabs();showOnly('panel-signup-pw');
+  clearMsg('spw-err');
+  setTimeout(()=>{const el=document.getElementById('spw-senha');if(el)el.focus();},100);
+}
+
+// ── PASSO 3: completar cadastro ──
+async function completarCadastro(){
+  clearMsg('spw-err');
+  const senha=document.getElementById('spw-senha').value;
+  const conf=document.getElementById('spw-conf').value;
+  if(senha.length<8){document.getElementById('spw-senha').classList.add('err');showErr('spw-err','A senha precisa ter pelo menos 8 caracteres.');return;}
+  if(senha!==conf){document.getElementById('spw-conf').classList.add('err');showErr('spw-err','As senhas não coincidem.');return;}
+  const pv=getPV();
+  if(!pv?.nome||!pv?.email){showErr('spw-err','Sessão expirada. Refaça o cadastro.');voltarStep1();return;}
+  setLoading('btn-spw',true,'');
+  try{
+    const{error:pwErr}=await db.auth.updateUser({password:senha});
+    if(pwErr)throw pwErr;
+    const{data:{session}}=await db.auth.getSession();
+    if(!session)throw new Error('Sessão expirada. Refaça o cadastro.');
+    const userId=session.user.id;
+    const trialFim=new Date();trialFim.setDate(trialFim.getDate()+7);
+
     const{data:escData,error:escErr}=await db.from('escritorios').insert([{
       user_id:userId,
-      nome:esc,
-      responsavel:nome,
-      email,
+      nome:'Escritório de '+pv.nome,
+      responsavel:pv.nome,
+      email:pv.email,
       plano:'trial',
       trial_inicio:new Date().toISOString(),
       trial_fim:trialFim.toISOString(),
@@ -367,84 +499,57 @@ async function signup(){
     }]).select().single();
     if(escErr)throw escErr;
 
-    // 3. Criar registro do usuário titular
     const{error:uErr}=await db.from('usuarios').insert([{
-      id:userId,
-      escritorio_id:escData.id,
-      nome,
-      perfil:'titular',
-      perm_admin:true,
-      perm_financeiro:true,
-      perm_demandas:true,
-      perm_atendimentos:true,
-      perm_diario_oficial:true,
-      perm_relatorios:true
+      id:userId,escritorio_id:escData.id,nome:pv.nome,perfil:'titular',
+      perm_admin:true,perm_financeiro:true,perm_demandas:true,
+      perm_atendimentos:true,perm_diario_oficial:true,perm_relatorios:true
     }]);
     if(uErr)throw uErr;
 
-    // 4. Ir para o app (onboarding vai aparecer automaticamente)
+    clearPV();
     window.location.href='app.html';
   }catch(e){
-    const msgs={
-      'User already registered':'Este e-mail já está cadastrado. Faça login.',
-      'Password should be at least 6 characters':'A senha precisa ter pelo menos 8 caracteres.',
-    };
-    showErr('signup-err',msgs[e.message]||e.message||'Erro ao criar conta. Tente novamente.');
+    const msgs={'Password should be at least 6 characters':'A senha precisa ter pelo menos 8 caracteres.'};
+    showErr('spw-err',msgs[e.message]||e.message||'Erro ao criar conta. Tente novamente.');
   }finally{
-    setLoading('btn-signup',false,'Começar teste gratuito →');
+    setLoading('btn-spw',false,'Criar minha conta →');
   }
 }
 
 // ── RECUPERAR SENHA ──
 async function recuperar(){
-  clearErr('forgot-err');clearErr('forgot-ok');
+  clearMsg('forgot-err');clearMsg('forgot-ok');
   const email=document.getElementById('f-email').value.trim();
   if(!email){document.getElementById('f-email').classList.add('err');return;}
   setLoading('btn-forgot',true,'');
   const{error}=await db.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+'/auth.html'});
   setLoading('btn-forgot',false,'Enviar link de recuperação');
   if(error){showErr('forgot-err',error.message);return;}
-  showErr('forgot-ok','Link enviado para '+email+'. Verifique sua caixa de entrada.');
-  document.getElementById('forgot-ok').className='alert ok show';
+  showOk('forgot-ok','Link enviado para '+email+'. Verifique sua caixa de entrada.');
 }
 
 // ── ENTER KEY ──
 document.addEventListener('keydown',e=>{
   if(e.key!=='Enter')return;
-  if(document.getElementById('panel-login').style.display!=='none')login();
-  else if(document.getElementById('panel-signup').style.display!=='none')signup();
-  else if(document.getElementById('panel-forgot').style.display!=='none')recuperar();
+  const vis=(id)=>document.getElementById(id)?.style.display!=='none';
+  if(vis('panel-login'))login();
+  else if(vis('panel-signup'))enviarCodigo();
+  else if(vis('panel-signup-pw'))completarCadastro();
+  else if(vis('panel-forgot'))recuperar();
 });
-
-// Limpa classe err ao digitar
 document.addEventListener('input',e=>{
   if(e.target.classList.contains('finp'))e.target.classList.remove('err');
 });
 
-// ── DEFINIR SENHA (fluxo de convite ou reset) ──
+// ── DEFINIR SENHA (convite ou reset via link) ──
 let _tipoToken=null;
-
 function mostrarDefinirSenha(tipo){
-  _tipoToken=tipo;
-  // Esconde tudo e mostra painel especial
-  ['panel-login','panel-signup','panel-forgot'].forEach(id=>document.getElementById(id).style.display='none');
-  document.getElementById('tab-login').classList.remove('on');
-  document.getElementById('tab-signup').classList.remove('on');
-
+  _tipoToken=tipo;hideTabs();
   const titulo=tipo==='invite'?'Definir sua senha':'Nova senha';
-  const sub=tipo==='invite'
-    ?'Você foi convidado para o OrganizaADV. Defina uma senha para acessar o sistema.'
-    :'Informe sua nova senha abaixo.';
-
-  // Injeta painel
+  const sub=tipo==='invite'?'Você foi convidado para o OrganizaADV. Defina uma senha para acessar o sistema.':'Informe sua nova senha abaixo.';
   const card=document.querySelector('.form-card');
   let painel=document.getElementById('panel-setpw');
-  if(!painel){
-    painel=document.createElement('div');
-    painel.id='panel-setpw';
-    painel.className='fbody';
-    card.appendChild(painel);
-  }
+  if(!painel){painel=document.createElement('div');painel.id='panel-setpw';painel.className='fbody';card.appendChild(painel);}
   painel.innerHTML=`
     <div style="margin-bottom:20px">
       <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#0D1321;margin-bottom:6px">${titulo}</div>
@@ -454,7 +559,7 @@ function mostrarDefinirSenha(tipo){
     <div class="field">
       <label class="flabel">Nova senha <span style="color:#DC2626">*</span></label>
       <div class="pw-wrap">
-        <input class="finp" id="setpw-senha" type="password" placeholder="Mín. 8 caracteres" autocomplete="new-password" oninput="avaliarSenha(this.value)"/>
+        <input class="finp" id="setpw-senha" type="password" placeholder="Mín. 8 caracteres" autocomplete="new-password" oninput="avaliarSenha(this.value,'pw-bar','pw-hint')"/>
         <button class="pw-eye" type="button" onclick="toggleSenha('setpw-senha',this)" title="Mostrar senha">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
@@ -467,9 +572,8 @@ function mostrarDefinirSenha(tipo){
       <input class="finp" id="setpw-conf" type="password" placeholder="Repita a senha"/>
     </div>
     <button class="btn-sub trial" id="btn-setpw" onclick="definirSenha()">${tipo==='invite'?'Entrar no sistema →':'Salvar nova senha →'}</button>`;
-  painel.style.display='';
+  showOnly('panel-setpw');
 }
-
 async function definirSenha(){
   const senha=document.getElementById('setpw-senha').value;
   const conf=document.getElementById('setpw-conf').value;
@@ -481,25 +585,31 @@ async function definirSenha(){
   window.location.href='app.html';
 }
 
-// ── REDIRECT SE JÁ LOGADO ──
+// ── INICIALIZAÇÃO ──
 window.addEventListener('load',async()=>{
-  // Verifica se há token de convite ou reset na URL (Supabase coloca no hash)
+  // Convite ou reset (Supabase coloca token no hash)
   const hash=new URLSearchParams(window.location.hash.replace('#',''));
-  const tipo=hash.get('type'); // 'invite' ou 'recovery'
-
+  const tipo=hash.get('type');
   if(tipo==='invite'||tipo==='recovery'){
-    // Supabase já processou o token → usuário está logado em estado temporário
     const{data:{session}}=await db.auth.getSession();
-    if(session){
-      mostrarDefinirSenha(tipo);
-      return;
-    }
+    if(session){mostrarDefinirSenha(tipo);return;}
   }
 
   const{data:{session}}=await db.auth.getSession();
-  if(session)window.location.href='app.html';
+  const pv=getPV();
+  const params=new URLSearchParams(location.search);
 
-  // Auto-focus
+  if(session){
+    // Sessão OTP ativa aguardando completar o cadastro (passo 3)
+    const step3=(pv&&pv.step===3&&pv.email===session.user.email)||params.get('c')==='1';
+    if(step3){mostrarCriarSenha();return;}
+    window.location.href='app.html';
+    return;
+  }
+
+  // Sem sessão: passo 2 pendente (código enviado, navegador foi fechado)
+  if(pv&&pv.step===2){mostrarVerify(pv.email);return;}
+
   document.getElementById('l-email').focus();
 });
 </script>

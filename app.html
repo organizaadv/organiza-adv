@@ -146,9 +146,9 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 .kc-body{background:var(--s2);border:1px solid var(--bd);border-top:none;border-radius:0 0 var(--rlg) var(--rlg);padding:8px;display:flex;flex-direction:column;gap:6px;flex:1;min-height:200px}
 
 /* ── CARDS KANBAN ── */
-.kcard{background:var(--surface);border:1px solid var(--bd);border-radius:10px;padding:14px 14px 12px;cursor:pointer;transition:box-shadow .18s,transform .18s,border-color .18s;position:relative;overflow:hidden}
-.kcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--bd2);border-radius:10px 0 0 10px}
-.kcard:hover{border-color:rgba(201,168,76,.35);box-shadow:var(--s2s);transform:translateY(-2px)}
+.kcard{background:var(--surface);border:1px solid var(--bd);border-radius:12px;padding:13px 13px 11px;cursor:pointer;transition:box-shadow .18s,border-color .18s;position:relative;overflow:hidden}
+.kcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--bd2);border-radius:12px 0 0 12px}
+.kcard:hover{border-color:rgba(201,168,76,.4);box-shadow:var(--s2s)}
 .kcard.k-ok::before{background:var(--gr)}
 .kcard.k-av::before{background:var(--am)}
 .kcard.k-urg::before{background:var(--rd)}
@@ -156,10 +156,18 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 .kcard.k-ven{background:#FFF8F8;border-color:var(--rdbd)}
 .kcard.k-conc::before{background:var(--gr)}
 .kcard.k-conc{background:#F6FEFA;border-color:var(--grbd)}
-.kcard-nome{font-size:13px;font-weight:600;color:var(--tx);margin-bottom:2px;padding-left:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.kcard-tipo{font-size:11px;color:var(--tx3);margin-bottom:10px;padding-left:10px;font-weight:400}
-.kcard-ft{display:flex;align-items:center;justify-content:space-between;gap:4px;flex-wrap:wrap;padding-left:10px}
-.kcard-resp{font-size:11px;color:var(--tx2);background:var(--s2);padding:2px 8px;border-radius:99px;border:1px solid var(--bd)}
+.kcard-nome{font-size:13px;font-weight:600;color:var(--tx);margin-bottom:1px;padding-left:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kcard-tipo{font-size:11px;color:var(--tx3);margin-bottom:7px;padding-left:10px;font-weight:400}
+.kcard-ato-pend{font-size:11px;color:var(--tx2);font-style:italic;padding-left:10px;margin-bottom:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kcard-ato-pend.k-ato-alta{color:var(--rd);font-weight:500}
+.kcard-ato-pend.k-ato-ok{color:var(--gr);font-style:normal}
+.kcard-ft{display:flex;align-items:center;justify-content:space-between;gap:4px;padding-left:10px}
+.kavatar{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0;border:2px solid var(--surface);letter-spacing:0}
+.kavatar-stack{display:flex;align-items:center}
+.kavatar-stack .kavatar+.kavatar{margin-left:-7px}
+.kcard-avbtn{width:26px;height:26px;border-radius:50%;background:var(--gdp);border:1.5px solid var(--gdb);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,transform .12s;flex-shrink:0;color:var(--am);padding:0}
+.kcard-avbtn:hover{background:var(--gd);color:#fff;border-color:var(--gd);transform:scale(1.15)}
+.k-delg-banner{background:var(--amb);border:1px solid var(--ambd);border-radius:8px;padding:9px 14px;margin-bottom:10px;font-size:12.5px;color:#92600A;font-weight:500;display:flex;align-items:center;gap:8px}
 .k-empty{text-align:center;padding:32px 12px;color:var(--tx3);font-size:12.5px;line-height:1.6}
 
 /* ── BADGES ── */
@@ -1958,6 +1966,38 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
   </div>
 </div>
 
+<!-- QUICK ADVANCE MODAL -->
+<div class="mov" id="m-quick-av">
+  <div class="mc" style="max-width:420px;">
+    <div class="mhead">
+      <div><div class="mtitle" id="qav-titulo">Avançar ato</div><div class="msubt" id="qav-subt"></div></div>
+      <button class="mx" onclick="closeM('m-quick-av')">✕</button>
+    </div>
+    <div class="mbody" style="display:flex;flex-direction:column;gap:14px;">
+      <div class="field">
+        <label class="flabel">Ato concluído <span class="req">*</span></label>
+        <select class="fsel" id="qav-ato"></select>
+      </div>
+      <div class="field">
+        <label class="flabel">Executado por <span class="req">*</span></label>
+        <select class="fsel" id="qav-quem"></select>
+      </div>
+      <div class="field">
+        <label class="flabel">Observação <span style="color:var(--tx3);font-weight:400">(opcional)</span></label>
+        <input type="text" class="finp" id="qav-obs" placeholder="Ex: Petição protocolada"/>
+      </div>
+      <div class="field">
+        <label class="flabel">Delegar próximo ato para <span style="color:var(--tx3);font-weight:400">(opcional)</span></label>
+        <select class="fsel" id="qav-delegar"><option value="">Sem delegação</option></select>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-gh" onclick="closeM('m-quick-av')">Cancelar</button>
+      <button class="btn btn-p" onclick="confirmarQuickAv()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════
 // OrganizaADV v3.0 — JavaScript Principal
@@ -2139,7 +2179,7 @@ function getAtosTemplate(tipo,etapa){
 }
 
 // ── ESTADO ──
-let demandas=[],colabs=[],escData={},userAtual=null,usuarioAtual=null,filtroAtivo='todos',filtroFinAtivo='todos',detId=null;
+let demandas=[],colabs=[],escData={},userAtual=null,usuarioAtual=null,filtroAtivo='todos',filtroFinAtivo='todos',detId=null,quickAvId=null;
 let sortDem={col:null,asc:true},sortCli={col:null,asc:true};
 let finLanc=[],finNextId=1,finDetId=null,notifs=[],notifNextId=1;
 
@@ -2452,6 +2492,19 @@ function renderMetrics(){
 }
 
 // ── KANBAN ──
+function avatarCor(nome){
+  const c=['#5B7FA6','#6E9E6E','#C47B2B','#A04040','#8060A0','#3D8FA0','#B06030','#4A6E8A'];
+  if(!nome)return c[0];
+  let h=0;for(let i=0;i<nome.length;i++)h=nome.charCodeAt(i)+((h<<5)-h);
+  return c[Math.abs(h)%c.length];
+}
+function avatarHTML(nome,title){
+  if(!nome)return'';
+  const ini=nome.trim().split(/\s+/).map(p=>p[0]).slice(0,2).join('').toUpperCase();
+  const t=title||nome;
+  return`<div class="kavatar" style="background:${avatarCor(nome)};" title="${t}">${ini}</div>`;
+}
+
 function renderKanban(){
   renderMetrics();
   renderPainelAvisos();
@@ -2469,38 +2522,84 @@ function renderKanban(){
         ${!col.cards.length?'<div class="k-empty">Nenhuma demanda</div>':''}
         ${col.cards.map(d=>{
           const diff=calcPrazo(d.prazo);
-          const cls=statusD(d)==='Concluído'?'k-conc':diff!==null&&diff<0?'k-ven':diff!==null&&diff<=1?'k-urg':diff!==null&&diff<=5?'k-av':d.prazo?'k-ok':'';
-          // Progresso dos atos
+          const conc=statusD(d)==='Concluído';
+          const cls=conc?'k-conc':diff!==null&&diff<0?'k-ven':diff!==null&&diff<=1?'k-urg':diff!==null&&diff<=5?'k-av':d.prazo?'k-ok':'';
           const atos=getA(d);
           const et=ETAPAS[d.etapa_atual]?.nome||'';
           const atosEt=atos.filter(a=>a.etapa===et);
-          const atosFei=atosEt.filter(a=>a.feito).length;
-          const temAtos=atosEt.length>0;
-          const atosPendAlta=atosEt.filter(a=>!a.feito&&a.prioridade==='alta').length;
+          const atoPend=atosEt.find(a=>!a.feito);
+          const todosOk=atosEt.length>0&&atosEt.every(a=>a.feito);
+          const delegadoPara=atoPend?.delegado_para||'';
           const isDemo=d.obs?.startsWith('[FICTÍCIO]');
+          const mostraAvbtn=!conc;
           return`<div class="kcard ${cls}" onclick="abrirDet(${d.id})">
-            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:3px;">
               <div class="kcard-nome" style="flex:1;min-width:0;">${d.nome}</div>
-              ${isDemo?`<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;background:var(--pub);color:var(--pu);border:1px solid var(--pubd);border-radius:4px;padding:1px 5px;flex-shrink:0;">Fictício</span>`:''}
+              ${isDemo?`<span style="font-size:9px;font-weight:700;letter-spacing:.5px;background:var(--pub);color:var(--pu);border:1px solid var(--pubd);border-radius:4px;padding:1px 5px;flex-shrink:0;">Fictício</span>`:''}
             </div>
             <div class="kcard-tipo">${d.tipo||'—'}</div>
-            ${temAtos?`<div style="margin:6px 0 4px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
-                <span style="font-size:10px;color:var(--tx3);">Atos: ${atosFei}/${atosEt.length}</span>
-                ${atosPendAlta>0?`<span style="font-size:10px;color:var(--rd);font-weight:600;">🔴 ${atosPendAlta} urgente${atosPendAlta>1?'s':''}</span>`:''}
-              </div>
-              <div style="height:3px;background:var(--s3);border-radius:99px;overflow:hidden;">
-                <div style="height:100%;width:${atosEt.length>0?Math.round((atosFei/atosEt.length)*100):0}%;background:${atosFei===atosEt.length?'var(--gr)':'var(--gd)'};border-radius:99px;transition:width .3s;"></div>
-              </div>
-            </div>`:''}
+            ${atoPend?`<div class="kcard-ato-pend${atoPend.prioridade==='alta'?' k-ato-alta':''}">↳ ${atoPend.nome}</div>`:
+              todosOk?`<div class="kcard-ato-pend k-ato-ok">✓ Todos atos concluídos</div>`:
+              `<div class="kcard-ato-pend" style="color:var(--tx3);">—</div>`}
             <div class="kcard-ft">
-              ${d.prazo?prazoBadge(d.prazo):`<span style="font-size:11px;color:var(--tx3);">${d.data||'—'}</span>`}
-              ${d.responsavel?`<span class="kcard-resp">${d.responsavel}</span>`:''}
+              <div>${d.prazo?prazoBadge(d.prazo):`<span style="font-size:11px;color:var(--tx3);">${d.data||'—'}</span>`}</div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                ${d.responsavel||delegadoPara?`<div class="kavatar-stack">
+                  ${d.responsavel?avatarHTML(d.responsavel,'Responsável: '+d.responsavel):''}
+                  ${delegadoPara&&delegadoPara!==d.responsavel?avatarHTML(delegadoPara,'Executando: '+delegadoPara):''}
+                </div>`:''}
+                ${mostraAvbtn?`<button class="kcard-avbtn" onclick="abrirQuickAv(${d.id},event)" title="Avançar ato">
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,4.5 6,8.5 10,4.5"/></svg>
+                </button>`:''}
+              </div>
             </div>
           </div>`;
         }).join('')}
       </div>
     </div>`).join('');
+}
+
+// ── QUICK ADVANCE ──
+function abrirQuickAv(id,evt){
+  evt.stopPropagation();
+  const d=demandas.find(x=>x.id===id);
+  if(!d||statusD(d)!=='Em andamento')return;
+  quickAvId=id;
+  const et=ETAPAS[d.etapa_atual]?.nome||'';
+  const atosPend=getA(d).filter(a=>a.etapa===et&&!a.feito);
+  if(!atosPend.length){toast('Todos os atos desta etapa já foram concluídos. Abra a demanda para avançar a etapa.','ti');return;}
+  document.getElementById('qav-titulo').textContent=d.nome;
+  document.getElementById('qav-subt').textContent=et;
+  document.getElementById('qav-ato').innerHTML=atosPend.map(a=>`<option value="${a.nome}">${a.nome}${a.prioridade==='alta'?' — urgente':''}</option>`).join('');
+  const opts='<option value="">Selecione...</option>'+colabs.map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('');
+  document.getElementById('qav-quem').innerHTML=opts;
+  document.getElementById('qav-delegar').innerHTML='<option value="">Sem delegação</option>'+colabs.map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('');
+  document.getElementById('qav-obs').value='';
+  openM('m-quick-av');
+}
+
+async function confirmarQuickAv(){
+  const d=demandas.find(x=>x.id===quickAvId);
+  if(!d)return;
+  const atoNome=document.getElementById('qav-ato').value;
+  const quem=document.getElementById('qav-quem').value.trim();
+  if(!quem){toast('Informe quem executou o ato.','te');return;}
+  const obs=document.getElementById('qav-obs').value.trim();
+  const delegado=document.getElementById('qav-delegar').value;
+  const et=ETAPAS[d.etapa_atual]?.nome||'';
+  const atos=getA(d);
+  const ato=atos.find(a=>a.etapa===et&&!a.feito&&a.nome===atoNome);
+  if(ato){ato.feito=true;ato.quem=quem;if(obs)ato.obs=obs;}
+  if(delegado){
+    const prox=atos.find(a=>a.etapa===et&&!a.feito);
+    if(prox)prox.delegado_para=delegado;
+  }
+  const{error}=await db.from('demandas_escritorio').update({atos:JSON.stringify(atos)}).eq('id',quickAvId);
+  if(error){toast('Erro: '+error.message,'te');return;}
+  d.atos=JSON.stringify(atos);
+  closeM('m-quick-av');
+  renderKanban();
+  toast(delegado?`Ato concluído e próximo delegado para ${delegado}`:'Ato concluído!');
 }
 
 // ── LISTA ──
@@ -2740,6 +2839,24 @@ function renderPainelAvisos(){
         </div>
       </div>`).join('')}
     </div>`;
+  }
+
+  // Delegação: alerta para atos delegados ao usuário atual
+  if(userAtual){
+    const meuNome=colabs.find(c=>c.id===userAtual)?.nome||usuarioAtual?.nome||'';
+    if(meuNome){
+      const delegados=demandas.filter(d=>{
+        if(statusD(d)!=='Em andamento')return false;
+        const et=ETAPAS[d.etapa_atual]?.nome||'';
+        return getA(d).some(a=>a.etapa===et&&!a.feito&&a.delegado_para===meuNome);
+      });
+      if(delegados.length){
+        html=`<div class="k-delg-banner">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><line x1="8" y1="5" x2="8" y2="8"/><circle cx="8" cy="11" r=".6" fill="currentColor" stroke="none"/></svg>
+          Você tem ${delegados.length} ato${delegados.length>1?'s':''} delegado${delegados.length>1?'s':''} aguardando sua execução
+        </div>`+html;
+      }
+    }
   }
 
   if(html){
@@ -5426,7 +5543,7 @@ window.addEventListener('load',async()=>{
       // (b) Usuário convidado: busca convite pelo e-mail
       const email=session.user.email;
       const{data:convite}=await db.from('convites').select('*').eq('email',email).eq('status','pendente').order('created_at',{ascending:false}).limit(1).maybeSingle();
-      if(!convite){window.location.href='auth.html';return;}
+      if(!convite){window.location.href='auth.html?c=1';return;}
 
       // Cria o registro do usuário a partir do convite
       const novoUsuario={
