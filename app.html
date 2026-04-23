@@ -333,6 +333,14 @@ tbody td{padding:14px 18px;font-size:13.5px;color:var(--tx);vertical-align:middl
 .pub-dot{display:inline-block;width:7px;height:7px;background:var(--gd);border-radius:50%;vertical-align:middle;}
 .pub-status-bar{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--tx2);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
 
+/* ── CARTÕES DE RELATÓRIO ── */
+.rel-tipo-card{background:var(--surface);border:2px solid var(--bd);border-radius:12px;padding:20px 18px;cursor:pointer;transition:all .18s;user-select:none;}
+.rel-tipo-card:hover{border-color:var(--gdb);box-shadow:var(--s2s);transform:translateY(-1px);}
+.rel-tipo-card.on{border-color:var(--gd);background:var(--gdp);box-shadow:0 0 0 3px var(--gdb);}
+.rel-tipo-ico{font-size:26px;margin-bottom:10px;line-height:1;}
+.rel-tipo-titulo{font-size:14px;font-weight:700;color:var(--tx);margin-bottom:5px;font-family:'Fraunces',serif;}
+.rel-tipo-sub{font-size:12.5px;color:var(--tx2);line-height:1.55;}
+
 /* ── PAINEL DE AVISOS ── */
 .aviso-panel{border-radius:var(--rlg);overflow:hidden;border:1px solid var(--rdbd);background:var(--rdb);box-shadow:var(--s1)}
 .aviso-panel.warn{border-color:var(--ambd);background:var(--amb)}
@@ -788,18 +796,63 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
 
     <!-- RELATÓRIO -->
     <div id="v-relatorio" style="display:none">
-      <div style="margin-bottom:20px;">
-        <select id="sel-mes" onchange="renderRel()" class="fsel" style="width:auto;min-width:200px;"></select>
+      <div style="margin-bottom:20px">
+        <div style="font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:var(--tx);margin-bottom:5px">Escolha o tipo de relatório</div>
+        <div style="font-size:13px;color:var(--tx3)">A logomarca do escritório é aplicada automaticamente em todos os documentos gerados.</div>
       </div>
-      <div class="metrics" id="rel-metrics" style="margin-bottom:20px;"></div>
-      <div class="tbl-wrap" style="margin-bottom:14px;">
-        <table><thead><tr><th>Membro</th><th>Fases realizadas</th><th>Demandas abertas</th><th>Concluídas</th></tr></thead>
-        <tbody id="tb-rel-eq"></tbody></table>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px">
+        <div class="rel-tipo-card" data-tipo="individual" onclick="selecionarTipoRel('individual')">
+          <div class="rel-tipo-ico">📄</div>
+          <div class="rel-tipo-titulo">Relatório individual de processo</div>
+          <div class="rel-tipo-sub">Dados do cliente, histórico de fases, atos realizados e próximo passo pendente.</div>
+        </div>
+        <div class="rel-tipo-card" data-tipo="lista" onclick="selecionarTipoRel('lista')">
+          <div class="rel-tipo-ico">📋</div>
+          <div class="rel-tipo-titulo">Lista geral de processos</div>
+          <div class="rel-tipo-sub">Todos os processos ativos em ordem alfabética — visão consolidada da carteira.</div>
+        </div>
+        <div class="rel-tipo-card" data-tipo="area" onclick="selecionarTipoRel('area')">
+          <div class="rel-tipo-ico">🏷️</div>
+          <div class="rel-tipo-titulo">Relatório por área</div>
+          <div class="rel-tipo-sub">Filtre por área do direito — família, trabalhista, consumidor etc.</div>
+        </div>
+        <div class="rel-tipo-card" data-tipo="parado" onclick="selecionarTipoRel('parado')">
+          <div class="rel-tipo-ico">⏸️</div>
+          <div class="rel-tipo-titulo">Processos sem movimentação</div>
+          <div class="rel-tipo-sub">Processos ativos sem nenhum ato registrado nos últimos 30 dias.</div>
+        </div>
       </div>
-      <div class="tbl-wrap">
-        <table><thead><tr><th>Cliente</th><th>Tipo</th><th>Responsável</th><th>Etapa</th><th>Prazo</th><th>Data</th></tr></thead>
-        <tbody id="tb-rel-det"></tbody></table>
+      <!-- Painel de configuração -->
+      <div id="rel-painel" style="display:none">
+        <div class="cfg-sec">
+          <div class="cfg-title" id="rel-painel-titulo">Configurar relatório</div>
+          <div id="rel-painel-corpo" style="margin-bottom:18px"></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-p" onclick="gerarRelPDF()">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 2h5l4 4v9a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M9 2v4h4"/></svg>
+              Gerar PDF
+            </button>
+            <button class="btn btn-gh" onclick="gerarRelWpp()">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2H3a1 1 0 00-1 1v9a1 1 0 001 1h2l2 2 2-2h4a1 1 0 001-1V3a1 1 0 00-1-1z"/><line x1="5" y1="7" x2="11" y2="7"/><line x1="5" y1="10" x2="8" y2="10"/></svg>
+              Mensagem WhatsApp
+            </button>
+          </div>
+          <!-- Área de mensagem WPP -->
+          <div id="rel-wpp-wrap" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--div)">
+            <div style="font-size:12px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Mensagem para o cliente — edite antes de copiar</div>
+            <textarea id="rel-wpp-area" class="fta" style="min-height:200px;font-family:monospace;font-size:12.5px;line-height:1.6"></textarea>
+            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+              <button class="btn btn-gd" onclick="copiarMsgWpp()">Copiar mensagem</button>
+              <button class="btn btn-gh btn-sm" onclick="document.getElementById('rel-wpp-wrap').style.display='none'">Fechar</button>
+            </div>
+          </div>
+        </div>
       </div>
+      <!-- Elemento oculto para compatibilidade com initRel/renderRel legados -->
+      <select id="sel-mes" style="display:none"></select>
+      <div id="rel-metrics" style="display:none"></div>
+      <tbody id="tb-rel-eq" style="display:none"></tbody>
+      <tbody id="tb-rel-det" style="display:none"></tbody>
     </div>
 
     <!-- FINANCEIRO -->
@@ -2302,7 +2355,7 @@ function initRespSel(){
 
 // ── VIEWS ──
 const VIEWS=['kanban','demandas','processos','clientes','atendimentos','pub','agenda','diario','notif','equipe','relatorio','fin','cfg'];
-const VTITLES={kanban:'Fluxo de trabalho',demandas:'Todas as demandas',processos:'Processos',clientes:'Clientes',atendimentos:'Atendimentos',pub:'Publicações',agenda:'Agenda',diario:'Diário Oficial',notif:'Tribunal & IA',equipe:'Advogados e colaboradores',relatorio:'Relatório mensal',fin:'Financeiro',cfg:'Configurações'};
+const VTITLES={kanban:'Fluxo de trabalho',demandas:'Todas as demandas',processos:'Processos',clientes:'Clientes',atendimentos:'Atendimentos',pub:'Publicações',agenda:'Agenda',diario:'Diário Oficial',notif:'Tribunal & IA',equipe:'Advogados e colaboradores',relatorio:'Relatórios',fin:'Financeiro',cfg:'Configurações'};
 function showView(v){
   // bloqueia views por permissão
   if(v==='fin'&&!temPermissao('ver_financeiro')){toast('Sem permissão para acessar o financeiro.','te');return;}
@@ -2323,7 +2376,7 @@ function showView(v){
   if(v==='agenda')renderAgenda();
   if(v==='diario')renderDiario();
   if(v==='equipe'){renderEqTabela();renderEqCfg();}
-  if(v==='relatorio'){initRel();renderRel();}
+  if(v==='relatorio')renderRelatorios();
   if(v==='fin')renderFin();
   if(v==='notif')renderNotifs();
   if(v==='cfg')renderCfg();
@@ -2984,6 +3037,285 @@ function abrirModalEquipe(){
 }
 
 // ── RELATÓRIO ──
+// ── RELATÓRIOS ──
+let relTipoAtivo=null,relIndSel=null;
+
+function renderRelatorios(){
+  relTipoAtivo=null;relIndSel=null;
+  document.querySelectorAll('.rel-tipo-card').forEach(c=>c.classList.remove('on'));
+  const p=document.getElementById('rel-painel');if(p)p.style.display='none';
+  const w=document.getElementById('rel-wpp-wrap');if(w)w.style.display='none';
+}
+
+function selecionarTipoRel(tipo){
+  relTipoAtivo=tipo;relIndSel=null;
+  document.querySelectorAll('.rel-tipo-card').forEach(c=>c.classList.toggle('on',c.dataset.tipo===tipo));
+  const titulos={individual:'Relatório individual de processo',lista:'Lista geral de processos',area:'Relatório por área',parado:'Processos sem movimentação'};
+  const t=document.getElementById('rel-painel-titulo');if(t)t.textContent=titulos[tipo]||'Configurar';
+  const w=document.getElementById('rel-wpp-wrap');if(w)w.style.display='none';
+  let html='';
+  if(tipo==='individual'){
+    html=`<div class="field" style="margin-bottom:8px"><label class="flabel">Buscar processo ou cliente</label>
+      <input type="text" class="finp" id="rel-busca-ind" placeholder="Nome do cliente ou número do processo..." oninput="filtrarRelInd()"/></div>
+      <div id="rel-ind-lista" style="border:1px solid var(--bd);border-radius:8px;overflow:hidden;margin-bottom:8px;display:none"></div>
+      <div id="rel-ind-selecionado" style="display:none;padding:10px 14px;background:var(--gdp);border:1px solid var(--gdb);border-radius:8px;font-size:13px">
+        <strong id="rel-ind-nome"></strong>
+        <div style="font-size:12px;color:var(--tx2);margin-top:2px" id="rel-ind-info"></div>
+      </div>`;
+  } else if(tipo==='area'){
+    const areas=[...new Set(demandas.filter(d=>d.tipo).map(d=>d.tipo))].sort();
+    html=`<div class="field"><label class="flabel">Área do direito</label>
+      <select class="fsel" id="rel-area-sel">
+        <option value="">Selecione a área...</option>
+        ${areas.map(a=>`<option value="${a}">${a}</option>`).join('')}
+      </select></div>`;
+  } else if(tipo==='lista'){
+    const n=demandas.filter(d=>statusD(d)==='Em andamento').length;
+    html=`<div style="font-size:13px;color:var(--tx2);padding:10px 0">O relatório incluirá <strong>${n} processo${n!==1?'s':''} ativo${n!==1?'s':''}</strong>, em ordem alfabética pelo nome do cliente.</div>`;
+  } else if(tipo==='parado'){
+    const limite=new Date();limite.setDate(limite.getDate()-30);
+    const n=demandas.filter(d=>{
+      if(statusD(d)!=='Em andamento')return false;
+      const h=getH(d);if(!h.length)return true;
+      const ult=h[h.length-1].data;if(!ult)return true;
+      const p=ult.split('/');return new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]))<limite;
+    }).length;
+    html=`<div style="font-size:13px;color:var(--tx2);padding:10px 0">${n?`<strong>${n} processo${n!==1?'s':''}</strong> sem movimentação nos últimos 30 dias serão listados.`:'Todos os processos tiveram movimentação nos últimos 30 dias. ✅'}</div>`;
+  }
+  const corpo=document.getElementById('rel-painel-corpo');if(corpo)corpo.innerHTML=html;
+  const painel=document.getElementById('rel-painel');if(painel)painel.style.display='';
+  if(tipo==='individual')setTimeout(()=>document.getElementById('rel-busca-ind')?.focus(),50);
+}
+
+function filtrarRelInd(){
+  const q=(document.getElementById('rel-busca-ind')?.value||'').toLowerCase().trim();
+  const lista=document.getElementById('rel-ind-lista');
+  if(!lista)return;
+  if(!q){lista.style.display='none';lista.innerHTML='';return;}
+  const found=demandas.filter(d=>(d.nome||'').toLowerCase().includes(q)||(d.processo||'').toLowerCase().includes(q)).slice(0,8);
+  if(!found.length){lista.style.display='';lista.innerHTML='<div style="padding:12px;color:var(--tx3);font-size:13px">Nenhum processo encontrado.</div>';return;}
+  lista.style.display='';
+  lista.innerHTML=found.map(d=>{
+    const st=statusD(d);const cls=st==='Concluído'?'b-conc':st==='Em andamento'?'b-bl':'b-can';
+    return`<div onclick="selecionarRelInd('${d.id}')" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--div);display:flex;align-items:center;gap:10px;transition:background .1s" onmouseover="this.style.background='var(--s2)'" onmouseout="this.style.background=''">
+      <div class="av" style="flex-shrink:0;width:32px;height:32px;font-size:11px;line-height:32px">${iniciais(d.nome)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:500;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.nome}</div>
+        <div style="font-size:12px;color:var(--tx2)">${d.tipo||'—'}${d.processo?' · '+d.processo:''}</div>
+      </div>
+      <span class="bdg ${cls}" style="font-size:10px;flex-shrink:0">${st}</span>
+    </div>`;
+  }).join('');
+}
+
+function selecionarRelInd(id){
+  const d=demandas.find(x=>String(x.id)===String(id));if(!d)return;
+  relIndSel=d;
+  const lista=document.getElementById('rel-ind-lista');if(lista){lista.style.display='none';lista.innerHTML='';}
+  const inp=document.getElementById('rel-busca-ind');if(inp)inp.value=d.nome;
+  const sel=document.getElementById('rel-ind-selecionado');if(sel)sel.style.display='';
+  const nm=document.getElementById('rel-ind-nome');if(nm)nm.textContent=d.nome;
+  const info=document.getElementById('rel-ind-info');if(info)info.textContent=`${d.tipo||'—'} · Processo: ${d.processo||'Sem número'} · ${statusD(d)}`;
+}
+
+function cabecalhoPDF(){
+  const logo=escData.logo_url
+    ?`<img src="${escData.logo_url}" style="max-height:56px;max-width:180px;object-fit:contain;margin-bottom:6px"/>`
+    :`<div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#1C1F2E">${escData.nome||'Escritório'}</div>`;
+  const contato=[escData.email,escData.tel].filter(Boolean).join(' · ');
+  return`<div style="display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:16px;border-bottom:3px solid #C9A84C;margin-bottom:24px">
+    <div>${logo}<div style="font-size:11px;color:#666;margin-top:4px">${escData.nome||''}${contato?' · '+contato:''}</div></div>
+    <div style="text-align:right;font-size:11px;color:#888;line-height:1.6">Gerado em ${hoje()}<br>OrganizaADV</div>
+  </div>`;
+}
+
+function estiloPDF(){
+  return`<style>*{box-sizing:border-box}body{font-family:Arial,sans-serif;max-width:820px;margin:32px auto;color:#111;line-height:1.6;font-size:13px}h1{font-size:20px;font-weight:700;margin:0 0 4px}h2{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#666;margin:22px 0 8px;border-bottom:1px solid #eee;padding-bottom:4px}table{width:100%;border-collapse:collapse;font-size:12.5px}th{text-align:left;padding:8px 10px;background:#f4f4f4;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#555;border-bottom:2px solid #ddd}td{padding:8px 10px;border-bottom:1px solid #eee}.info{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;background:#f9f9f9;padding:14px 16px;border-radius:6px;font-size:13px;margin-bottom:18px}.hist{padding:9px 12px;border-left:3px solid #C9A84C;margin-bottom:7px;background:#fffdf5;border-radius:0 4px 4px 0}.bdg{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}.bdg-bl{background:#DBEAFE;color:#1D4ED8}.bdg-gn{background:#D1FAE5;color:#065F46}.bdg-rd{background:#FEE2E2;color:#DC2626}.bdg-am{background:#FEF3C7;color:#92400E}@media print{body{margin:16px}}</style>`;
+}
+
+function abrirJanelaPDF(html,nomearq){
+  const w=window.open('','_blank');
+  if(w){w.document.write(html);w.document.close();w.focus();setTimeout(()=>w.print(),600);}
+  else{
+    const blob=new Blob([html],{type:'text/html'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=nomearq+'.html';a.click();URL.revokeObjectURL(url);
+    toast('Popup bloqueado. Arquivo salvo — abra e imprima como PDF.','ti');
+  }
+}
+
+function gerarRelPDF(){
+  if(relTipoAtivo==='individual')gerarRelIndividualPDF();
+  else if(relTipoAtivo==='lista')gerarRelListaGeralPDF();
+  else if(relTipoAtivo==='area')gerarRelPorAreaPDF();
+  else if(relTipoAtivo==='parado')gerarRelParadoPDF();
+}
+
+function gerarRelWpp(){
+  if(relTipoAtivo==='individual')gerarMsgWppIndividual();
+  else if(relTipoAtivo==='lista')gerarMsgWppLista();
+  else if(relTipoAtivo==='area')gerarMsgWppArea();
+  else if(relTipoAtivo==='parado')gerarMsgWppParado();
+}
+
+function mostrarMsgWpp(msg){
+  const wrap=document.getElementById('rel-wpp-wrap');
+  const ta=document.getElementById('rel-wpp-area');
+  if(!wrap||!ta)return;
+  ta.value=msg;wrap.style.display='';
+  ta.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function copiarMsgWpp(){
+  const ta=document.getElementById('rel-wpp-area');if(!ta)return;
+  navigator.clipboard.writeText(ta.value).then(()=>toast('Mensagem copiada! Cole no WhatsApp.'));
+}
+
+function gerarRelIndividualPDF(){
+  if(!relIndSel){toast('Selecione um processo na lista acima.','te');return;}
+  const d=relIndSel;
+  const hist=getH(d),atos=getA(d);
+  const proxAto=atos.find(a=>!a.feito);
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"/>${estiloPDF()}</head><body>
+    ${cabecalhoPDF()}
+    <h1>Relatório Individual de Processo</h1>
+    <div class="info">
+      <div><span style="color:#888">Cliente: </span><strong>${d.nome}</strong></div>
+      <div><span style="color:#888">Área: </span>${d.tipo||'—'}</div>
+      <div><span style="color:#888">Nº Processo: </span>${d.processo||'Não cadastrado'}</div>
+      <div><span style="color:#888">Responsável: </span>${d.responsavel||'—'}</div>
+      <div><span style="color:#888">Entrada: </span>${d.data||'—'}</div>
+      <div><span style="color:#888">Prazo fatal: </span>${d.prazo?fmtDt(d.prazo):'—'}</div>
+      <div><span style="color:#888">Fase atual: </span>${etapaLabel(d)}</div>
+      <div><span style="color:#888">Status: </span>${statusD(d)}</div>
+    </div>
+    ${proxAto?`<h2>Próximo ato pendente</h2>
+    <div style="padding:10px 14px;background:#FEF3C7;border-left:4px solid #C9A84C;border-radius:0 6px 6px 0;margin-bottom:12px">
+      <strong>${proxAto.nome}</strong>${proxAto.resp?' — '+proxAto.resp:''}<br>
+      <span style="font-size:12px;color:#92400E">Etapa: ${proxAto.etapa||'—'}</span>
+    </div>`:''}
+    <h2>Histórico de fases (${hist.length})</h2>
+    ${hist.length?hist.map(h=>`<div class="hist"><strong>${h.etapa}</strong> — ${h.quem} em ${h.data}${h.obs?`<br><span style="color:#555;font-size:12px">${h.obs}</span>`:''}</div>`).join(''):'<p style="color:#888">Nenhuma fase registrada ainda.</p>'}
+    <h2>Atos (${atos.length})</h2>
+    <table><thead><tr><th>Etapa</th><th>Ato</th><th>Responsável</th><th>Situação</th></tr></thead>
+    <tbody>${atos.map(a=>`<tr><td style="color:#666;font-size:12px">${a.etapa||'—'}</td><td style="${a.feito?'text-decoration:line-through;color:#999':''}">${a.nome}</td><td style="font-size:12px;color:#666">${a.resp||'—'}</td><td><span class="bdg ${a.feito?'bdg-gn':'bdg-bl'}">${a.feito?'Concluído':'Pendente'}</span></td></tr>`).join('')||'<tr><td colspan="4" style="text-align:center;color:#888;padding:16px">Nenhum ato registrado</td></tr>'}</tbody></table>
+    ${d.obs?`<h2>Observações</h2><div style="padding:10px 14px;background:#f9f9f9;border-radius:6px">${d.obs}</div>`:''}
+  </body></html>`;
+  abrirJanelaPDF(html,`relatorio-${d.nome.replace(/\s/g,'-').toLowerCase()}`);
+}
+
+function gerarRelListaGeralPDF(){
+  const lista=demandas.filter(d=>statusD(d)==='Em andamento').sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR'));
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"/>${estiloPDF()}</head><body>
+    ${cabecalhoPDF()}
+    <h1>Lista Geral de Processos Ativos</h1>
+    <p style="color:#666;font-size:12px;margin-bottom:16px">${lista.length} processo${lista.length!==1?'s ativos':'ativo'} — ${hoje()}</p>
+    <table><thead><tr><th>#</th><th>Cliente</th><th>Área</th><th>Nº Processo</th><th>Fase atual</th><th>Prazo</th></tr></thead>
+    <tbody>${lista.map((d,i)=>{
+      const dias=calcPrazo(d.prazo);const vence=dias!==null&&dias<=5;
+      return`<tr><td style="color:#999;font-size:12px">${i+1}</td><td><strong>${d.nome}</strong></td><td style="color:#666;font-size:12px">${d.tipo||'—'}</td><td style="font-family:monospace;font-size:11.5px">${d.processo||'—'}</td><td>${etapaLabel(d)}</td><td style="font-size:12px;color:${vence?'#DC2626':'#666'}">${d.prazo?fmtDt(d.prazo):'—'}</td></tr>`;
+    }).join('')}</tbody></table>
+  </body></html>`;
+  abrirJanelaPDF(html,'lista-geral-processos');
+}
+
+function gerarRelPorAreaPDF(){
+  const area=document.getElementById('rel-area-sel')?.value;
+  if(!area){toast('Selecione uma área.','te');return;}
+  const lista=demandas.filter(d=>d.tipo===area&&statusD(d)==='Em andamento').sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR'));
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"/>${estiloPDF()}</head><body>
+    ${cabecalhoPDF()}
+    <h1>Relatório por Área — ${area}</h1>
+    <p style="color:#666;font-size:12px;margin-bottom:16px">${lista.length} processo${lista.length!==1?'s':''} ${lista.length!==1?'ativos':'ativo'} — ${hoje()}</p>
+    <table><thead><tr><th>#</th><th>Cliente</th><th>Nº Processo</th><th>Fase atual</th><th>Responsável</th><th>Prazo</th></tr></thead>
+    <tbody>${lista.length?lista.map((d,i)=>{
+      const dias=calcPrazo(d.prazo);const vence=dias!==null&&dias<=5;
+      return`<tr><td style="color:#999;font-size:12px">${i+1}</td><td><strong>${d.nome}</strong></td><td style="font-family:monospace;font-size:11.5px">${d.processo||'—'}</td><td>${etapaLabel(d)}</td><td style="font-size:12px;color:#666">${d.responsavel||'—'}</td><td style="font-size:12px;color:${vence?'#DC2626':'#666'}">${d.prazo?fmtDt(d.prazo):'—'}</td></tr>`;
+    }).join(''):'<tr><td colspan="6" style="text-align:center;color:#888;padding:20px">Nenhum processo nesta área</td></tr>'}</tbody></table>
+  </body></html>`;
+  abrirJanelaPDF(html,`relatorio-area-${area.toLowerCase().replace(/[\s/]/g,'-')}`);
+}
+
+function gerarRelParadoPDF(){
+  const limite=new Date();limite.setDate(limite.getDate()-30);
+  const lista=demandas.filter(d=>{
+    if(statusD(d)!=='Em andamento')return false;
+    const h=getH(d);if(!h.length)return true;
+    const ult=h[h.length-1].data;if(!ult)return true;
+    const p=ult.split('/');return new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]))<limite;
+  }).sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR'));
+  if(!lista.length){toast('Nenhum processo parado nos últimos 30 dias.','ti');return;}
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"/>${estiloPDF()}</head><body>
+    ${cabecalhoPDF()}
+    <h1>Processos sem Movimentação — Últimos 30 dias</h1>
+    <p style="color:#DC2626;font-size:12px;margin-bottom:16px">${lista.length} processo${lista.length!==1?'s identificados':'identificado'} — ${hoje()}</p>
+    <table><thead><tr><th>#</th><th>Cliente</th><th>Área</th><th>Nº Processo</th><th>Fase atual</th><th>Última movimentação</th></tr></thead>
+    <tbody>${lista.map((d,i)=>{
+      const h=getH(d);const ult=h.length?h[h.length-1].data:'Sem movimentação registrada';
+      return`<tr><td style="color:#999;font-size:12px">${i+1}</td><td><strong>${d.nome}</strong></td><td style="color:#666;font-size:12px">${d.tipo||'—'}</td><td style="font-family:monospace;font-size:11.5px">${d.processo||'—'}</td><td>${etapaLabel(d)}</td><td style="color:#DC2626;font-size:12px">${ult}</td></tr>`;
+    }).join('')}</tbody></table>
+  </body></html>`;
+  abrirJanelaPDF(html,'processos-sem-movimentacao');
+}
+
+function gerarMsgWppIndividual(){
+  if(!relIndSel){toast('Selecione um processo primeiro.','te');return;}
+  const d=relIndSel;
+  const hist=getH(d);const proxAto=getA(d).find(a=>!a.feito);
+  const ultMov=hist.length?hist[hist.length-1]:{};
+  const msg=`Olá, ${d.nome.split(' ')[0]}! 👋
+
+Segue a atualização do seu processo${d.tipo?' de *'+d.tipo+'*':''}${d.processo?' (nº '+d.processo+')':''}.
+
+📋 *Situação atual:* ${etapaLabel(d)}${ultMov.etapa?`
+⏱ *Última movimentação:* ${ultMov.etapa} em ${ultMov.data}`:''}${proxAto?`
+🔜 *Próximo passo:* ${proxAto.nome}`:''}${d.prazo?`
+⏰ *Prazo: ${fmtDt(d.prazo)}*`:''}
+
+Em caso de dúvidas, estou à disposição.
+
+*${escData.nome||'Escritório'}*`;
+  mostrarMsgWpp(msg);
+}
+
+function gerarMsgWppLista(){
+  const lista=demandas.filter(d=>statusD(d)==='Em andamento').sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR'));
+  const linhas=lista.slice(0,20).map((d,i)=>`${i+1}. ${d.nome}${d.processo?' — '+d.processo:''} (${d.tipo||'—'})`).join('\n');
+  const msg=`*Carteira de processos ativos — ${hoje()}*
+${lista.length} processos em andamento
+
+${linhas}${lista.length>20?`\n... e mais ${lista.length-20} processos`:''}
+
+*${escData.nome||'Escritório'}*`;
+  mostrarMsgWpp(msg);
+}
+
+function gerarMsgWppArea(){
+  const area=document.getElementById('rel-area-sel')?.value;
+  if(!area){toast('Selecione uma área.','te');return;}
+  const lista=demandas.filter(d=>d.tipo===area&&statusD(d)==='Em andamento').sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR'));
+  const msg=`*Processos em ${area} — ${hoje()}*
+
+${lista.length?lista.map((d,i)=>`${i+1}. ${d.nome}${d.processo?' — nº '+d.processo:''}`).join('\n'):'Nenhum processo nesta área no momento.'}
+
+*${escData.nome||'Escritório'}*`;
+  mostrarMsgWpp(msg);
+}
+
+function gerarMsgWppParado(){
+  const limite=new Date();limite.setDate(limite.getDate()-30);
+  const lista=demandas.filter(d=>{
+    if(statusD(d)!=='Em andamento')return false;
+    const h=getH(d);if(!h.length)return true;
+    const ult=h[h.length-1].data;if(!ult)return true;
+    const p=ult.split('/');return new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]))<limite;
+  }).sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR'));
+  const msg=lista.length
+    ?`*Processos que precisam de atenção — ${hoje()}*\n${lista.length} processo${lista.length!==1?'s':''} sem movimentação nos últimos 30 dias:\n\n${lista.map((d,i)=>`${i+1}. ${d.nome} (${d.tipo||'—'})${d.processo?' — '+d.processo:''}`).join('\n')}\n\n*${escData.nome||'Escritório'}*`
+    :`Todos os processos tiveram movimentação nos últimos 30 dias. ✅\n\n*${escData.nome||'Escritório'}*`;
+  mostrarMsgWpp(msg);
+}
+
 function initRel(){
   const sel=document.getElementById('sel-mes');
   const meses=new Set();
