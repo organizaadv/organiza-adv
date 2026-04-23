@@ -450,7 +450,13 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
   <div class="sb-head">
     <div id="sb-logo-wrap"><div class="sb-mark">Organiza<span>ADV</span></div></div>
     <div class="sb-esc" id="sb-esc">Carregando...</div>
-    <div class="sb-badge ess" id="sb-badge">Essencial</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
+      <div class="sb-badge ess" id="sb-badge">Essencial</div>
+    </div>
+    <div id="sb-powered" style="display:none;margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.05);">
+      <div style="font-size:9px;color:rgba(255,255,255,.18);letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px;">Powered by</div>
+      <div style="font-family:'Fraunces',serif;font-size:12px;font-weight:700;color:rgba(255,255,255,.2);letter-spacing:-.2px;">Organiza<span style="color:rgba(201,168,76,.35);">ADV</span></div>
+    </div>
   </div>
   <nav class="sb-nav">
     <div class="nav-sec">Gestão</div>
@@ -2061,11 +2067,14 @@ function renderSBInfo(){
   document.getElementById('ls-esc').textContent=escData.nome||'OrganizaADV';
   // Logo no cabeçalho da sidebar
   const sbMark=document.getElementById('sb-logo-wrap');
+  const sbPowered=document.getElementById('sb-powered');
   if(sbMark){
     if(escData.logo_url){
-      sbMark.innerHTML=`<img src="${escData.logo_url}" style="max-height:36px;max-width:160px;object-fit:contain;display:block;margin-bottom:4px;" alt="${escData.nome||''}"/>`;
+      sbMark.innerHTML=`<img src="${escData.logo_url}" style="max-height:64px;max-width:190px;object-fit:contain;display:block;margin-bottom:6px;" alt="${escData.nome||''}"/>`;
+      if(sbPowered)sbPowered.style.display='block';
     }else{
       sbMark.innerHTML=`<div class="sb-mark">Organiza<span>ADV</span></div>`;
+      if(sbPowered)sbPowered.style.display='none';
     }
   }
   const b=document.getElementById('sb-badge');
