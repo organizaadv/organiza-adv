@@ -1617,7 +1617,12 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
     <div class="ob-pane" id="ob-p1">
       <div class="ob-p-title">Nome do escritório</div>
       <div class="ob-p-sub">Como seu escritório será identificado no sistema</div>
-      <input type="text" class="finp" id="ob-nome" placeholder="Ex.: Silva & Associados Advogados" style="margin-bottom:0"/>
+      <input type="text" class="finp" id="ob-nome" placeholder="Ex.: Silva & Associados Advogados"/>
+      <div class="field" style="margin-top:14px;">
+        <label class="flabel">Número da OAB <span class="req">*</span></label>
+        <input type="text" class="finp" id="ob-oab" placeholder="Ex.: OAB/BA 000000" style="margin-bottom:4px;"/>
+        <div class="fhint">Do advogado responsável — ou do administrador do escritório, se for pessoa jurídica</div>
+      </div>
       <div class="ob-logo-area" id="ob-logo-drop" onclick="document.getElementById('ob-logo-inp').click()">
         <div id="ob-logo-preview-wrap">
           <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="color:var(--tx3)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
@@ -4322,6 +4327,8 @@ function obProximo(){
   if(obAtual===1){
     const nome=document.getElementById('ob-nome').value.trim();
     if(!nome){toast('Informe o nome do escritório','te');return;}
+    const oab=document.getElementById('ob-oab').value.trim();
+    if(!oab){toast('Informe o número da OAB','te');return;}
     obStep(2);
   } else if(obAtual===2){
     obStep(3);obRenderMembros();
@@ -4358,6 +4365,7 @@ async function obConcluir(){
   const{error:upErr2}=await db.from('escritorios').update(upd).eq('id',escData.id);
   if(upErr2){toast('Erro ao salvar: '+upErr2.message,'te');btn.disabled=false;btn.textContent='Concluir e Começar →';return;}
   Object.assign(escData,upd);
+  const obOab=document.getElementById('ob-oab').value.trim();
   // Garante que o titular tem registro em usuarios
   if(usuarioAtual&&usuarioAtual.perfil==='titular'){
     await db.from('usuarios').upsert({
@@ -4366,6 +4374,20 @@ async function obConcluir(){
       perm_admin:true,perm_financeiro:true,perm_demandas:true,
       perm_atendimentos:true,perm_diario_oficial:true,perm_relatorios:true
     },{onConflict:'id'});
+  }
+  // Adiciona/atualiza o titular em colab_escritorio com OAB e perfil titular
+  if(usuarioAtual?.nome){
+    const nomeTitular=usuarioAtual.nome;
+    const existente=colabs.find(c=>c.nome===nomeTitular&&c.perfil==='titular');
+    if(existente){
+      await db.from('colab_escritorio').update({oab:obOab||null,perfil:'titular'}).eq('id',existente.id);
+      existente.oab=obOab||null;
+    }else{
+      const{data:novoTitular}=await db.from('colab_escritorio').insert([{
+        escritorio_id:escData.id,nome:nomeTitular,perfil:'titular',oab:obOab||null
+      }]).select().maybeSingle();
+      if(novoTitular)colabs.unshift(novoTitular);
+    }
   }
   // Adiciona membros da equipe em colab_escritorio (serão migrados para usuarios depois)
   if(obMembros.length){
