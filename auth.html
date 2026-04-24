@@ -542,13 +542,17 @@ async function recuperar(){
   if(!email){document.getElementById('f-email').classList.add('err');return;}
   setLoading('btn-forgot',true,'');
   try{
-    const{error}=await db.auth.signInWithOtp({email,options:{shouldCreateUser:false}});
-    if(error)throw error;
+    const res=await fetch(`${SB_URL}/functions/v1/recovery-otp`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${SB_KEY}`},
+      body:JSON.stringify({action:'send',email})
+    });
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||'Erro ao enviar código.');
     _forgotEmail=email;
     mostrarForgotOtp(email);
   }catch(e){
-    const msgs={'User not found':'E-mail não encontrado. Verifique e tente novamente.'};
-    showErr('forgot-err',msgs[e.message]||'Erro ao enviar código. Tente novamente.');
+    showErr('forgot-err',(e as Error).message||'Erro ao enviar código. Tente novamente.');
   }finally{
     setLoading('btn-forgot',false,'Enviar código');
   }
@@ -615,30 +619,43 @@ async function reenviarCodigoRecupero(){
   document.getElementById('btn-resend-fotp').disabled=true;
   clearMsg('fotp-err');clearMsg('fotp-ok');
   try{
-    const{error}=await db.auth.signInWithOtp({email:_forgotEmail,options:{shouldCreateUser:false}});
-    if(error)throw error;
+    const res=await fetch(`${SB_URL}/functions/v1/recovery-otp`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${SB_KEY}`},
+      body:JSON.stringify({action:'send',email:_forgotEmail})
+    });
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||'Erro ao reenviar.');
     showOk('fotp-ok','Código reenviado! Verifique sua caixa de entrada.');
     fotpClear();iniciarTimerFotp();
   }catch(e){
-    showErr('fotp-err',e.message||'Erro ao reenviar. Tente novamente.');
+    showErr('fotp-err',(e as Error).message||'Erro ao reenviar. Tente novamente.');
     document.getElementById('btn-resend-fotp').disabled=false;
   }
 }
 
 async function verificarRecupero(){
   if(!_forgotEmail){showForgot();return;}
-  const token=fotpDigits();
-  if(token.length<6){fotpSetErr(true);showErr('fotp-err','Digite o código de 6 dígitos completo.');return;}
+  const code=fotpDigits();
+  if(code.length<6){fotpSetErr(true);showErr('fotp-err','Digite o código de 6 dígitos completo.');return;}
   clearMsg('fotp-err');clearMsg('fotp-ok');
   setLoading('btn-fotp',true,'');
   try{
-    const{error}=await db.auth.verifyOtp({email:_forgotEmail,token,type:'email'});
-    if(error)throw error;
+    const res=await fetch(`${SB_URL}/functions/v1/recovery-otp`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${SB_KEY}`},
+      body:JSON.stringify({action:'verify',email:_forgotEmail,code})
+    });
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||'Código incorreto ou expirado.');
+    // Cria sessão de recovery com o token gerado pelo Supabase
+    const{error:otpErr}=await db.auth.verifyOtp({token_hash:data.hashed_token,type:'recovery'});
+    if(otpErr)throw new Error('Erro ao criar sessão. Solicite um novo código.');
     if(_resendForgotTmr)clearInterval(_resendForgotTmr);
     mostrarDefinirSenha('recovery');
   }catch(e){
     fotpSetErr(true);
-    showErr('fotp-err','Código incorreto ou expirado. Verifique e tente novamente.');
+    showErr('fotp-err',(e as Error).message);
   }finally{
     setLoading('btn-fotp',false,'Confirmar código →');
   }
