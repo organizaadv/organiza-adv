@@ -210,20 +210,36 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-sm
         <button class="btn-sub trial" id="btn-spw" onclick="completarCadastro()">Criar minha conta →</button>
       </div>
 
-      <!-- RECUPERAR SENHA -->
+      <!-- RECUPERAR SENHA: passo 1 (e-mail) -->
       <div id="panel-forgot" class="fbody" style="display:none">
         <div style="margin-bottom:18px">
           <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#0D1321;margin-bottom:6px">Recuperar senha</div>
-          <div style="font-size:13px;color:#48556A;line-height:1.6">Informe seu e-mail e enviaremos um link para criar uma nova senha.</div>
+          <div style="font-size:13px;color:#48556A;line-height:1.6">Informe seu e-mail e enviaremos um código de 6 dígitos para criar uma nova senha.</div>
         </div>
         <div class="alert err" id="forgot-err"></div>
-        <div class="alert ok" id="forgot-ok"></div>
         <div class="field">
           <label class="flabel">E-mail</label>
           <input class="finp" id="f-email" type="email" placeholder="seu@email.com.br"/>
         </div>
-        <button class="btn-sub primary" id="btn-forgot" onclick="recuperar()">Enviar link de recuperação</button>
+        <button class="btn-sub primary" id="btn-forgot" onclick="recuperar()">Enviar código</button>
         <div class="form-link" style="margin-top:16px"><button onclick="setTab('login')">← Voltar para o login</button></div>
+      </div>
+
+      <!-- RECUPERAR SENHA: passo 2 (código OTP) -->
+      <div id="panel-forgot-otp" class="fbody" style="display:none">
+        <div style="margin-bottom:18px">
+          <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#0D1321;margin-bottom:6px">Verifique seu e-mail</div>
+          <div style="font-size:13px;color:#48556A;line-height:1.6">Enviamos um código de 6 dígitos para <strong id="fotp-email-show"></strong>. O código expira em <strong>30 minutos</strong>.</div>
+        </div>
+        <div class="alert err" id="fotp-err"></div>
+        <div class="alert ok" id="fotp-ok"></div>
+        <div class="otp-wrap" id="fotp-boxes"></div>
+        <button class="btn-sub primary" id="btn-fotp" onclick="verificarRecupero()" style="margin-top:8px">Confirmar código →</button>
+        <div style="text-align:center;margin-top:14px;font-size:13px;color:#96A3B5">
+          <span id="fotp-timer"></span>
+          <button id="btn-resend-fotp" onclick="reenviarCodigoRecupero()" style="display:none;background:none;border:none;color:#C9A84C;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;padding:0">Reenviar código</button>
+        </div>
+        <div class="form-link" style="margin-top:12px"><button onclick="showForgot()">← Voltar</button></div>
       </div>
 
     </div>
@@ -290,7 +306,7 @@ function otpClear(){
 }
 
 // ── PAINÉIS ──
-const PANELS=['panel-login','panel-signup','panel-verify','panel-signup-pw','panel-forgot','panel-setpw'];
+const PANELS=['panel-login','panel-signup','panel-verify','panel-signup-pw','panel-forgot','panel-forgot-otp','panel-setpw'];
 function showOnly(id){
   PANELS.forEach(p=>{const el=document.getElementById(p);if(el)el.style.display=p===id?'':'none';});
 }
@@ -517,15 +533,115 @@ async function completarCadastro(){
 }
 
 // ── RECUPERAR SENHA ──
+let _forgotEmail=null;
+let _resendForgotTmr=null;
+
 async function recuperar(){
-  clearMsg('forgot-err');clearMsg('forgot-ok');
+  clearMsg('forgot-err');
   const email=document.getElementById('f-email').value.trim();
   if(!email){document.getElementById('f-email').classList.add('err');return;}
   setLoading('btn-forgot',true,'');
-  const{error}=await db.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+'/auth.html'});
-  setLoading('btn-forgot',false,'Enviar link de recuperação');
-  if(error){showErr('forgot-err',error.message);return;}
-  showOk('forgot-ok','Link enviado para '+email+'. Verifique sua caixa de entrada.');
+  try{
+    const{error}=await db.auth.signInWithOtp({email,options:{shouldCreateUser:false}});
+    if(error)throw error;
+    _forgotEmail=email;
+    mostrarForgotOtp(email);
+  }catch(e){
+    const msgs={'User not found':'E-mail não encontrado. Verifique e tente novamente.'};
+    showErr('forgot-err',msgs[e.message]||'Erro ao enviar código. Tente novamente.');
+  }finally{
+    setLoading('btn-forgot',false,'Enviar código');
+  }
+}
+
+function mostrarForgotOtp(email){
+  hideTabs();showOnly('panel-forgot-otp');
+  document.getElementById('fotp-email-show').textContent=email||'';
+  buildFotpBoxes();
+  clearMsg('fotp-err');clearMsg('fotp-ok');
+  iniciarTimerFotp();
+}
+
+function buildFotpBoxes(){
+  const wrap=document.getElementById('fotp-boxes');
+  wrap.innerHTML='';
+  for(let i=0;i<6;i++){
+    const inp=document.createElement('input');
+    inp.type='text';inp.inputMode='numeric';inp.maxLength=1;
+    inp.className='otp-digit fotp-digit';inp.dataset.idx=i;
+    inp.addEventListener('keydown',fotpKeydown);
+    inp.addEventListener('input',fotpInput);
+    inp.addEventListener('paste',fotpPaste);
+    wrap.appendChild(inp);
+  }
+  wrap.querySelector('.fotp-digit').focus();
+}
+
+function fotpDigits(){return Array.from(document.querySelectorAll('.fotp-digit')).map(i=>i.value).join('');}
+function fotpSetErr(on){document.querySelectorAll('.fotp-digit').forEach(b=>b.classList.toggle('err',on));}
+function fotpClear(){document.querySelectorAll('.fotp-digit').forEach(b=>{b.value='';b.classList.remove('err');});const f=document.querySelector('.fotp-digit');if(f)f.focus();}
+
+function fotpInput(e){
+  const inp=e.target;inp.value=inp.value.replace(/\D/g,'').slice(-1);
+  if(inp.value){const nx=document.querySelectorAll('.fotp-digit')[+inp.dataset.idx+1];if(nx)nx.focus();}
+}
+function fotpKeydown(e){
+  const idx=+e.target.dataset.idx;
+  if(e.key==='Backspace'&&!e.target.value&&idx>0)document.querySelectorAll('.fotp-digit')[idx-1].focus();
+}
+function fotpPaste(e){
+  e.preventDefault();
+  const txt=(e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
+  const boxes=document.querySelectorAll('.fotp-digit');
+  txt.split('').forEach((c,i)=>{if(boxes[i])boxes[i].value=c;});
+  if(boxes[Math.min(txt.length,5)])boxes[Math.min(txt.length,5)].focus();
+}
+
+function iniciarTimerFotp(){
+  const btn=document.getElementById('btn-resend-fotp');
+  const tim=document.getElementById('fotp-timer');
+  if(!btn||!tim)return;
+  let s=60;
+  btn.style.display='none';tim.style.display='';tim.textContent=`Reenviar em ${s}s`;
+  if(_resendForgotTmr)clearInterval(_resendForgotTmr);
+  _resendForgotTmr=setInterval(()=>{
+    s--;tim.textContent=`Reenviar em ${s}s`;
+    if(s<=0){clearInterval(_resendForgotTmr);btn.style.display='';tim.style.display='none';}
+  },1000);
+}
+
+async function reenviarCodigoRecupero(){
+  if(!_forgotEmail)return;
+  document.getElementById('btn-resend-fotp').disabled=true;
+  clearMsg('fotp-err');clearMsg('fotp-ok');
+  try{
+    const{error}=await db.auth.signInWithOtp({email:_forgotEmail,options:{shouldCreateUser:false}});
+    if(error)throw error;
+    showOk('fotp-ok','Código reenviado! Verifique sua caixa de entrada.');
+    fotpClear();iniciarTimerFotp();
+  }catch(e){
+    showErr('fotp-err',e.message||'Erro ao reenviar. Tente novamente.');
+    document.getElementById('btn-resend-fotp').disabled=false;
+  }
+}
+
+async function verificarRecupero(){
+  if(!_forgotEmail){showForgot();return;}
+  const token=fotpDigits();
+  if(token.length<6){fotpSetErr(true);showErr('fotp-err','Digite o código de 6 dígitos completo.');return;}
+  clearMsg('fotp-err');clearMsg('fotp-ok');
+  setLoading('btn-fotp',true,'');
+  try{
+    const{error}=await db.auth.verifyOtp({email:_forgotEmail,token,type:'email'});
+    if(error)throw error;
+    if(_resendForgotTmr)clearInterval(_resendForgotTmr);
+    mostrarDefinirSenha('recovery');
+  }catch(e){
+    fotpSetErr(true);
+    showErr('fotp-err','Código incorreto ou expirado. Verifique e tente novamente.');
+  }finally{
+    setLoading('btn-fotp',false,'Confirmar código →');
+  }
 }
 
 // ── ENTER KEY ──
@@ -536,6 +652,7 @@ document.addEventListener('keydown',e=>{
   else if(vis('panel-signup'))enviarCodigo();
   else if(vis('panel-signup-pw'))completarCadastro();
   else if(vis('panel-forgot'))recuperar();
+  else if(vis('panel-forgot-otp'))verificarRecupero();
 });
 document.addEventListener('input',e=>{
   if(e.target.classList.contains('finp'))e.target.classList.remove('err');
@@ -587,10 +704,10 @@ async function definirSenha(){
 
 // ── INICIALIZAÇÃO ──
 window.addEventListener('load',async()=>{
-  // Convite ou reset (Supabase coloca token no hash)
+  // Convite via link (Supabase coloca token no hash)
   const hash=new URLSearchParams(window.location.hash.replace('#',''));
   const tipo=hash.get('type');
-  if(tipo==='invite'||tipo==='recovery'){
+  if(tipo==='invite'){
     const{data:{session}}=await db.auth.getSession();
     if(session){mostrarDefinirSenha(tipo);return;}
   }
