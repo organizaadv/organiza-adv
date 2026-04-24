@@ -552,7 +552,7 @@ async function recuperar(){
     _forgotEmail=email;
     mostrarForgotOtp(email);
   }catch(e){
-    showErr('forgot-err',(e as Error).message||'Erro ao enviar código. Tente novamente.');
+    showErr('forgot-err',e.message||'Erro ao enviar código. Tente novamente.');
   }finally{
     setLoading('btn-forgot',false,'Enviar código');
   }
@@ -629,7 +629,7 @@ async function reenviarCodigoRecupero(){
     showOk('fotp-ok','Código reenviado! Verifique sua caixa de entrada.');
     fotpClear();iniciarTimerFotp();
   }catch(e){
-    showErr('fotp-err',(e as Error).message||'Erro ao reenviar. Tente novamente.');
+    showErr('fotp-err',e.message||'Erro ao reenviar. Tente novamente.');
     document.getElementById('btn-resend-fotp').disabled=false;
   }
 }
@@ -655,7 +655,7 @@ async function verificarRecupero(){
     mostrarDefinirSenha('recovery');
   }catch(e){
     fotpSetErr(true);
-    showErr('fotp-err',(e as Error).message);
+    showErr('fotp-err',e.message||'Código incorreto ou expirado. Verifique e tente novamente.');
   }finally{
     setLoading('btn-fotp',false,'Confirmar código →');
   }
