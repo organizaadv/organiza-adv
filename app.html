@@ -1408,7 +1408,12 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         </div>
         <div class="field" id="eq-oab-wrap">
           <label class="flabel">Número OAB</label>
-          <input type="text" class="finp" id="eq-oab" placeholder="OAB/BA 000000"/>
+          <div style="display:flex;gap:8px">
+            <select class="fsel" id="eq-oab-estado" style="width:88px;flex:none">
+              <option value="">UF</option><option>AC</option><option>AL</option><option>AM</option><option>AP</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MG</option><option>MS</option><option>MT</option><option>PA</option><option>PB</option><option>PE</option><option>PI</option><option>PR</option><option>RJ</option><option>RN</option><option>RO</option><option>RR</option><option>RS</option><option>SC</option><option>SE</option><option>SP</option><option>TO</option>
+            </select>
+            <input type="text" class="finp" id="eq-oab-num" placeholder="000000" inputmode="numeric" style="flex:1"/>
+          </div>
           <div class="fhint">Obrigatório para busca no Diário Oficial</div>
         </div>
       </div>
@@ -1674,7 +1679,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       </div>
       <div class="fg2">
         <div class="field"><label class="flabel">WhatsApp</label><input type="tel" class="finp" id="em-wpp" placeholder="(00) 9 0000-0000"/></div>
-        <div class="field" id="em-oab-wrap"><label class="flabel">Número OAB</label><input type="text" class="finp" id="em-oab" placeholder="OAB/BA 000000"/></div>
+        <div class="field" id="em-oab-wrap"><label class="flabel">Número OAB</label><div style="display:flex;gap:8px"><select class="fsel" id="em-oab-estado" style="width:88px;flex:none"><option value="">UF</option><option>AC</option><option>AL</option><option>AM</option><option>AP</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MG</option><option>MS</option><option>MT</option><option>PA</option><option>PB</option><option>PE</option><option>PI</option><option>PR</option><option>RJ</option><option>RN</option><option>RO</option><option>RR</option><option>RS</option><option>SC</option><option>SE</option><option>SP</option><option>TO</option></select><input type="text" class="finp" id="em-oab-num" placeholder="000000" inputmode="numeric" style="flex:1"/></div></div>
       </div>
     </div>
     <div class="mfoot">
@@ -1776,7 +1781,12 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <input type="text" class="finp" id="ob-nome" placeholder="Ex.: Silva & Associados Advogados"/>
       <div class="field" style="margin-top:14px;">
         <label class="flabel">Número da OAB <span class="req">*</span></label>
-        <input type="text" class="finp" id="ob-oab" placeholder="Ex.: OAB/BA 000000" style="margin-bottom:4px;"/>
+        <div style="display:flex;gap:8px;margin-bottom:4px">
+          <select class="fsel" id="ob-oab-estado" style="width:88px;flex:none">
+            <option value="">UF</option><option>AC</option><option>AL</option><option>AM</option><option>AP</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MG</option><option>MS</option><option>MT</option><option>PA</option><option>PB</option><option>PE</option><option>PI</option><option>PR</option><option>RJ</option><option>RN</option><option>RO</option><option>RR</option><option>RS</option><option>SC</option><option>SE</option><option>SP</option><option>TO</option>
+          </select>
+          <input type="text" class="finp" id="ob-oab-num" placeholder="000000" inputmode="numeric" style="flex:1"/>
+        </div>
         <div class="fhint">Do advogado responsável — ou do administrador do escritório, se for pessoa jurídica</div>
       </div>
       <div class="ob-logo-area" id="ob-logo-drop" onclick="document.getElementById('ob-logo-inp').click()">
@@ -3205,6 +3215,22 @@ function updatePerfilInfo(){
   if(oabWrap)oabWrap.style.display=perfil==='advogado'?'':'none';
 }
 
+// ── HELPERS OAB ──
+function lerOab(p){
+  const est=document.getElementById(p+'-oab-estado')?.value.trim()||'';
+  const num=document.getElementById(p+'-oab-num')?.value.trim()||'';
+  if(!est||!num)return '';
+  return 'OAB '+est+' '+num;
+}
+function escreverOab(p,val){
+  const selEl=document.getElementById(p+'-oab-estado');
+  const numEl=document.getElementById(p+'-oab-num');
+  if(!selEl||!numEl)return;
+  if(!val){selEl.value='';numEl.value='';return;}
+  const parts=val.replace(/^OAB[\/\s]*/i,'').trim().split(/[\s\/]+/);
+  selEl.value=parts[0]||'';
+  numEl.value=parts[1]||'';
+}
 async function convidarMembro(){
   const nome=document.getElementById('eq-nome').value.trim();
   const email=document.getElementById('eq-email').value.trim();
@@ -3215,7 +3241,7 @@ async function convidarMembro(){
   const showErr=(msg)=>{errEl.textContent=msg;errEl.style.display='block';errEl.style.background='#FEF2F2';errEl.style.color='#991B1B';errEl.style.border='1px solid #FECACA';errEl.style.borderRadius='8px';errEl.style.padding='10px 14px';};
   if(!nome){showErr('Informe o nome do membro.');return;}
   if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showErr('Informe um e-mail válido.');return;}
-  if(perfil==='advogado'&&!document.getElementById('eq-oab').value.trim()){showErr('O número da OAB é obrigatório para advogados.');return;}
+  if(perfil==='advogado'&&!lerOab('eq')){showErr('Informe o estado e o número da OAB.');return;}
 
   const btn=document.getElementById('btn-convidar');
   btn.disabled=true;btn.textContent='Enviando...';
@@ -3238,7 +3264,7 @@ async function convidarMembro(){
     const json=await r.json();
     if(json.error)throw new Error(json.error);
 
-    const oab=document.getElementById('eq-oab')?.value.trim()||null;
+    const oab=lerOab('eq')||null;
     // Adiciona também em colab_escritorio para manter compatibilidade com seletores de responsável
     await db.from('colab_escritorio').insert([{nome,escritorio_id:escData.id,perfil,oab:oab||null}]);
     const{data:novos}=await db.from('colab_escritorio').select('*').eq('escritorio_id',escData.id).order('created_at',{ascending:true});
@@ -3277,7 +3303,7 @@ function abrirEditMembro(id){
   document.getElementById('em-nome').value=c.nome||'';
   document.getElementById('em-perfil').value=c.perfil||'colaborador';
   document.getElementById('em-wpp').value=c.wpp||'';
-  document.getElementById('em-oab').value=c.oab||'';
+  escreverOab('em',c.oab);
   document.getElementById('edit-membro-err').style.display='none';
   toggleEMOab();
   openM('m-edit-membro');
@@ -3291,7 +3317,7 @@ async function salvarEdicaoMembro(){
   if(!nome){const e=document.getElementById('edit-membro-err');e.textContent='Informe o nome.';e.style.display='block';return;}
   const perfil=document.getElementById('em-perfil').value;
   const wpp=document.getElementById('em-wpp').value.trim()||null;
-  const oab=document.getElementById('em-oab').value.trim()||null;
+  const oab=lerOab('em')||null;
   const{error}=await db.from('colab_escritorio').update({nome,perfil,wpp,oab}).eq('id',editMembroId);
   if(error){const e=document.getElementById('edit-membro-err');e.textContent='Erro: '+error.message;e.style.display='block';return;}
   const c=colabs.find(x=>x.id===editMembroId);
@@ -5427,8 +5453,8 @@ function obProximo(){
   if(obAtual===1){
     const nome=document.getElementById('ob-nome').value.trim();
     if(!nome){toast('Informe o nome do escritório','te');return;}
-    const oab=document.getElementById('ob-oab').value.trim();
-    if(!oab){toast('Informe o número da OAB','te');return;}
+    const oab=lerOab('ob');
+    if(!oab){toast('Selecione o estado e informe o número da OAB','te');return;}
     obStep(2);
   } else if(obAtual===2){
     obStep(3);obRenderMembros();
@@ -5465,7 +5491,7 @@ async function obConcluir(){
   const{error:upErr2}=await db.from('escritorios').update(upd).eq('id',escData.id);
   if(upErr2){toast('Erro ao salvar: '+upErr2.message,'te');btn.disabled=false;btn.textContent='Concluir e Começar →';return;}
   Object.assign(escData,upd);
-  const obOab=document.getElementById('ob-oab').value.trim();
+  const obOab=lerOab('ob');
   // Garante que o titular tem registro em usuarios
   if(usuarioAtual&&usuarioAtual.perfil==='titular'){
     await db.from('usuarios').upsert({
