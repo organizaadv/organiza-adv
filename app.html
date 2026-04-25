@@ -3382,7 +3382,7 @@ async function salvarEdicaoMembro(){
     const{error:upErr}=await db.storage.from('logos').upload(path,_emFotoFile,{upsert:true});
     if(!upErr){const{data:pub}=db.storage.from('logos').getPublicUrl(path);foto_url=pub.publicUrl;}
   }
-  const{error}=await db.from('colab_escritorio').update({nome,perfil,wpp,oab,foto_url}).eq('id',editMembroId);
+  const{error}=await db.rpc('salvar_membro',{p_id:String(editMembroId),p_nome:nome,p_perfil:perfil,p_wpp:wpp||null,p_oab:oab||null,p_foto_url:foto_url||null});
   if(error){errEl.textContent='Erro: '+error.message;errEl.style.display='block';if(btn){btn.disabled=false;btn.textContent='Salvar alterações';}return;}
   const c=colabs.find(x=>String(x.id)===String(editMembroId));
   if(c){c.nome=nome;c.perfil=perfil;c.wpp=wpp;c.oab=oab;c.foto_url=foto_url;}
