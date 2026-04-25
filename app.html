@@ -1685,6 +1685,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <div class="field">
         <label class="flabel">Função / Cargo</label>
         <select class="fsel" id="em-perfil" onchange="toggleEMOab()">
+          <option value="titular" style="display:none">Titular / Administrador</option>
           <option value="socio">Sócio</option>
           <option value="advogado">Advogado</option>
           <option value="estagiario">Estagiário</option>
@@ -3380,7 +3381,14 @@ async function salvarEdicaoMembro(){
     const ext=_emFotoFile.name.split('.').pop().toLowerCase();
     const path=`membros/${escData.id}/${editMembroId}.${ext}`;
     const{error:upErr}=await db.storage.from('logos').upload(path,_emFotoFile,{upsert:true});
-    if(!upErr){const{data:pub}=db.storage.from('logos').getPublicUrl(path);foto_url=pub.publicUrl;}
+    if(upErr){
+      errEl.textContent='Erro ao enviar foto: '+upErr.message;
+      errEl.style.display='block';
+      if(btn){btn.disabled=false;btn.textContent='Salvar alterações';}
+      return;
+    }
+    const{data:pub}=db.storage.from('logos').getPublicUrl(path);
+    foto_url=pub.publicUrl;
   }
   const{error}=await db.rpc('salvar_membro',{p_id:String(editMembroId),p_nome:nome,p_perfil:perfil,p_wpp:wpp||null,p_oab:oab||null,p_foto_url:foto_url||null});
   if(error){errEl.textContent='Erro: '+error.message;errEl.style.display='block';if(btn){btn.disabled=false;btn.textContent='Salvar alterações';}return;}
