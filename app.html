@@ -1400,10 +1400,11 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         <div class="field">
           <label class="flabel">Perfil</label>
           <select class="fsel" id="eq-perfil" onchange="updatePerfilInfo()">
+            <option value="socio">Sócio</option>
             <option value="advogado">Advogado</option>
             <option value="estagiario">Estagiário</option>
-            <option value="secretaria">Secretária / Recepcionista</option>
-            <option value="colaborador">Colaborador</option>
+            <option value="secretaria">Secretária</option>
+            <option value="assistente">Assistente</option>
           </select>
         </div>
         <div class="field" id="eq-oab-wrap">
@@ -1664,28 +1665,45 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <button class="mx" onclick="closeM('m-edit-membro')">✕</button>
     </div>
     <div class="mbody">
-      <div class="alert" id="edit-membro-err" style="display:none"></div>
+      <div class="alert" id="edit-membro-err" style="display:none;background:#FEF2F2;color:#991B1B;border:1px solid #FECACA;border-radius:8px;padding:10px 14px;margin-bottom:14px"></div>
+
+      <!-- Foto de perfil -->
+      <div style="display:flex;justify-content:center;margin-bottom:22px">
+        <div style="position:relative;cursor:pointer" onclick="document.getElementById('em-foto-inp').click()" title="Alterar foto de perfil">
+          <div id="em-foto-preview" style="width:80px;height:80px;border-radius:50%;border:2px solid var(--bd);display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:26px;font-weight:700;color:#fff;background:var(--s2)"></div>
+          <div style="position:absolute;bottom:1px;right:1px;width:24px;height:24px;background:var(--gd);border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface)">
+            <svg width="10" height="10" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          </div>
+        </div>
+        <input type="file" id="em-foto-inp" accept="image/*" style="display:none" onchange="emPreviewFoto(this)"/>
+      </div>
+
       <div class="fg2">
         <div class="field"><label class="flabel">Nome completo <span class="req">*</span></label><input type="text" class="finp" id="em-nome" placeholder="Nome do membro"/></div>
-        <div class="field">
-          <label class="flabel">Perfil</label>
-          <select class="fsel" id="em-perfil" onchange="toggleEMOab()">
-            <option value="advogado">Advogado</option>
-            <option value="estagiario">Estagiário</option>
-            <option value="secretaria">Secretária / Recepcionista</option>
-            <option value="colaborador">Colaborador</option>
-          </select>
-        </div>
-      </div>
-      <div class="fg2">
         <div class="field"><label class="flabel">WhatsApp</label><input type="tel" class="finp" id="em-wpp" placeholder="(00) 9 0000-0000"/></div>
-        <div class="field" id="em-oab-wrap"><label class="flabel">Número OAB</label><div style="display:flex;gap:8px"><select class="fsel" id="em-oab-estado" style="width:88px;flex:none"><option value="">UF</option><option>AC</option><option>AL</option><option>AM</option><option>AP</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MG</option><option>MS</option><option>MT</option><option>PA</option><option>PB</option><option>PE</option><option>PI</option><option>PR</option><option>RJ</option><option>RN</option><option>RO</option><option>RR</option><option>RS</option><option>SC</option><option>SE</option><option>SP</option><option>TO</option></select><input type="text" class="finp" id="em-oab-num" placeholder="000000" inputmode="numeric" style="flex:1"/></div></div>
+      </div>
+      <div class="field">
+        <label class="flabel">Função / Cargo</label>
+        <select class="fsel" id="em-perfil" onchange="toggleEMOab()">
+          <option value="socio">Sócio</option>
+          <option value="advogado">Advogado</option>
+          <option value="estagiario">Estagiário</option>
+          <option value="secretaria">Secretária</option>
+          <option value="assistente">Assistente</option>
+        </select>
+      </div>
+      <div class="field" id="em-oab-wrap" style="margin-top:4px">
+        <label class="flabel">Número OAB</label>
+        <div style="display:flex;gap:8px">
+          <select class="fsel" id="em-oab-estado" style="width:88px;flex:none"><option value="">UF</option><option>AC</option><option>AL</option><option>AM</option><option>AP</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MG</option><option>MS</option><option>MT</option><option>PA</option><option>PB</option><option>PE</option><option>PI</option><option>PR</option><option>RJ</option><option>RN</option><option>RO</option><option>RR</option><option>RS</option><option>SC</option><option>SE</option><option>SP</option><option>TO</option></select>
+          <input type="text" class="finp" id="em-oab-num" placeholder="000000" inputmode="numeric" style="flex:1"/>
+        </div>
       </div>
     </div>
     <div class="mfoot">
       <div class="mfoot-r">
         <button class="btn btn-gh" onclick="closeM('m-edit-membro')">Cancelar</button>
-        <button class="btn btn-p" onclick="salvarEdicaoMembro()">Salvar alterações</button>
+        <button class="btn btn-p" id="btn-salvar-membro" onclick="salvarEdicaoMembro()">Salvar alterações</button>
       </div>
     </div>
   </div>
@@ -2303,7 +2321,7 @@ function isTitular(nome){
 
 function isAdvogado(nome){
   const p=getPerfilUser(nome);
-  return p==='titular'||p==='advogado';
+  return p==='titular'||p==='advogado'||p==='socio';
 }
 
 // Filtra demandas conforme perfil do usuário
@@ -3148,44 +3166,55 @@ function abrirNovaDemandaCliente(nome='',tel='',email='',cpf=''){
 function renderEqTabela(){
   const tbody=document.getElementById('tb-eq');
   if(!colabs.length){tbody.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="empty-ico">👥</div><div class="empty-title">Nenhum membro cadastrado</div></div></td></tr>`;return;}
-  const perfilLabel={titular:'Titular',advogado:'Advogado',colaborador:'Colaborador'};
-  const perfilBdg={titular:'b-gd',advogado:'b-bl',colaborador:'b-conc'};
+  const perfilLabel={titular:'Titular',socio:'Sócio',advogado:'Advogado',estagiario:'Estagiário',secretaria:'Secretária',assistente:'Assistente',colaborador:'Colaborador'};
+  const perfilBdg={titular:'b-gd',socio:'b-gd',advogado:'b-bl',estagiario:'b-bl',secretaria:'b-conc',assistente:'b-conc',colaborador:'b-conc'};
   tbody.innerHTML=colabs.map(c=>{
-    const fases=demandas.flatMap(d=>getH(d).filter(h=>h.quem===c.nome));
     const at=demandas.filter(d=>statusD(d)==='Em andamento'&&d.responsavel===c.nome).length;
     const conc=demandas.filter(d=>statusD(d)==='Concluído'&&d.responsavel===c.nome).length;
     const perfil=c.perfil||'colaborador';
     const temCustom=c.permissoes&&Object.keys(c.permissoes).length>0;
+    const ava=c.foto_url
+      ?`<img src="${c.foto_url}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0"/>`
+      :`<div class="av">${iniciais(c.nome)}</div>`;
     return`<tr>
-      <td><div class="td-av"><div class="av">${iniciais(c.nome)}</div><div><div style="font-weight:500">${c.nome}</div>${c.oab?`<div style="font-size:11px;color:var(--tx3)">${c.oab}</div>`:''}</div></div></td>
-      <td><span class="bdg ${perfilBdg[perfil]||'b-conc'}">${perfilLabel[perfil]||'Colaborador'}</span></td>
+      <td><div class="td-av">${ava}<div><div style="font-weight:500">${c.nome}</div>${c.oab?`<div style="font-size:11px;color:var(--tx3)">${c.oab}</div>`:''}</div></div></td>
+      <td><span class="bdg ${perfilBdg[perfil]||'b-conc'}">${perfilLabel[perfil]||perfil}</span></td>
       <td style="font-size:13px;color:var(--tx2)">${c.oab||'—'}</td>
       <td style="font-size:13px;color:var(--tx2)">${c.wpp||'—'}</td>
       <td><strong>${at}</strong></td>
       <td><strong>${conc}</strong></td>
-      <td><button class="btn btn-gh btn-sm" onclick="abrirPermissoes('${c.id}')">${temCustom?'<span style="color:var(--am)">●</span> ':''}Editar</button></td>
+      <td><button class="btn btn-gh btn-sm" onclick="abrirPermissoes('${c.id}')">${temCustom?'<span style="color:var(--am)">●</span> ':''}Permissões</button>
+          <button class="btn btn-gh btn-sm" onclick="abrirEditMembro('${c.id}')" style="margin-left:4px">Editar</button></td>
     </tr>`;
   }).join('');
 }
 function renderEqCfg(){
   const lista=document.getElementById('eq-lista');
   if(!colabs.length){lista.innerHTML='';return;}
-  const pLabel={titular:'Titular',advogado:'Advogado',colaborador:'Colaborador'};
-  const pBdg={titular:'b-gd',advogado:'b-bl',colaborador:'b-conc'};
-  lista.innerHTML=colabs.map(c=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--s2);border-radius:var(--rsm);border:1px solid var(--bd);">
-      <div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
-          <span style="font-size:13.5px;font-weight:500;">${c.nome}</span>
-          <span class="bdg ${pBdg[c.perfil||'colaborador']||'b-conc'}" style="font-size:10px;">${pLabel[c.perfil||'colaborador']}</span>
+  const pLabel={titular:'Titular',socio:'Sócio',advogado:'Advogado',estagiario:'Estagiário',secretaria:'Secretária',assistente:'Assistente',colaborador:'Colaborador'};
+  const pBdg={titular:'b-gd',socio:'b-gd',advogado:'b-bl',estagiario:'b-bl',secretaria:'b-conc',assistente:'b-conc',colaborador:'b-conc'};
+  lista.innerHTML=colabs.map(c=>{
+    const perfil=c.perfil||'colaborador';
+    const ava=c.foto_url
+      ?`<img src="${c.foto_url}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0"/>`
+      :`<div style="width:38px;height:38px;border-radius:50%;background:${avatarCor(c.nome)};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">${iniciais(c.nome)}</div>`;
+    return`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--s2);border-radius:var(--rsm);border:1px solid var(--bd);">
+      <div style="display:flex;align-items:center;gap:10px;">
+        ${ava}
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+            <span style="font-size:13.5px;font-weight:500;">${c.nome}</span>
+            <span class="bdg ${pBdg[perfil]||'b-conc'}" style="font-size:10px;">${pLabel[perfil]||perfil}</span>
+          </div>
+          <div style="font-size:12px;color:var(--tx3);">${c.wpp?'WhatsApp: '+c.wpp:'Sem WhatsApp'}${c.oab?' · OAB: '+c.oab:''}</div>
         </div>
-        <div style="font-size:12px;color:var(--tx3);">${c.wpp?'WhatsApp: '+c.wpp:'Sem WhatsApp cadastrado'}${c.oab?' · OAB: '+c.oab:''}</div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <button class="btn btn-gh btn-sm" onclick="abrirEditMembro('${c.id}')">Editar</button>
-        <button onclick="rmMembro(${c.id})" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:18px;padding:4px;border-radius:var(--rsm);transition:color .15s;" onmouseover="this.style.color='var(--rd)'" onmouseout="this.style.color='var(--tx3)'">×</button>
+        <button onclick="rmMembro('${c.id}')" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:18px;padding:4px;border-radius:var(--rsm);transition:color .15s;" onmouseover="this.style.color='var(--rd)'" onmouseout="this.style.color='var(--tx3)'">×</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 const PERFIL_INFO={
   advogado:{bg:'var(--gdp)',border:'var(--gdb)',color:'var(--am)',
@@ -3300,8 +3329,20 @@ let editMembroId=null;
 function abrirEditMembro(id){
   const c=colabs.find(x=>String(x.id)===String(id));if(!c)return;
   editMembroId=id;
+  _emFotoFile=null;
+  _emFotoAtual=c.foto_url||null;
+  const prev=document.getElementById('em-foto-preview');
+  if(c.foto_url){
+    prev.innerHTML=`<img src="${c.foto_url}" style="width:100%;height:100%;object-fit:cover"/>`;
+    prev.style.background='var(--s2)';
+  }else{
+    prev.innerHTML=iniciais(c.nome);
+    prev.style.background=avatarCor(c.nome);
+  }
   document.getElementById('em-nome').value=c.nome||'';
-  document.getElementById('em-perfil').value=c.perfil||'colaborador';
+  const selPerfil=document.getElementById('em-perfil');
+  selPerfil.value=c.perfil||'colaborador';
+  if(!selPerfil.value)selPerfil.value='assistente';
   document.getElementById('em-wpp').value=c.wpp||'';
   escreverOab('em',c.oab);
   document.getElementById('edit-membro-err').style.display='none';
@@ -3312,19 +3353,43 @@ function toggleEMOab(){
   const p=document.getElementById('em-perfil').value;
   document.getElementById('em-oab-wrap').style.display=p==='advogado'?'':'none';
 }
+
+let _emFotoFile=null,_emFotoAtual=null;
+function emPreviewFoto(inp){
+  const file=inp.files[0];if(!file)return;
+  _emFotoFile=file;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const prev=document.getElementById('em-foto-preview');
+    prev.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover"/>`;
+  };
+  reader.readAsDataURL(file);
+}
 async function salvarEdicaoMembro(){
+  const errEl=document.getElementById('edit-membro-err');
   const nome=document.getElementById('em-nome').value.trim();
-  if(!nome){const e=document.getElementById('edit-membro-err');e.textContent='Informe o nome.';e.style.display='block';return;}
+  if(!nome){errEl.textContent='Informe o nome.';errEl.style.display='block';return;}
   const perfil=document.getElementById('em-perfil').value;
   const wpp=document.getElementById('em-wpp').value.trim()||null;
   const oab=lerOab('em')||null;
-  const{error}=await db.from('colab_escritorio').update({nome,perfil,wpp,oab}).eq('id',editMembroId);
-  if(error){const e=document.getElementById('edit-membro-err');e.textContent='Erro: '+error.message;e.style.display='block';return;}
+  const btn=document.getElementById('btn-salvar-membro');
+  if(btn){btn.disabled=true;btn.textContent='Salvando...';}
+  errEl.style.display='none';
+  let foto_url=_emFotoAtual;
+  if(_emFotoFile){
+    const ext=_emFotoFile.name.split('.').pop().toLowerCase();
+    const path=`membros/${escData.id}/${editMembroId}.${ext}`;
+    const{error:upErr}=await db.storage.from('logos').upload(path,_emFotoFile,{upsert:true});
+    if(!upErr){const{data:pub}=db.storage.from('logos').getPublicUrl(path);foto_url=pub.publicUrl;}
+  }
+  const{error}=await db.from('colab_escritorio').update({nome,perfil,wpp,oab,foto_url}).eq('id',editMembroId);
+  if(error){errEl.textContent='Erro: '+error.message;errEl.style.display='block';if(btn){btn.disabled=false;btn.textContent='Salvar alterações';}return;}
   const c=colabs.find(x=>String(x.id)===String(editMembroId));
-  if(c){c.nome=nome;c.perfil=perfil;c.wpp=wpp;c.oab=oab;}
+  if(c){c.nome=nome;c.perfil=perfil;c.wpp=wpp;c.oab=oab;c.foto_url=foto_url;}
   closeM('m-edit-membro');
   renderEqCfg();renderEqTabela();initRespSel();
   toast('Membro atualizado!');
+  if(btn){btn.disabled=false;btn.textContent='Salvar alterações';}
 }
 
 // Inicializa info do perfil ao abrir o modal
@@ -5180,8 +5245,12 @@ function enviarLembrete(id){
 
 // ── PERMISSÕES GRANULARES ──
 const PERMS_DEF={
-  titular:{ver_financeiro:true,ver_todas_demandas:true,criar_demandas:true,editar_demandas:true,ver_atendimentos:true,gerenciar_equipe:true,exportar:true},
-  advogado:{ver_financeiro:true,ver_todas_demandas:true,criar_demandas:true,editar_demandas:true,ver_atendimentos:true,gerenciar_equipe:true,exportar:true},
+  titular:  {ver_financeiro:true, ver_todas_demandas:true, criar_demandas:true, editar_demandas:true, ver_atendimentos:true, gerenciar_equipe:true, exportar:true},
+  socio:    {ver_financeiro:true, ver_todas_demandas:true, criar_demandas:true, editar_demandas:true, ver_atendimentos:true, gerenciar_equipe:true, exportar:true},
+  advogado: {ver_financeiro:true, ver_todas_demandas:true, criar_demandas:true, editar_demandas:true, ver_atendimentos:true, gerenciar_equipe:false,exportar:true},
+  estagiario:{ver_financeiro:false,ver_todas_demandas:false,criar_demandas:true, editar_demandas:true, ver_atendimentos:true, gerenciar_equipe:false,exportar:false},
+  secretaria:{ver_financeiro:false,ver_todas_demandas:false,criar_demandas:false,editar_demandas:false,ver_atendimentos:true, gerenciar_equipe:false,exportar:false},
+  assistente:{ver_financeiro:false,ver_todas_demandas:false,criar_demandas:false,editar_demandas:false,ver_atendimentos:true, gerenciar_equipe:false,exportar:false},
   colaborador:{ver_financeiro:false,ver_todas_demandas:false,criar_demandas:false,editar_demandas:false,ver_atendimentos:false,gerenciar_equipe:false,exportar:false},
 };
 const PERMS_LABEL={
