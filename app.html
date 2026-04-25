@@ -5604,6 +5604,17 @@ window.addEventListener('load',async()=>{
     db.from('colab_escritorio').select('*').eq('escritorio_id',escData.id).order('created_at',{ascending:true})
   ]);
   demandas=d||[];colabs=c||[];
+
+  // Garante que o titular aparece na equipe — insere se ainda não existir
+  if(usuarioAtual&&!colabs.some(m=>m.perfil==='titular')){
+    const{data:tc}=await db.from('colab_escritorio').insert([{
+      escritorio_id:escData.id,
+      nome:usuarioAtual.nome,
+      perfil:'titular'
+    }]).select().maybeSingle();
+    if(tc)colabs.unshift(tc);
+  }
+
   initEtapaSel();initRespSel();renderKanban();loadAtendimentos();loadAgenda();loadDiario();
 
   // Exibe usuário logado na sidebar
