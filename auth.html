@@ -522,6 +522,10 @@ async function completarCadastro(){
     }]);
     if(uErr)throw uErr;
 
+    await db.from('colab_escritorio').insert([{
+      escritorio_id:escData.id,nome:pv.nome,perfil:'titular'
+    }]);
+
     clearPV();
     window.location.href='app.html';
   }catch(e){
