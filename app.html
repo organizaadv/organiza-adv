@@ -3182,7 +3182,7 @@ function renderEqCfg(){
         <div style="font-size:12px;color:var(--tx3);">${c.wpp?'WhatsApp: '+c.wpp:'Sem WhatsApp cadastrado'}${c.oab?' · OAB: '+c.oab:''}</div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
-        <button class="btn btn-gh btn-sm" onclick="abrirEditMembro(${c.id})">Editar</button>
+        <button class="btn btn-gh btn-sm" onclick="abrirEditMembro('${c.id}')">Editar</button>
         <button onclick="rmMembro(${c.id})" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:18px;padding:4px;border-radius:var(--rsm);transition:color .15s;" onmouseover="this.style.color='var(--rd)'" onmouseout="this.style.color='var(--tx3)'">×</button>
       </div>
     </div>`).join('');
@@ -3298,7 +3298,7 @@ async function rmMembro(id){
 
 let editMembroId=null;
 function abrirEditMembro(id){
-  const c=colabs.find(x=>x.id===id);if(!c)return;
+  const c=colabs.find(x=>String(x.id)===String(id));if(!c)return;
   editMembroId=id;
   document.getElementById('em-nome').value=c.nome||'';
   document.getElementById('em-perfil').value=c.perfil||'colaborador';
@@ -3320,7 +3320,7 @@ async function salvarEdicaoMembro(){
   const oab=lerOab('em')||null;
   const{error}=await db.from('colab_escritorio').update({nome,perfil,wpp,oab}).eq('id',editMembroId);
   if(error){const e=document.getElementById('edit-membro-err');e.textContent='Erro: '+error.message;e.style.display='block';return;}
-  const c=colabs.find(x=>x.id===editMembroId);
+  const c=colabs.find(x=>String(x.id)===String(editMembroId));
   if(c){c.nome=nome;c.perfil=perfil;c.wpp=wpp;c.oab=oab;}
   closeM('m-edit-membro');
   renderEqCfg();renderEqTabela();initRespSel();
@@ -5224,7 +5224,7 @@ function temPermissao(perm){
 }
 let permEditId=null;
 function abrirPermissoes(id){
-  const c=colabs.find(x=>x.id===id);if(!c)return;
+  const c=colabs.find(x=>String(x.id)===String(id));if(!c)return;
   permEditId=id;
   document.getElementById('perm-sub').textContent=c.nome+' · '+({titular:'Titular',advogado:'Advogado',colaborador:'Colaborador'}[c.perfil||'colaborador']);
   const perfil=c.perfil||'colaborador';
@@ -5244,13 +5244,13 @@ async function salvarPermissoes(){
   Object.keys(PERMS_LABEL).forEach(k=>{perms[k]=document.getElementById('perm-'+k)?.checked??false;});
   const{error}=await db.from('colab_escritorio').update({permissoes:perms}).eq('id',permEditId);
   if(error){toast('Erro: '+error.message,'te');return;}
-  const c=colabs.find(x=>x.id===permEditId);if(c)c.permissoes=perms;
+  const c=colabs.find(x=>String(x.id)===String(permEditId));if(c)c.permissoes=perms;
   closeM('m-permissoes');toast('Permissões salvas!');
 }
 async function resetarPermissoes(){
   const{error}=await db.from('colab_escritorio').update({permissoes:{}}).eq('id',permEditId);
   if(error){toast('Erro: '+error.message,'te');return;}
-  const c=colabs.find(x=>x.id===permEditId);if(c)c.permissoes={};
+  const c=colabs.find(x=>String(x.id)===String(permEditId));if(c)c.permissoes={};
   closeM('m-permissoes');toast('Permissões restauradas ao padrão do perfil.');
 }
 
