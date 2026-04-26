@@ -729,8 +729,10 @@ window.addEventListener('load',async()=>{
   const hash=new URLSearchParams(window.location.hash.replace('#',''));
   const tipo=hash.get('type');
   if(tipo==='invite'){
-    const{data:{session}}=await db.auth.getSession();
-    if(session){mostrarDefinirSenha(tipo);return;}
+    const at=hash.get('access_token'),rt=hash.get('refresh_token');
+    if(at&&rt) await db.auth.setSession({access_token:at,refresh_token:rt});
+    mostrarDefinirSenha('invite');
+    return;
   }
 
   const{data:{session}}=await db.auth.getSession();
