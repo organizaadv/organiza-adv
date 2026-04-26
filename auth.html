@@ -740,6 +740,8 @@ window.addEventListener('load',async()=>{
   const params=new URLSearchParams(location.search);
 
   if(session){
+    // Usuário convidado: tem convite_id nos metadados e ainda não definiu senha
+    if(session.user.user_metadata?.convite_id){mostrarDefinirSenha('invite');return;}
     // Sessão OTP ativa aguardando completar o cadastro (passo 3)
     const step3=(pv&&pv.step===3&&pv.email===session.user.email)||params.get('c')==='1';
     if(step3){mostrarCriarSenha();return;}
