@@ -3193,6 +3193,7 @@ function renderEqTabela(){
 }
 function renderEqCfg(){
   const lista=document.getElementById('eq-lista');
+  if(!lista)return;
   if(!colabs.length){lista.innerHTML='';return;}
   const pLabel={titular:'Titular',socio:'Sócio',advogado:'Advogado',estagiario:'Estagiário',secretaria:'Secretária',assistente:'Assistente',colaborador:'Colaborador'};
   const pBdg={titular:'b-gd',socio:'b-gd',advogado:'b-bl',estagiario:'b-bl',secretaria:'b-conc',assistente:'b-conc',colaborador:'b-conc'};
@@ -3303,7 +3304,7 @@ async function convidarMembro(){
     await db.from('colab_escritorio').insert([{nome,escritorio_id:escData.id,perfil,oab:oab||null}]);
     const{data:novos}=await db.from('colab_escritorio').select('*').eq('escritorio_id',escData.id).order('created_at',{ascending:true});
     if(novos)colabs=novos;
-    const{data:cvs}=await db.from('convites').select('*').eq('escritorio_id',escData.id).eq('status','pendente');
+    const{data:cvs}=await db.rpc('buscar_convites_pendentes',{p_escritorio_id:escData.id});
     convitesPendentes=cvs||[];
 
     closeM('m-equipe');
@@ -3339,7 +3340,7 @@ async function reenviarConvite(conviteId){
     const json=await r.json();
     if(json.error)throw new Error(json.error);
     // atualiza lista local de pendentes (o antigo foi cancelado, há um novo)
-    const{data:cvs}=await db.from('convites').select('*').eq('escritorio_id',escData.id).eq('status','pendente');
+    const{data:cvs}=await db.rpc('buscar_convites_pendentes',{p_escritorio_id:escData.id});
     convitesPendentes=cvs||[];
     toast('Convite reenviado para '+cv.email+' ✓');
   }catch(e){
@@ -5715,10 +5716,9 @@ window.addEventListener('load',async()=>{
   const[{data:d},{data:c},{data:cv}]=await Promise.all([
     db.from('demandas_escritorio').select('*').eq('escritorio_id',escData.id).order('created_at',{ascending:false}),
     db.from('colab_escritorio').select('*').eq('escritorio_id',escData.id).order('created_at',{ascending:true}),
-    db.from('convites').select('*').eq('escritorio_id',escData.id).eq('status','pendente')
+    db.rpc('buscar_convites_pendentes',{p_escritorio_id:escData.id})
   ]);
   demandas=d||[];colabs=c||[];convitesPendentes=cv||[];
-  console.log('[debug] escData.id=',escData.id,'convitesPendentes=',convitesPendentes,'colabs nomes=',colabs.map(x=>x.nome));
 
   // Garante que o titular aparece na equipe — insere se ainda não existir
   if(usuarioAtual&&!colabs.some(m=>m.perfil==='titular')){
