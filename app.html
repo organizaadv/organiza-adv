@@ -5718,6 +5718,7 @@ window.addEventListener('load',async()=>{
     db.from('convites').select('*').eq('escritorio_id',escData.id).eq('status','pendente')
   ]);
   demandas=d||[];colabs=c||[];convitesPendentes=cv||[];
+  console.log('[debug] escData.id=',escData.id,'convitesPendentes=',convitesPendentes,'colabs nomes=',colabs.map(x=>x.nome));
 
   // Garante que o titular aparece na equipe — insere se ainda não existir
   if(usuarioAtual&&!colabs.some(m=>m.perfil==='titular')){
