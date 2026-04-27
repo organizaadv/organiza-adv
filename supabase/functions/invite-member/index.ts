@@ -92,27 +92,38 @@ serve(async (req) => {
 
     if (conviteErr) throw conviteErr
 
-    // Gera o link de convite (não envia email — controlamos o envio via Resend)
+    // Gera o link de convite (não envia email — controlamos via Resend)
+    let inviteLink: string
+
     const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
       type: 'invite',
       email: emailNorm,
       options: {
         redirectTo: `${siteUrl}/auth.html`,
-        data: {
-          nome,
-          escritorio_id: escritorioId,
-          convite_id: convite.id,
-          convidado_por: nomeRemetente,
-        }
+        data: { nome, escritorio_id: escritorioId, convite_id: convite.id, convidado_por: nomeRemetente }
       }
     })
 
     if (linkErr) {
-      await admin.from('convites').delete().eq('id', convite.id)
-      throw linkErr
+      // Usuário já existe no Auth — gera magic link para ele entrar diretamente
+      const jaExiste = linkErr.message?.toLowerCase().includes('already')
+      if (!jaExiste) {
+        await admin.from('convites').delete().eq('id', convite.id)
+        throw linkErr
+      }
+      const { data: mlData, error: mlErr } = await admin.auth.admin.generateLink({
+        type: 'magiclink',
+        email: emailNorm,
+        options: { redirectTo: `${siteUrl}/auth.html` }
+      })
+      if (mlErr) {
+        await admin.from('convites').delete().eq('id', convite.id)
+        throw mlErr
+      }
+      inviteLink = mlData.properties.action_link
+    } else {
+      inviteLink = linkData.properties.action_link
     }
-
-    const inviteLink = linkData.properties.action_link
 
     // Envia email via Resend
     const emailRes = await fetch('https://api.resend.com/emails', {
