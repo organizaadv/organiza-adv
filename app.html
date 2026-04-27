@@ -3048,66 +3048,72 @@ function renderProgressoAtos(d){
 
 function renderClientes(){
   const q=(document.getElementById('si-cli')?.value||'').toLowerCase().trim();
-  const map={};
-  demandas.forEach(d=>{
-    if(!map[d.nome])map[d.nome]={tel:d.tel,email:d.email,cpf:d.cpf,cnt:0,ult:d.data,ativas:0,conc:0};
-    map[d.nome].cnt++;
-    map[d.nome].ult=d.data;
-    if(statusD(d)==='Em andamento')map[d.nome].ativas++;
-    if(statusD(d)==='Concluído')map[d.nome].conc++;
-    // Atualizar contato se tiver dado mais recente
-    if(d.tel)map[d.nome].tel=d.tel;
-    if(d.email)map[d.nome].email=d.email;
-    if(d.cpf)map[d.nome].cpf=d.cpf;
-  });
   const tbody=document.getElementById('tb-cli');
-  let entries=Object.entries(map);
-  if(q)entries=entries.filter(([nome,info])=>
-    nome.toLowerCase().includes(q)||
-    (info.tel||'').includes(q)||
-    (info.cpf||'').toLowerCase().includes(q)
+  let lista=clientes;
+  if(q)lista=lista.filter(c=>
+    (c.nome||'').toLowerCase().includes(q)||
+    (c.telefone||'').includes(q)||
+    (c.cpf_cnpj||'').toLowerCase().includes(q)||
+    (c.email||'').toLowerCase().includes(q)
   );
-  if(!entries.length){tbody.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="empty-ico">👤</div><div class="empty-title">Nenhum cliente encontrado</div></div></td></tr>`;return;}
+  if(!lista.length){tbody.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="empty-ico">👤</div><div class="empty-title">Nenhum cliente encontrado</div></div></td></tr>`;return;}
+
+  // Contar demandas por cliente_id
+  const cntMap={};
+  demandas.forEach(d=>{
+    if(!d.cliente_id)return;
+    if(!cntMap[d.cliente_id])cntMap[d.cliente_id]={cnt:0,ativas:0,conc:0,ult:''};
+    cntMap[d.cliente_id].cnt++;
+    if(statusD(d)==='Em andamento')cntMap[d.cliente_id].ativas++;
+    if(statusD(d)==='Concluído')cntMap[d.cliente_id].conc++;
+    if(d.data>cntMap[d.cliente_id].ult)cntMap[d.cliente_id].ult=d.data;
+  });
+
   if(sortCli.col){
-    entries.sort((a,b)=>{
-      const [na,ia]=[a[0],a[1]],[nb,ib]=[b[0],b[1]];
+    lista=[...lista].sort((a,b)=>{
       let va,vb;
-      if(sortCli.col==='nome'){va=na;vb=nb;}
-      else if(sortCli.col==='ativas'){va=ia.ativas;vb=ib.ativas;}
-      else if(sortCli.col==='ult'){va=ia.ult||'';vb=ib.ult||'';}
+      if(sortCli.col==='nome'){va=a.nome;vb=b.nome;}
+      else if(sortCli.col==='ativas'){va=(cntMap[a.id]?.ativas||0);vb=(cntMap[b.id]?.ativas||0);}
+      else if(sortCli.col==='ult'){va=(cntMap[a.id]?.ult||'');vb=(cntMap[b.id]?.ult||'');}
       else{va='';vb='';}
       if(typeof va==='number')return sortCli.asc?va-vb:vb-va;
       return sortCli.asc?(va+'').localeCompare(vb+''):((vb+'').localeCompare(va+''));
     });
   } else {
-    entries.sort((a,b)=>b[1].ativas-a[1].ativas||b[1].cnt-a[1].cnt);
+    lista=[...lista].sort((a,b)=>(cntMap[b.id]?.ativas||0)-(cntMap[a.id]?.ativas||0)||(cntMap[b.id]?.cnt||0)-(cntMap[a.id]?.cnt||0));
   }
-  tbody.innerHTML=entries.map(([nome,info])=>`<tr onclick="abrirPerfilCliente('${nome.replace(/'/g,"\'")}')">
-    <td><div class="td-av"><div class="av">${iniciais(nome)}</div><div>
-      <div style="font-weight:500;">${nome}</div>
-      <div style="font-size:11.5px;color:var(--tx3);">${info.cpf||''}</div>
-    </div></div></td>
-    <td style="font-size:13px;color:var(--tx2);">${info.tel||'—'}</td>
-    <td style="font-size:13px;color:var(--tx2);">${info.email||'—'}</td>
-    <td>
-      ${info.ativas>0?`<span class="bdg b-bl" style="margin-right:4px;">${info.ativas} ativa${info.ativas>1?'s':''}</span>`:''}
-      ${info.conc>0?`<span class="bdg b-conc">${info.conc} concluída${info.conc>1?'s':''}</span>`:''}
-      ${info.ativas===0&&info.conc===0?`<span class="bdg b-can">${info.cnt} demanda${info.cnt>1?'s':''}</span>`:''}
-    </td>
-    <td style="font-size:12.5px;color:var(--tx3);">${info.ult||'—'}</td>
-  </tr>`).join('');
+
+  tbody.innerHTML=lista.map(c=>{
+    const info=cntMap[c.id]||{cnt:0,ativas:0,conc:0,ult:''};
+    return`<tr onclick="abrirPerfilCliente('${c.id}')">
+      <td><div class="td-av"><div class="av">${iniciais(c.nome)}</div><div>
+        <div style="font-weight:500;">${c.nome}</div>
+        <div style="font-size:11.5px;color:var(--tx3);">${c.cpf_cnpj||''}</div>
+      </div></div></td>
+      <td style="font-size:13px;color:var(--tx2);">${c.telefone||'—'}</td>
+      <td style="font-size:13px;color:var(--tx2);">${c.email||'—'}</td>
+      <td>
+        ${info.ativas>0?`<span class="bdg b-bl" style="margin-right:4px;">${info.ativas} ativa${info.ativas>1?'s':''}</span>`:''}
+        ${info.conc>0?`<span class="bdg b-conc">${info.conc} concluída${info.conc>1?'s':''}</span>`:''}
+        ${info.ativas===0&&info.conc===0&&info.cnt>0?`<span class="bdg b-can">${info.cnt} demanda${info.cnt>1?'s':''}</span>`:''}
+        ${info.cnt===0?`<span style="color:var(--tx3);font-size:12px;">Sem demandas</span>`:''}
+      </td>
+      <td style="font-size:12.5px;color:var(--tx3);">${info.ult||'—'}</td>
+    </tr>`;
+  }).join('');
 }
 
-function abrirPerfilCliente(nome){
-  const demandasCli=demandas.filter(d=>d.nome===nome).sort((a,b)=>(calcPrazo(a.prazo)??999)-(calcPrazo(b.prazo)??999));
-  if(!demandasCli.length)return;
-  const d0=demandasCli[0];
+function abrirPerfilCliente(cliId){
+  const c=clientes.find(x=>x.id===cliId);
+  if(!c)return;
+  const nome=c.nome;
+  const demandasCli=demandas.filter(d=>d.cliente_id===cliId||d.nome===nome).sort((a,b)=>(calcPrazo(a.prazo)??999)-(calcPrazo(b.prazo)??999));
 
   document.getElementById('cli-nome-h').textContent=nome;
-  document.getElementById('cli-contato-h').textContent=d0.tel||(d0.email?d0.email:'Sem contato cadastrado');
-  document.getElementById('cli-tel').textContent=d0.tel||'—';
-  document.getElementById('cli-email').textContent=d0.email||'—';
-  document.getElementById('cli-cpf').textContent=d0.cpf||'—';
+  document.getElementById('cli-contato-h').textContent=c.telefone||(c.email||'Sem contato cadastrado');
+  document.getElementById('cli-tel').textContent=c.telefone||'—';
+  document.getElementById('cli-email').textContent=c.email||'—';
+  document.getElementById('cli-cpf').textContent=c.cpf_cnpj||'—';
   document.getElementById('cli-total').textContent=demandasCli.length+' demanda'+(demandasCli.length>1?'s':'');
 
   // Resumo
@@ -3141,7 +3147,7 @@ function abrirPerfilCliente(nome){
     </div>`).join('');
 
   // Botão nova demanda para este cliente
-  document.getElementById('cli-btn-nova').onclick=()=>abrirNovaDemandaCliente(nome,d0.tel,d0.email,d0.cpf);
+  document.getElementById('cli-btn-nova').onclick=()=>abrirNovaDemandaCliente(nome,c.telefone,c.email,c.cpf_cnpj);
   openM('m-cliente');
 }
 
@@ -3766,23 +3772,15 @@ function autocompleteCliente(q){
   const drop=document.getElementById('f-nome-drop');
   if(!q||q.trim().length<2){drop.style.display='none';return;}
   const termo=q.toLowerCase();
-  const map={};
-  demandas.forEach(d=>{
-    if(!(d.nome||'').toLowerCase().includes(termo))return;
-    if(!map[d.nome])map[d.nome]={tel:d.tel,email:d.email,cpf:d.cpf};
-    if(d.tel)map[d.nome].tel=d.tel;
-    if(d.email)map[d.nome].email=d.email;
-    if(d.cpf)map[d.nome].cpf=d.cpf;
-  });
-  const entries=Object.entries(map).slice(0,6);
-  if(!entries.length){drop.style.display='none';return;}
-  drop.innerHTML=entries.map(([nome,info])=>`
-    <div data-nome="${nome.replace(/"/g,'&quot;')}"
+  const matches=clientes.filter(c=>(c.nome||'').toLowerCase().includes(termo)).slice(0,6);
+  if(!matches.length){drop.style.display='none';return;}
+  drop.innerHTML=matches.map(c=>`
+    <div data-id="${c.id}"
       style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--div);font-size:13.5px;transition:background .1s;"
       onmouseover="this.style.background='var(--s2)'" onmouseout="this.style.background=''"
-      onclick="selecionarClienteAuto(this.dataset.nome)">
-      <div style="font-weight:500;">${nome}</div>
-      <div style="font-size:12px;color:var(--tx3);">${info.tel||''}${info.tel&&info.cpf?' · ':''}${info.cpf||''}</div>
+      onclick="selecionarClienteAuto(this.dataset.id)">
+      <div style="font-weight:500;">${c.nome}</div>
+      <div style="font-size:12px;color:var(--tx3);">${c.telefone||''}${c.telefone&&c.cpf_cnpj?' · ':''}${c.cpf_cnpj||''}</div>
     </div>`).join('');
   drop.style.display='block';
   setTimeout(()=>document.addEventListener('click',fecharAutoCliOnce,{once:true}),100);
@@ -3793,18 +3791,14 @@ function fecharAutoCliOnce(e){
   if(drop&&!drop.contains(e.target))drop.style.display='none';
 }
 
-function selecionarClienteAuto(nome){
-  document.getElementById('f-nome').value=nome;
+function selecionarClienteAuto(cliId){
+  const c=clientes.find(x=>x.id===cliId);
+  if(!c)return;
+  document.getElementById('f-nome').value=c.nome;
   document.getElementById('f-nome-drop').style.display='none';
-  const map={};
-  demandas.filter(d=>d.nome===nome).forEach(d=>{
-    if(d.tel)map.tel=d.tel;
-    if(d.email)map.email=d.email;
-    if(d.cpf)map.cpf=d.cpf;
-  });
-  if(map.tel)document.getElementById('f-tel').value=map.tel;
-  if(map.email)document.getElementById('f-email').value=map.email;
-  if(map.cpf)document.getElementById('f-cpf').value=map.cpf;
+  if(c.telefone)document.getElementById('f-tel').value=c.telefone;
+  if(c.email)document.getElementById('f-email').value=c.email;
+  if(c.cpf_cnpj)document.getElementById('f-cpf').value=c.cpf_cnpj;
 }
 function toggleTipoOutro(){
   const sel=document.getElementById('f-tipo-sel').value;
@@ -5578,6 +5572,13 @@ async function resetarPermissoes(){
   closeM('m-permissoes');toast('Permissões restauradas ao padrão do perfil.');
 }
 
+// ── CLIENTES ──
+let clientes=[];
+async function loadClientes(){
+  const{data}=await db.from('clientes').select('*').eq('escritorio_id',escData.id).order('nome',{ascending:true});
+  clientes=data||[];
+}
+
 // ── ATENDIMENTOS ──
 let atendimentos=[],filtroAtendAtivo='todos',atDetId=null;
 
@@ -5915,12 +5916,13 @@ window.addEventListener('load',async()=>{
   if(escData.tema)obAplicarTema(escData.tema);
   renderSBInfo();verificarTrial();await migrarLocalStorageParaSupabase();await loadFin();loadNotifs();
 
-  const[{data:d},{data:c},{data:cv}]=await Promise.all([
+  const[{data:d},{data:c},{data:cv},{data:cl}]=await Promise.all([
     db.from('demandas_escritorio').select('*').eq('escritorio_id',escData.id).order('created_at',{ascending:false}),
     db.from('colab_escritorio').select('*').eq('escritorio_id',escData.id).order('created_at',{ascending:true}),
-    db.rpc('buscar_convites_pendentes',{p_escritorio_id:escData.id})
+    db.rpc('buscar_convites_pendentes',{p_escritorio_id:escData.id}),
+    db.from('clientes').select('*').eq('escritorio_id',escData.id).order('nome',{ascending:true})
   ]);
-  demandas=d||[];colabs=c||[];convitesPendentes=cv||[];
+  demandas=d||[];colabs=c||[];convitesPendentes=cv||[];clientes=cl||[];
 
   // Garante que o titular aparece na equipe — insere se ainda não existir
   if(usuarioAtual&&!colabs.some(m=>m.perfil==='titular')){
