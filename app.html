@@ -917,9 +917,12 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
           </div>
           <div class="field" style="margin-top:8px">
             <label class="flabel">Logo do escritório</label>
-            <div id="cfg-logo-area" onclick="document.getElementById('cfg-logo-inp').click()" style="border:2px dashed var(--bd2);border-radius:10px;padding:14px 16px;text-align:center;cursor:pointer;transition:border-color .2s" onmouseover="this.style.borderColor='var(--gd)'" onmouseout="this.style.borderColor='var(--bd2)'">
-              <div id="cfg-logo-preview" style="margin-bottom:4px"></div>
-              <div style="font-size:12px;color:var(--tx3)">Clique para selecionar (PNG, JPG, SVG)</div>
+            <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--bd);border-radius:10px;background:var(--s2)">
+              <div id="cfg-logo-preview" style="flex-shrink:0;min-width:64px;text-align:center"></div>
+              <div style="flex:1">
+                <button type="button" class="btn btn-gh" onclick="document.getElementById('cfg-logo-inp').click()" style="margin-bottom:6px;font-size:13px">Selecionar logo</button>
+                <div id="cfg-logo-nome" style="font-size:11px;color:var(--tx3)">PNG, JPG ou SVG · aparece na sidebar e nos documentos</div>
+              </div>
             </div>
             <input type="file" id="cfg-logo-inp" accept="image/*" style="display:none" onchange="cfgPreviewLogo(this)"/>
           </div>
@@ -4912,12 +4915,16 @@ async function resumirIA(mov,d){
 
 // ── CONFIG ──
 let cfgLogoFile=null;
+function cfgLogoPlaceholder(){
+  return `<div style="width:64px;height:56px;border:2px dashed var(--bd2);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--tx3);font-size:22px;cursor:pointer" onclick="document.getElementById('cfg-logo-inp').click()">+</div>`;
+}
 function cfgPreviewLogo(inp){
   if(!inp.files[0])return;
   cfgLogoFile=inp.files[0];
+  document.getElementById('cfg-logo-nome').textContent='Selecionada: '+cfgLogoFile.name+' (salve para aplicar)';
   const reader=new FileReader();
   reader.onload=e=>{
-    document.getElementById('cfg-logo-preview').innerHTML=`<img src="${e.target.result}" style="max-height:60px;max-width:180px;object-fit:contain;margin-bottom:2px"/>`;
+    document.getElementById('cfg-logo-preview').innerHTML=`<img src="${e.target.result}" style="max-height:60px;max-width:140px;object-fit:contain;border-radius:6px;cursor:pointer" onclick="document.getElementById('cfg-logo-inp').click()" title="Clique para trocar"/>`;
   };
   reader.readAsDataURL(cfgLogoFile);
 }
@@ -4927,7 +4934,16 @@ function renderCfg(){
   document.getElementById('cfg-tel').value=escData.tel||'';
   cfgLogoFile=null;
   const prev=document.getElementById('cfg-logo-preview');
-  if(prev)prev.innerHTML=escData.logo_url?`<img src="${escData.logo_url}" style="max-height:60px;max-width:180px;object-fit:contain;margin-bottom:2px"/>`:'<div style="font-size:12px;color:var(--tx3);margin-bottom:2px">Nenhuma logo definida</div>';
+  const nomeEl=document.getElementById('cfg-logo-nome');
+  if(prev){
+    if(escData.logo_url){
+      prev.innerHTML=`<img src="${escData.logo_url}" style="max-height:60px;max-width:140px;object-fit:contain;border-radius:6px;cursor:pointer" onclick="document.getElementById('cfg-logo-inp').click()" title="Clique para trocar"/>`;
+      if(nomeEl)nomeEl.textContent='Logo atual · clique na imagem para trocar';
+    }else{
+      prev.innerHTML=cfgLogoPlaceholder();
+      if(nomeEl)nomeEl.textContent='PNG, JPG ou SVG · aparece na sidebar e nos documentos';
+    }
+  }
   const trialFim=escData.trial_fim||escData.trial_expira;
   const dias=calcPrazo(trialFim?.split('T')[0]);
   document.getElementById('cfg-plano').textContent=escData.plano==='avancado'?'Plano Avançado ativo — R$ 149/mês · Até 5 advogados e 25 colaboradores':escData.plano==='essencial'?'Plano Essencial ativo — R$ 99/mês · Até 2 advogados e 10 colaboradores':`Período de teste${dias!==null?` — ${dias>0?dias+' dias restantes':'Expirado'}`:''}.`;
