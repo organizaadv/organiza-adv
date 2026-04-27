@@ -6198,51 +6198,27 @@ window.addEventListener('load',async()=>{
   const{data:{session}}=await db.auth.getSession();
   if(!session){window.location.href='auth.html';return;}
 
-  // Tenta tabela usuarios (novo modelo)
-  const{data:usuario}=await db.from('usuarios').select('*').eq('id',session.user.id).single();
-
-  if(usuario){
-    // Novo modelo: usuário tem seu próprio registro
-    usuarioAtual=usuario;
-    userAtual=usuario.nome;
-    const{data:esc}=await db.from('escritorios').select('*').eq('id',usuario.escritorio_id).single();
-    if(!esc){window.location.href='auth.html';return;}
-    escData=esc;
-  } else {
-    // Pode ser: (a) conta antiga keyed por user_id, ou (b) membro convidado aguardando convite
-    const{data:esc}=await db.from('escritorios').select('*').eq('user_id',session.user.id).single();
-
-    if(esc){
-      // (a) Conta antiga — cria registro sintético e migra
-      escData=esc;
-      usuarioAtual={
-        id:session.user.id,escritorio_id:esc.id,
-        nome:esc.responsavel||session.user.email,perfil:'titular',
-        perm_admin:true,perm_financeiro:true,perm_demandas:true,
-        perm_atendimentos:true,perm_diario_oficial:true,perm_relatorios:true
-      };
-      userAtual=usuarioAtual.nome;
-    } else {
-      // (b) Usuário convidado: RPC SECURITY DEFINER cria usuario, aceita convite e retorna escritorio
-      const{data:resultado}=await db.rpc('aceitar_convite').maybeSingle();
-      if(!resultado||!resultado.escritorio){window.location.href='auth.html?c=1';return;}
-
-      usuarioAtual={
-        id:session.user.id,
-        escritorio_id:resultado.escritorio_id,
-        nome:resultado.nome,
-        perfil:resultado.perfil,
-        perm_admin:resultado.perm_admin,
-        perm_financeiro:resultado.perm_financeiro,
-        perm_demandas:resultado.perm_demandas,
-        perm_atendimentos:resultado.perm_atendimentos,
-        perm_diario_oficial:resultado.perm_diario_oficial,
-        perm_relatorios:resultado.perm_relatorios,
-      };
-      userAtual=resultado.nome;
-      escData=resultado.escritorio;
-    }
+  // SECURITY DEFINER: lida com convite, usuário existente e titular legado
+  const{data:resultado}=await db.rpc('aceitar_convite').maybeSingle();
+  if(!resultado||!resultado.escritorio){
+    await db.auth.signOut();
+    window.location.href='auth.html';
+    return;
   }
+  usuarioAtual={
+    id:session.user.id,
+    escritorio_id:resultado.escritorio_id,
+    nome:resultado.nome,
+    perfil:resultado.perfil,
+    perm_admin:resultado.perm_admin,
+    perm_financeiro:resultado.perm_financeiro,
+    perm_demandas:resultado.perm_demandas,
+    perm_atendimentos:resultado.perm_atendimentos,
+    perm_diario_oficial:resultado.perm_diario_oficial,
+    perm_relatorios:resultado.perm_relatorios,
+  };
+  userAtual=resultado.nome;
+  escData=resultado.escritorio;
 
   if(escData.etapas?.length)ETAPAS=escData.etapas;
   if(escData.tema)obAplicarTema(escData.tema);
