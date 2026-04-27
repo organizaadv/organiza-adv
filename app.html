@@ -676,6 +676,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
           <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><circle cx="7" cy="7" r="5"/><line x1="11" y1="11" x2="14" y2="14"/></svg>
           <input class="si" type="text" placeholder="Buscar por nome, telefone ou CPF..." id="si-cli" oninput="renderClientes()"/>
         </div>
+        <button class="btn btn-gd" onclick="openM('m-novo-cliente')" style="margin-left:auto">+ Novo cliente</button>
       </div>
       <div class="tbl-wrap">
         <table><thead><tr>
@@ -1293,6 +1294,63 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <div class="mfoot-r">
         <button class="btn btn-p" onclick="abrirNovaDemandaCliente()" id="cli-btn-nova">+ Nova demanda para este cliente</button>
         <button class="btn btn-gh" onclick="closeM('m-cliente')">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NOVO CLIENTE -->
+<div class="mov" id="m-novo-cliente">
+  <div class="mbox wide">
+    <div class="mhead">
+      <div><div class="mtitle">Novo cliente</div><div class="msubt">Preencha os dados do cliente</div></div>
+      <button class="mx" onclick="closeM('m-novo-cliente')">✕</button>
+    </div>
+    <div class="mbody">
+
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--div);">Identificação</div>
+      <div class="fg2">
+        <div class="field" style="grid-column:1/-1"><label class="flabel">Nome completo <span class="req">*</span></label><input type="text" class="finp" id="nc-nome" placeholder="Nome completo"/></div>
+        <div class="field"><label class="flabel">CPF / CNPJ</label><input type="text" class="finp" id="nc-cpf" placeholder="000.000.000-00"/></div>
+        <div class="field"><label class="flabel">RG</label><input type="text" class="finp" id="nc-rg" placeholder="00.000.000-0"/></div>
+        <div class="field"><label class="flabel">Data de nascimento</label><input type="date" class="finp" id="nc-nasc"/></div>
+        <div class="field"><label class="flabel">Estado civil</label>
+          <select class="finp" id="nc-ecivil">
+            <option value="">Selecione</option>
+            <option value="solteiro">Solteiro(a)</option>
+            <option value="casado">Casado(a)</option>
+            <option value="divorciado">Divorciado(a)</option>
+            <option value="viuvo">Viúvo(a)</option>
+            <option value="uniao_estavel">União estável</option>
+          </select>
+        </div>
+        <div class="field"><label class="flabel">Profissão</label><input type="text" class="finp" id="nc-prof" placeholder="Profissão"/></div>
+      </div>
+
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);margin:16px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--div);">Contato</div>
+      <div class="fg2">
+        <div class="field"><label class="flabel">Telefone / WhatsApp</label><input type="text" class="finp" id="nc-tel" placeholder="(00) 00000-0000"/></div>
+        <div class="field"><label class="flabel">E-mail</label><input type="email" class="finp" id="nc-email" placeholder="email@exemplo.com"/></div>
+      </div>
+
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);margin:16px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--div);">Endereço</div>
+      <div class="fg2">
+        <div class="field"><label class="flabel">CEP</label><input type="text" class="finp" id="nc-cep" placeholder="00000-000"/></div>
+        <div class="field" style="grid-column:1/-1"><label class="flabel">Endereço (logradouro e número)</label><input type="text" class="finp" id="nc-end" placeholder="Rua, número"/></div>
+        <div class="field"><label class="flabel">Complemento</label><input type="text" class="finp" id="nc-comp" placeholder="Apto, sala..."/></div>
+        <div class="field"><label class="flabel">Bairro</label><input type="text" class="finp" id="nc-bairro" placeholder="Bairro"/></div>
+        <div class="field"><label class="flabel">Cidade</label><input type="text" class="finp" id="nc-cidade" placeholder="Cidade"/></div>
+        <div class="field"><label class="flabel">Estado (UF)</label><input type="text" class="finp" id="nc-uf" placeholder="SP" maxlength="2"/></div>
+      </div>
+
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);margin:16px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--div);">Observações</div>
+      <textarea class="finp" id="nc-obs" rows="3" placeholder="Observações internas sobre o cliente..."></textarea>
+
+    </div>
+    <div class="mfoot">
+      <div class="mfoot-r">
+        <button class="btn btn-p" id="nc-btn-salvar" onclick="salvarNovoCliente()">Salvar cliente</button>
+        <button class="btn btn-gh" onclick="closeM('m-novo-cliente')">Cancelar</button>
       </div>
     </div>
   </div>
@@ -5577,6 +5635,39 @@ let clientes=[];
 async function loadClientes(){
   const{data}=await db.from('clientes').select('*').eq('escritorio_id',escData.id).order('nome',{ascending:true});
   clientes=data||[];
+}
+async function salvarNovoCliente(){
+  const nome=document.getElementById('nc-nome').value.trim();
+  if(!nome){toast('Informe o nome do cliente','te');return;}
+  const btn=document.getElementById('nc-btn-salvar');
+  btn.disabled=true;btn.textContent='Salvando...';
+  const{data,error}=await db.from('clientes').insert([{
+    escritorio_id:escData.id,
+    nome,
+    cpf_cnpj:document.getElementById('nc-cpf').value.trim()||null,
+    rg:document.getElementById('nc-rg').value.trim()||null,
+    data_nascimento:document.getElementById('nc-nasc').value||null,
+    estado_civil:document.getElementById('nc-ecivil').value||null,
+    profissao:document.getElementById('nc-prof').value.trim()||null,
+    telefone:document.getElementById('nc-tel').value.trim()||null,
+    email:document.getElementById('nc-email').value.trim()||null,
+    cep:document.getElementById('nc-cep').value.trim()||null,
+    endereco:document.getElementById('nc-end').value.trim()||null,
+    complemento:document.getElementById('nc-comp').value.trim()||null,
+    bairro:document.getElementById('nc-bairro').value.trim()||null,
+    cidade:document.getElementById('nc-cidade').value.trim()||null,
+    estado:document.getElementById('nc-uf').value.trim().toUpperCase()||null,
+    obs:document.getElementById('nc-obs').value.trim()||null
+  }]).select().single();
+  btn.disabled=false;btn.textContent='Salvar cliente';
+  if(error){toast('Erro ao salvar: '+error.message,'te');return;}
+  clientes.push(data);
+  clientes.sort((a,b)=>a.nome.localeCompare(b.nome));
+  closeM('m-novo-cliente');
+  ['nc-nome','nc-cpf','nc-rg','nc-nasc','nc-prof','nc-tel','nc-email','nc-cep','nc-end','nc-comp','nc-bairro','nc-cidade','nc-uf','nc-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('nc-ecivil').value='';
+  renderClientes();
+  toast('Cliente cadastrado com sucesso!');
 }
 
 // ── ATENDIMENTOS ──
