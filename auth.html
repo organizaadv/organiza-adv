@@ -465,6 +465,11 @@ async function verificarCodigo(){
   try{
     const{error}=await db.auth.verifyOtp({email:pv.email,token,type:'email'});
     if(error)throw error;
+    // Verifica se já é usuário existente (membro ou titular)
+    const{data:uEx}=await db.from('usuarios').select('id').eq('id',(await db.auth.getUser()).data.user?.id||'').maybeSingle();
+    const{data:eEx}=await db.from('escritorios').select('id').eq('user_id',(await db.auth.getUser()).data.user?.id||'').maybeSingle();
+    const{data:cvEx}=await db.rpc('buscar_meu_convite').maybeSingle();
+    if(uEx||eEx||cvEx){window.location.href='app.html';return;}
     setPV({...pv,step:3});
     mostrarCriarSenha();
   }catch(e){
