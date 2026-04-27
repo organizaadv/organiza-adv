@@ -5890,31 +5890,24 @@ window.addEventListener('load',async()=>{
       };
       userAtual=usuarioAtual.nome;
     } else {
-      // (b) Usuário convidado: busca convite via RPC (SECURITY DEFINER, ignora RLS)
-      const{data:convite}=await db.rpc('buscar_meu_convite').maybeSingle();
-      if(!convite){window.location.href='auth.html?c=1';return;}
+      // (b) Usuário convidado: RPC SECURITY DEFINER cria usuario, aceita convite e retorna escritorio
+      const{data:resultado}=await db.rpc('aceitar_convite').maybeSingle();
+      if(!resultado||!resultado.escritorio){window.location.href='auth.html?c=1';return;}
 
-      // Cria o registro do usuário a partir do convite
-      const novoUsuario={
+      usuarioAtual={
         id:session.user.id,
-        escritorio_id:convite.escritorio_id,
-        nome:convite.nome,
-        perfil:convite.perfil,
-        perm_admin:convite.perm_admin,
-        perm_financeiro:convite.perm_financeiro,
-        perm_demandas:convite.perm_demandas,
-        perm_atendimentos:convite.perm_atendimentos,
-        perm_diario_oficial:convite.perm_diario_oficial,
-        perm_relatorios:convite.perm_relatorios,
+        escritorio_id:resultado.escritorio_id,
+        nome:resultado.nome,
+        perfil:resultado.perfil,
+        perm_admin:resultado.perm_admin,
+        perm_financeiro:resultado.perm_financeiro,
+        perm_demandas:resultado.perm_demandas,
+        perm_atendimentos:resultado.perm_atendimentos,
+        perm_diario_oficial:resultado.perm_diario_oficial,
+        perm_relatorios:resultado.perm_relatorios,
       };
-      await db.from('usuarios').upsert([novoUsuario],{onConflict:'id'});
-      await db.from('convites').update({status:'aceito',aceito_em:new Date().toISOString()}).eq('id',convite.id);
-
-      usuarioAtual=novoUsuario;
-      userAtual=novoUsuario.nome;
-      const{data:escConv}=await db.from('escritorios').select('*').eq('id',convite.escritorio_id).single();
-      if(!escConv){window.location.href='auth.html';return;}
-      escData=escConv;
+      userAtual=resultado.nome;
+      escData=resultado.escritorio;
     }
   }
 
