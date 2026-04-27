@@ -3267,7 +3267,8 @@ function renderEqTabela(){
       <td><strong>${conc}</strong></td>
       <td><button class="btn btn-gh btn-sm" onclick="abrirPermissoes('${c.id}')">${temCustom?'<span style="color:var(--am)">●</span> ':''}Permissões</button>
           <button class="btn btn-gh btn-sm" onclick="abrirEditMembro('${c.id}')" style="margin-left:4px">Editar</button>
-          ${podeReenviar?`<button class="btn btn-gh btn-sm" onclick="reenviarConvite('${c.id}')" style="margin-left:4px">Reenviar</button>`:''}</td>
+          ${podeReenviar?`<button class="btn btn-gh btn-sm" onclick="reenviarConvite('${c.id}')" style="margin-left:4px">Reenviar</button>`:''}
+          ${perfil!=='titular'?`<button class="btn btn-sm" onclick="rmMembro('${c.id}')" style="margin-left:4px;background:none;border:1px solid var(--bd);color:var(--rd);cursor:pointer;border-radius:var(--rsm);padding:3px 10px;font-size:12px">Remover</button>`:''}</td>
     </tr>`;
   }).join('');
 }
@@ -3426,16 +3427,13 @@ async function reenviarConvite(colabId){
 }
 
 async function rmMembro(id){
-  if(!confirm('Remover este membro da equipe? Ele perderá o acesso ao sistema.'))return;
-  const colab=colabs.find(c=>c.id===id);
-  const{error}=await db.from('colab_escritorio').delete().eq('id',id);
+  const colab=colabs.find(c=>String(c.id)===String(id));
+  if(!confirm(`Remover ${colab?.nome||'este membro'} da equipe? Ele perderá o acesso ao sistema.`))return;
+  const{error}=await db.rpc('remover_membro',{p_colab_id:String(id),p_escritorio_id:escData.id});
   if(error){toast('Erro: '+error.message,'te');return;}
-  // Se houver usuario com mesmo nome no mesmo escritório, remove também
-  if(colab?.nome){
-    const{data:usr}=await db.from('usuarios').select('id').eq('escritorio_id',escData.id).eq('nome',colab.nome).maybeSingle();
-    if(usr)await db.from('usuarios').delete().eq('id',usr.id);
-  }
-  colabs=colabs.filter(c=>c.id!==id);renderEqCfg();renderEqTabela();initRespSel();toast('Membro removido.');
+  colabs=colabs.filter(c=>String(c.id)!==String(id));
+  renderEqCfg();renderEqTabela();initRespSel();
+  toast((colab?.nome||'Membro')+' removido da equipe.');
 }
 
 let editMembroId=null;
