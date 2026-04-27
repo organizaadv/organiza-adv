@@ -4401,39 +4401,123 @@ function excluirContrato(){
 }
 function exportFinContratoPDF(){
   const l=finLanc.find(x=>x.id===finDetId);if(!l)return;
+  const titular=colabs.find(c=>c.perfil==='titular')||{nome:escData.responsavel||'—',oab:''};
   const rec=l.parcs.filter(p=>p.pago).reduce((s,p)=>s+(parseFloat(p.valor)||0),0);
-  const rest=(parseFloat(l.val)||0)-rec;
-  const quit=rest<=0.01;
-  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"/>${estiloPDF()}</head><body>
-    ${cabecalhoPDF()}
-    <h1>Contrato de Honorários</h1>
-    <div class="info">
-      <div><span style="color:#888">Cliente: </span><strong>${l.cli}</strong></div>
-      <div><span style="color:#888">Serviço: </span>${l.serv}</div>
-      <div><span style="color:#888">Valor total: </span><strong style="color:#059669">${fmtMoeda(l.val)}</strong></div>
-      <div><span style="color:#888">Pagamento: </span>${l.pag==='avista'?'À vista':'Parcelado'}</div>
-      <div><span style="color:#888">Data: </span>${fmtDt(l.data)}</div>
-      <div><span style="color:#888">Status: </span><strong>${quit?'Quitado':'Pendente'}</strong></div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
-      <div style="background:#F0FDF4;border:1px solid #A7F3D0;border-radius:6px;padding:14px;text-align:center;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#666;margin-bottom:6px;">Recebido</div>
-        <div style="font-size:22px;font-weight:700;color:#059669;">${fmtMoeda(rec)}</div>
+  const logoHTML=escData.logo_url
+    ?`<img src="${escData.logo_url}" style="max-height:70px;max-width:200px;object-fit:contain;display:block;margin:0 auto 6px;" alt="${escData.nome||''}"/>`
+    :`<div style="font-size:20px;font-weight:700;">${escData.nome||'Escritório de Advocacia'}</div>`;
+  const contatoEsc=[escData.email,escData.tel].filter(Boolean).join('  |  ');
+  const parcsHTML=l.parcs.map(p=>`
+    <tr>
+      <td style="padding:6px 8px;border:1px solid #ccc;${p.pago?'text-decoration:line-through;color:#888':''}">${p.label}</td>
+      <td style="padding:6px 8px;border:1px solid #ccc;text-align:right;${p.pago?'color:#888':'font-weight:600'}">${fmtMoeda(p.valor)}</td>
+      <td style="padding:6px 8px;border:1px solid #ccc;text-align:center;font-size:11px;">${p.pago?'✓ Pago':'Pendente'}</td>
+    </tr>`).join('');
+  const dataExtenso=new Date().toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric'});
+  const html=`<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Georgia,'Times New Roman',serif;max-width:794px;margin:40px auto;color:#111;line-height:1.7;font-size:13px;padding:0 48px}
+  h1{font-size:14px;font-weight:700;text-align:center;text-transform:uppercase;letter-spacing:1.5px;margin:24px 0 20px}
+  h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin:22px 0 8px;padding-bottom:3px;border-bottom:1px solid #333}
+  .cabecalho{text-align:center;padding-bottom:16px;border-bottom:2px solid #111;margin-bottom:24px}
+  .esc-nome{font-size:17px;font-weight:700;margin-bottom:4px}
+  .esc-contato{font-size:11px;color:#444;margin-top:4px}
+  .qualif{border:1px solid #ccc;border-radius:3px;padding:12px 16px;margin-bottom:12px;font-size:13px;background:#fafafa}
+  .qualif p{margin-bottom:5px}.qualif p:last-child{margin-bottom:0}
+  .clausula{margin-bottom:16px}
+  .clausula-titulo{font-size:13px;font-weight:700;margin-bottom:6px}
+  .clausula p{margin-bottom:6px;text-align:justify}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
+  th{background:#eee;padding:6px 8px;border:1px solid #ccc;font-size:11px;text-transform:uppercase;letter-spacing:.4px;text-align:left}
+  .rodape{margin-top:48px;padding-top:20px;border-top:1px solid #bbb}
+  .assinaturas{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:36px}
+  .assin-linha{border-bottom:1px solid #333;margin-bottom:8px;height:40px}
+  .assin-label{font-size:11px;text-align:center;color:#333;line-height:1.5}
+  @media print{body{margin:20px 48px}}
+</style>
+</head><body>
+
+<div class="cabecalho">
+  ${logoHTML}
+  ${escData.nome?`<div class="esc-nome">${escData.nome}</div>`:''}
+  ${contatoEsc?`<div class="esc-contato">${contatoEsc}</div>`:''}
+</div>
+
+<h1>Contrato de Prestação de Serviços Advocatícios</h1>
+
+<h2>Qualificação das Partes</h2>
+
+<div class="qualif">
+  <p><strong>CONTRATANTE:</strong> ${l.cli}, portador(a) do CPF/CNPJ nº __________________________, residente e domiciliado(a) em ____________________________________________________________, doravante denominado(a) simplesmente <strong>CONTRATANTE</strong>.</p>
+</div>
+
+<div class="qualif">
+  <p><strong>CONTRATADA:</strong> ${titular.nome}${titular.oab?', inscrito(a) na Ordem dos Advogados do Brasil sob o nº <strong>'+titular.oab+'</strong>':''}, responsável pelo escritório <strong>${escData.nome||'—'}</strong>${escData.tel?' — Tel.: '+escData.tel:''}, doravante denominado(a) simplesmente <strong>CONTRATADA</strong>.</p>
+</div>
+
+<p style="margin:14px 0 20px;text-align:justify">As partes acima qualificadas celebram o presente Contrato de Prestação de Serviços Advocatícios, que se regerá pelas cláusulas e condições a seguir:</p>
+
+<div class="clausula">
+  <div class="clausula-titulo">Cláusula 1ª — Do Objeto</div>
+  <p>O presente contrato tem por objeto a prestação de serviços advocatícios relativos a: <strong>${l.serv}</strong>, compreendendo os atos processuais e extrajudiciais necessários ao pleno atendimento dos interesses do CONTRATANTE.</p>
+</div>
+
+<div class="clausula">
+  <div class="clausula-titulo">Cláusula 2ª — Dos Honorários</div>
+  <p>Pelos serviços prestados, o CONTRATANTE pagará à CONTRATADA o valor total de <strong>${fmtMoeda(l.val)}</strong>, na modalidade de pagamento <strong>${l.pag==='avista'?'à vista':'parcelada'}</strong>, conforme detalhado na Cláusula 3ª.</p>
+  <p>Os honorários ora ajustados são exclusivos dos serviços descritos na Cláusula 1ª, não incluindo custas processuais, emolumentos, despesas com diligências e demais encargos, que serão de responsabilidade do CONTRATANTE.</p>
+</div>
+
+<div class="clausula">
+  <div class="clausula-titulo">Cláusula 3ª — Do Pagamento</div>
+  <p>O pagamento dos honorários será realizado conforme o cronograma abaixo:</p>
+  <table>
+    <thead><tr><th>Descrição</th><th style="text-align:right">Valor</th><th style="text-align:center">Situação</th></tr></thead>
+    <tbody>${parcsHTML}</tbody>
+  </table>
+  ${l.obs?`<p style="margin-top:10px;font-size:12px;color:#444"><em>Obs.: ${l.obs}</em></p>`:''}
+</div>
+
+<div class="clausula">
+  <div class="clausula-titulo">Cláusula 4ª — Das Obrigações das Partes</div>
+  <p><strong>4.1 — Da CONTRATADA:</strong> Prestar os serviços com diligência, competência e dentro dos preceitos éticos da advocacia; manter o CONTRATANTE informado sobre o andamento do processo; guardar sigilo sobre as informações e documentos do CONTRATANTE.</p>
+  <p><strong>4.2 — Do CONTRATANTE:</strong> Fornecer à CONTRATADA todas as informações e documentos necessários à prestação dos serviços; pagar os honorários nos prazos ajustados; não contratar terceiros para o mesmo objeto sem prévia comunicação à CONTRATADA.</p>
+</div>
+
+<div class="clausula">
+  <div class="clausula-titulo">Cláusula 5ª — Da Rescisão</div>
+  <p>O presente contrato poderá ser rescindido por qualquer das partes mediante comunicação escrita com antecedência mínima de 5 (cinco) dias úteis. Na hipótese de rescisão pelo CONTRATANTE, serão devidos os honorários proporcionais ao trabalho já realizado. A rescisão pela CONTRATADA observará o disposto no Art. 16 do Código de Ética e Disciplina da OAB, de modo a não prejudicar a parte contrária.</p>
+</div>
+
+<div class="clausula">
+  <div class="clausula-titulo">Cláusula 6ª — Do Foro</div>
+  <p>Fica eleito o foro da Comarca de __________________________ para dirimir quaisquer dúvidas ou litígios decorrentes do presente contrato, com renúncia expressa a qualquer outro, por mais privilegiado que seja.</p>
+</div>
+
+<div class="rodape">
+  <p style="text-align:center;margin-bottom:8px">__________________________, ${dataExtenso}.</p>
+  <div class="assinaturas">
+    <div>
+      <div class="assin-linha"></div>
+      <div class="assin-label">
+        <strong>${titular.nome||'_______________________'}</strong><br>
+        ${titular.oab?'OAB nº '+titular.oab+'<br>':''}
+        CONTRATADA
       </div>
-      <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:6px;padding:14px;text-align:center;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#666;margin-bottom:6px;">A receber</div>
-        <div style="font-size:22px;font-weight:700;color:#D97706;">${fmtMoeda(rest)}</div>
+    </div>
+    <div>
+      <div class="assin-linha"></div>
+      <div class="assin-label">
+        <strong>${l.cli}</strong><br>
+        CONTRATANTE
       </div>
     </div>
-    <h2>Parcelas (${l.parcs.length})</h2>
-    <table><thead><tr><th>Descrição</th><th style="text-align:right">Valor</th><th style="text-align:center">Situação</th></tr></thead>
-    <tbody>${l.parcs.map(p=>`<tr>
-      <td style="${p.pago?'text-decoration:line-through;color:#999':''}">${p.label}</td>
-      <td style="text-align:right;${p.pago?'color:#999':'font-weight:500'}">${fmtMoeda(p.valor)}</td>
-      <td style="text-align:center"><span class="bdg ${p.pago?'bdg-gn':'bdg-am'}">${p.pago?'Pago':'Pendente'}</span></td>
-    </tr>`).join('')}</tbody></table>
-    ${l.obs?`<h2>Observações</h2><div style="padding:10px 14px;background:#f9f9f9;border-radius:6px;font-size:13px;">${l.obs}</div>`:''}
-  </body></html>`;
+  </div>
+</div>
+
+</body></html>`;
   abrirJanelaPDF(html,`contrato-${l.cli.replace(/\s/g,'-').toLowerCase()}`);
 }
 
