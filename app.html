@@ -5890,9 +5890,8 @@ window.addEventListener('load',async()=>{
       };
       userAtual=usuarioAtual.nome;
     } else {
-      // (b) Usuário convidado: busca convite pelo e-mail
-      const email=session.user.email;
-      const{data:convite}=await db.from('convites').select('*').eq('email',email).eq('status','pendente').order('created_at',{ascending:false}).limit(1).maybeSingle();
+      // (b) Usuário convidado: busca convite via RPC (SECURITY DEFINER, ignora RLS)
+      const{data:convite}=await db.rpc('buscar_meu_convite').maybeSingle();
       if(!convite){window.location.href='auth.html?c=1';return;}
 
       // Cria o registro do usuário a partir do convite
@@ -5962,7 +5961,7 @@ window.addEventListener('load',async()=>{
   const btnNova=document.getElementById('btn-nova-demanda');
   if(btnNova)btnNova.style.display=temPermissao('criar_demandas')?'':'none';
 
-  if(!escData.onboarding_completo){obIniciar();return;}
+  if(!escData.onboarding_completo&&usuarioAtual.perfil==='titular'){obIniciar();return;}
   mostrarResumoDiario();
   setTimeout(()=>{if(demandas.some(d=>d.processo))verificarTrib();},15000);
   setInterval(()=>verificarTrib(),4*60*60*1000);
