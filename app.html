@@ -4948,9 +4948,9 @@ function renderCfg(){
   const dias=calcPrazo(trialFim?.split('T')[0]);
   document.getElementById('cfg-plano').textContent=escData.plano==='avancado'?'Plano Avançado ativo — R$ 149/mês · Até 5 advogados e 25 colaboradores':escData.plano==='essencial'?'Plano Essencial ativo — R$ 99/mês · Até 2 advogados e 10 colaboradores':`Período de teste${dias!==null?` — ${dias>0?dias+' dias restantes':'Expirado'}`:''}.`;
   // Preenche campos do perfil pessoal
-  const nomeEl=document.getElementById('meu-nome');
+  const meuNomeEl=document.getElementById('meu-nome');
   const wppEl=document.getElementById('meu-wpp');
-  if(nomeEl)nomeEl.value=usuarioAtual?.nome||'';
+  if(meuNomeEl)meuNomeEl.value=usuarioAtual?.nome||'';
   if(wppEl)wppEl.value=usuarioAtual?.whatsapp||'';
   document.getElementById('meu-pw1').value='';
   document.getElementById('meu-pw2').value='';
