@@ -15,6 +15,7 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const serviceKey  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     const anonKey     = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+    const resendKey   = Deno.env.get('RESEND_API_KEY') ?? ''
     const siteUrl     = Deno.env.get('SITE_URL') ?? 'https://organizaadv.com.br'
 
     const admin = createClient(supabaseUrl, serviceKey, {
@@ -29,9 +30,9 @@ serve(async (req) => {
     const { data: { user } } = await caller.auth.getUser()
     if (!user) throw new Error('Não autorizado')
 
-    // Tenta encontrar o usuário na tabela usuarios (novo modelo)
     let escritorioId: string | null = null
     let nomeRemetente = 'Titular'
+    let nomeEscritorio = 'o escritório'
 
     const { data: meuUsuario } = await admin
       .from('usuarios')
@@ -40,22 +41,25 @@ serve(async (req) => {
       .maybeSingle()
 
     if (meuUsuario) {
-      if (meuUsuario.perfil !== 'titular') {
-        throw new Error('Apenas o titular pode convidar membros')
-      }
+      if (meuUsuario.perfil !== 'titular') throw new Error('Apenas o titular pode convidar membros')
       escritorioId = meuUsuario.escritorio_id
       nomeRemetente = meuUsuario.nome
     } else {
-      // Fallback: modelo antigo — verifica se é titular pelo escritorios.user_id
       const { data: esc } = await admin
         .from('escritorios')
-        .select('id, responsavel')
+        .select('id, nome, responsavel')
         .eq('user_id', user.id)
         .maybeSingle()
-
       if (!esc) throw new Error('Apenas o titular pode convidar membros')
       escritorioId = esc.id
       nomeRemetente = esc.responsavel || 'Titular'
+      nomeEscritorio = esc.nome || nomeEscritorio
+    }
+
+    // Busca nome do escritório se ainda não temos
+    if (nomeEscritorio === 'o escritório' && escritorioId) {
+      const { data: escInfo } = await admin.from('escritorios').select('nome').eq('id', escritorioId).maybeSingle()
+      if (escInfo?.nome) nomeEscritorio = escInfo.nome
     }
 
     const body = await req.json()
@@ -67,16 +71,11 @@ serve(async (req) => {
     } = body
 
     if (!email || !nome) throw new Error('Email e nome são obrigatórios')
-
     const emailNorm = email.toLowerCase().trim()
 
-    // Cancela convites anteriores pendentes para o mesmo email/escritório
-    await admin
-      .from('convites')
-      .update({ status: 'cancelado' })
-      .eq('escritorio_id', escritorioId)
-      .eq('email', emailNorm)
-      .eq('status', 'pendente')
+    // Cancela convites anteriores pendentes
+    await admin.from('convites').update({ status: 'cancelado' })
+      .eq('escritorio_id', escritorioId).eq('email', emailNorm).eq('status', 'pendente')
 
     // Cria registro de convite
     const { data: convite, error: conviteErr } = await admin
@@ -89,25 +88,66 @@ serve(async (req) => {
         enviado_por: user.id,
         status: 'pendente'
       }])
-      .select()
-      .single()
+      .select().single()
 
     if (conviteErr) throw conviteErr
 
-    // Envia convite via Supabase Auth Admin
-    const { error: inviteErr } = await admin.auth.admin.inviteUserByEmail(emailNorm, {
-      redirectTo: `${siteUrl}/auth.html`,
-      data: {
-        nome,
-        escritorio_id: escritorioId,
-        convite_id: convite.id,
-        convidado_por: nomeRemetente,
+    // Gera o link de convite (não envia email — controlamos o envio via Resend)
+    const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
+      type: 'invite',
+      email: emailNorm,
+      options: {
+        redirectTo: `${siteUrl}/auth.html`,
+        data: {
+          nome,
+          escritorio_id: escritorioId,
+          convite_id: convite.id,
+          convidado_por: nomeRemetente,
+        }
       }
     })
 
-    if (inviteErr) {
+    if (linkErr) {
       await admin.from('convites').delete().eq('id', convite.id)
-      throw inviteErr
+      throw linkErr
+    }
+
+    const inviteLink = linkData.properties.action_link
+
+    // Envia email via Resend
+    const emailRes = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: 'noreply@organizaadv.com.br',
+        to: emailNorm,
+        subject: `${nomeRemetente} te convidou para o OrganizaADV`,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:32px;background:#fff">
+            <p style="font-weight:700;font-size:18px;color:#0D1321;margin:0 0 24px">OrganizaADV</p>
+            <h2 style="color:#0D1321;margin:0 0 12px;font-size:22px">Você foi convidado!</h2>
+            <p style="color:#48556A;line-height:1.6;margin:0 0 8px">
+              <strong>${nomeRemetente}</strong> te convidou para fazer parte de <strong>${nomeEscritorio}</strong> no OrganizaADV.
+            </p>
+            <p style="color:#48556A;line-height:1.6;margin:0 0 28px">
+              Clique no botão abaixo para criar sua senha e acessar o sistema.
+            </p>
+            <a href="${inviteLink}"
+               style="display:inline-block;background:#0D1321;color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:700;font-size:15px">
+              Acessar o OrganizaADV →
+            </a>
+            <p style="color:#96A3B5;font-size:12px;line-height:1.6;margin:32px 0 0">
+              Se você não esperava este convite, ignore este e-mail.
+            </p>
+          </div>
+        `,
+      }),
+    })
+
+    if (!emailRes.ok) {
+      const body = await emailRes.text()
+      await admin.from('convites').delete().eq('id', convite.id)
+      throw new Error(`Resend: ${body}`)
     }
 
     return new Response(JSON.stringify({ ok: true, convite_id: convite.id }), {
