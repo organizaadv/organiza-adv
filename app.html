@@ -1794,7 +1794,17 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
     </div>
     <div class="mbody">
       <div class="fg2">
-        <div class="field"><label class="flabel">Nome do cliente <span class="req">*</span></label><input type="text" class="finp" id="at-nome" placeholder="Nome completo"/></div>
+        <div class="field" style="position:relative;">
+          <label class="flabel">Cliente <span class="req">*</span></label>
+          <input type="text" class="finp" id="at-nome" placeholder="Digite para buscar cliente cadastrado..." autocomplete="off" oninput="autocompleteAtendCli(this.value)"/>
+          <input type="hidden" id="at-cliente-id"/>
+          <div id="at-nome-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1.5px solid var(--bd);border-radius:var(--rmd);box-shadow:var(--s3s);z-index:300;max-height:200px;overflow-y:auto;"></div>
+          <div id="at-cli-selecionado" style="display:none;margin-top:5px;font-size:12px;color:var(--gr);align-items:center;gap:6px;">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2,8 6,12 14,4"/></svg>
+            <span id="at-cli-selecionado-nome"></span>
+            <span style="cursor:pointer;color:var(--tx3);margin-left:4px;" onclick="limparAtendCli()">✕</span>
+          </div>
+        </div>
         <div class="field"><label class="flabel">Telefone / WhatsApp</label><input type="tel" class="finp" id="at-tel" placeholder="(00) 9 0000-0000"/></div>
       </div>
       <div class="fg2">
@@ -5869,14 +5879,57 @@ async function converterAtendimento(){
   closeM('m-det-atend');renderAtendimentos();renderKanban();
   toast('Demanda criada com sucesso!');
 }
+function autocompleteAtendCli(q){
+  const drop=document.getElementById('at-nome-drop');
+  if(!q||q.trim().length<2){drop.style.display='none';return;}
+  const termo=q.toLowerCase();
+  const matches=clientes.filter(c=>(c.nome||'').toLowerCase().includes(termo)).slice(0,6);
+  if(!matches.length){drop.style.display='none';return;}
+  drop.innerHTML=matches.map(c=>`
+    <div data-id="${c.id}"
+      style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--div);font-size:13.5px;transition:background .1s;"
+      onmouseover="this.style.background='var(--s2)'" onmouseout="this.style.background=''"
+      onclick="selecionarAtendCli(this.dataset.id)">
+      <div style="font-weight:500;">${c.nome}</div>
+      <div style="font-size:12px;color:var(--tx3);">${c.telefone||''}${c.telefone&&c.cpf_cnpj?' · ':''}${c.cpf_cnpj||''}</div>
+    </div>`).join('');
+  drop.style.display='block';
+  setTimeout(()=>document.addEventListener('click',()=>{drop.style.display='none';},{once:true}),100);
+}
+function selecionarAtendCli(cliId){
+  const c=clientes.find(x=>x.id===cliId);
+  if(!c)return;
+  document.getElementById('at-nome').value=c.nome;
+  document.getElementById('at-nome').readOnly=true;
+  document.getElementById('at-cliente-id').value=c.id;
+  document.getElementById('at-nome-drop').style.display='none';
+  if(c.telefone)document.getElementById('at-tel').value=c.telefone;
+  if(c.email)document.getElementById('at-email').value=c.email;
+  if(c.cpf_cnpj)document.getElementById('at-cpf').value=c.cpf_cnpj;
+  const sel=document.getElementById('at-cli-selecionado');
+  document.getElementById('at-cli-selecionado-nome').textContent=c.nome;
+  sel.style.display='flex';
+}
+function limparAtendCli(){
+  document.getElementById('at-nome').value='';
+  document.getElementById('at-nome').readOnly=false;
+  document.getElementById('at-cliente-id').value='';
+  document.getElementById('at-cli-selecionado').style.display='none';
+  document.getElementById('at-tel').value='';
+  document.getElementById('at-email').value='';
+  document.getElementById('at-cpf').value='';
+  document.getElementById('at-nome').focus();
+}
 async function salvarAtendimento(){
   const nome=document.getElementById('at-nome').value.trim();
+  const clienteId=document.getElementById('at-cliente-id').value||null;
   if(!nome){toast('Informe o nome do cliente','te');return;}
   const btn=document.getElementById('at-btn-salvar');
   btn.disabled=true;btn.textContent='Salvando...';
   const{data,error}=await db.from('atendimentos').insert([{
     escritorio_id:escData.id,
     nome_cliente:nome,
+    cliente_id:clienteId,
     tel:document.getElementById('at-tel').value.trim()||null,
     email:document.getElementById('at-email').value.trim()||null,
     cpf:document.getElementById('at-cpf').value.trim()||null,
@@ -5896,6 +5949,9 @@ async function salvarAtendimento(){
   const badge=document.getElementById('n-atend-badge');
   if(badge){badge.textContent=agendados;badge.style.display=agendados?'':'none';}
   ['at-nome','at-tel','at-email','at-cpf','at-assunto','at-obs','at-data','at-hora'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('at-nome').readOnly=false;
+  document.getElementById('at-cliente-id').value='';
+  document.getElementById('at-cli-selecionado').style.display='none';
   document.getElementById('at-tipo').value='';document.getElementById('at-resp').value='';
   toast('Atendimento registrado!');
 }
