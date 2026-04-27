@@ -2210,7 +2210,7 @@ function getAtosTemplate(tipo,etapa){
 // ── ESTADO ──
 let demandas=[],colabs=[],convitesPendentes=[],escData={},userAtual=null,usuarioAtual=null,filtroAtivo='todos',filtroFinAtivo='todos',detId=null,quickAvId=null;
 let sortDem={col:null,asc:true},sortCli={col:null,asc:true};
-let finLanc=[],finNextId=1,finDetId=null,notifs=[],notifNextId=1;
+let finLanc=[],finDetId=null,notifs=[],notifNextId=1;
 
 // ── UTILS ──
 function toast(msg,tipo='ts'){
@@ -3884,11 +3884,22 @@ async function salvarDemanda(){
   const honorario=parseFloat(document.getElementById('f-honorario').value)||0;
   const honPag=document.getElementById('f-hon-pag').value;
   if(honorario>0&&honPag){
-    const parcs=[];
-    if(honPag==='avista'){parcs.push({n:1,valor:honorario,pago:false,label:'À vista'});}
-    else{parcs.push({n:1,valor:honorario,pago:false,label:'Parcela 1'});}
-    finLanc.unshift({id:finNextId++,cli:nome,serv:tipo,val:honorario,data:hoje().split('/').reverse().join('-'),pag:honPag,ent:0,np:1,obs:'Criado automaticamente no cadastro da demanda.',parcs});
-    saveFin();
+    const dataHj=new Date().toISOString().split('T')[0];
+    const{data:ctrAuto}=await db.from('contratos').insert([{
+      escritorio_id:escData.id,cliente_nome:nome,
+      servico:tipo||'Serviço jurídico',valor_total:honorario,
+      forma_pagamento:honPag,entrada:0,num_parcelas:1,
+      data_contrato:dataHj,obs:'Criado automaticamente no cadastro da demanda.'
+    }]).select().single();
+    if(ctrAuto){
+      const lbl=honPag==='avista'?'À vista':'Parcela 1';
+      const{data:parcAuto}=await db.from('contratos_parcelas').insert([{
+        contrato_id:ctrAuto.id,escritorio_id:escData.id,numero:1,label:lbl,valor:honorario
+      }]).select().single();
+      finLanc.unshift({id:ctrAuto.id,cli:nome,serv:tipo||'Serviço jurídico',val:honorario,
+        data:dataHj,pag:honPag,ent:0,np:1,obs:'Criado automaticamente no cadastro da demanda.',
+        parcs:parcAuto?[{id:parcAuto.id,n:1,label:lbl,valor:honorario,pago:false}]:[]});
+    }
   }
 
   closeM('m-nova');
@@ -4316,8 +4327,64 @@ function setFiltroFin(el){
   el.classList.add('on');
   renderFin();
 }
-function saveFin(){const k='oadv_fin_'+(escData.id||'');localStorage.setItem(k,JSON.stringify(finLanc));localStorage.setItem(k+'_nid',String(finNextId));}
-function loadFin(){const k='oadv_fin_'+(escData.id||'');finLanc=JSON.parse(localStorage.getItem(k)||'[]');finNextId=parseInt(localStorage.getItem(k+'_nid')||'1');}
+async function loadFin(){
+  const{data,error}=await db.from('contratos')
+    .select('*, contratos_parcelas(*)')
+    .eq('escritorio_id',escData.id)
+    .order('created_at',{ascending:false});
+  if(error){console.error('loadFin:',error);finLanc=[];return;}
+  finLanc=(data||[]).map(c=>({
+    id:c.id,
+    cli:c.cliente_nome,
+    serv:c.servico,
+    val:parseFloat(c.valor_total)||0,
+    data:c.data_contrato,
+    pag:c.forma_pagamento,
+    ent:parseFloat(c.entrada)||0,
+    np:c.num_parcelas||1,
+    obs:c.obs||'',
+    parcs:(c.contratos_parcelas||[])
+      .sort((a,b)=>a.numero-b.numero)
+      .map(p=>({id:p.id,n:p.numero,label:p.label,valor:parseFloat(p.valor)||0,pago:p.pago}))
+  }));
+}
+async function migrarLocalStorageParaSupabase(){
+  const k='oadv_fin_'+(escData.id||'');
+  const raw=localStorage.getItem(k);
+  if(!raw)return;
+  let itens;
+  try{itens=JSON.parse(raw);}catch(e){localStorage.removeItem(k);return;}
+  if(!Array.isArray(itens)||!itens.length){localStorage.removeItem(k);localStorage.removeItem(k+'_nid');return;}
+  try{
+    for(const l of itens){
+      const{data:ctr,error}=await db.from('contratos').insert([{
+        escritorio_id:escData.id,
+        cliente_nome:l.cli||'Cliente',
+        servico:l.serv||'Serviço',
+        valor_total:parseFloat(l.val)||0,
+        forma_pagamento:l.pag||'avista',
+        entrada:parseFloat(l.ent)||0,
+        num_parcelas:parseInt(l.np)||1,
+        data_contrato:l.data||null,
+        obs:l.obs||null
+      }]).select().single();
+      if(error)throw error;
+      if(l.parcs?.length){
+        const pds=l.parcs.map((p,i)=>({
+          contrato_id:ctr.id,escritorio_id:escData.id,
+          numero:p.n??i,label:p.label||`Parcela ${i+1}`,
+          valor:parseFloat(p.valor)||0,pago:!!p.pago
+        }));
+        const{error:ep}=await db.from('contratos_parcelas').insert(pds);
+        if(ep)throw ep;
+      }
+    }
+    localStorage.removeItem(k);localStorage.removeItem(k+'_nid');
+    toast('Dados financeiros migrados com sucesso.');
+  }catch(e){
+    console.error('Migração financeiro:',e);
+  }
+}
 function toggleParc(){document.getElementById('fn-parc-wrap').style.display=document.getElementById('fn-pag').value==='parcelado'?'block':'none';calcParc();}
 function calcParc(){
   const v=parseFloat(document.getElementById('fn-val').value)||0;
@@ -4326,7 +4393,7 @@ function calcParc(){
   const el=document.getElementById('fn-parc-info');
   if(el&&n>0&&v>0)el.textContent=`Cada parcela: ${fmtMoeda((v-e)/n)}`;else if(el)el.textContent='';
 }
-function salvarContrato(){
+async function salvarContrato(){
   const cli=document.getElementById('fn-cli').value.trim();
   const serv=document.getElementById('fn-serv').value.trim();
   const val=parseFloat(document.getElementById('fn-val').value)||0;
@@ -4336,11 +4403,27 @@ function salvarContrato(){
   const ent=parseFloat(document.getElementById('fn-ent')?.value)||0;
   const np=parseInt(document.getElementById('fn-np')?.value)||1;
   const obs=document.getElementById('fn-obs').value.trim();
-  const parcs=[];
-  if(pag==='avista'){parcs.push({n:1,valor:val,pago:false,label:'À vista'});}
-  else{if(ent>0)parcs.push({n:0,valor:ent,pago:false,label:'Entrada'});const vp=np>0?(val-ent)/np:0;for(let i=1;i<=np;i++)parcs.push({n:i,valor:vp,pago:false,label:`Parcela ${i}/${np}`});}
-  finLanc.unshift({id:finNextId++,cli,serv,val,data,pag,ent,np,obs,parcs});
-  saveFin();closeM('m-fin-novo');
+  const btnS=document.querySelector('#m-fin-novo .btn-p');
+  if(btnS){btnS.disabled=true;btnS.textContent='Salvando...';}
+  const{data:ctr,error}=await db.from('contratos').insert([{
+    escritorio_id:escData.id,cliente_nome:cli,servico:serv,
+    valor_total:val,forma_pagamento:pag,entrada:ent,num_parcelas:np,
+    data_contrato:data,obs:obs||null
+  }]).select().single();
+  if(error){if(btnS){btnS.disabled=false;btnS.textContent='Registrar contrato';}toast('Erro: '+error.message,'te');return;}
+  const pds=[];
+  if(pag==='avista'){pds.push({contrato_id:ctr.id,escritorio_id:escData.id,numero:1,label:'À vista',valor:val});}
+  else{
+    if(ent>0)pds.push({contrato_id:ctr.id,escritorio_id:escData.id,numero:0,label:'Entrada',valor:ent});
+    const vp=np>0?(val-ent)/np:0;
+    for(let i=1;i<=np;i++)pds.push({contrato_id:ctr.id,escritorio_id:escData.id,numero:i,label:`Parcela ${i}/${np}`,valor:vp});
+  }
+  const{data:parcsIns,error:ep}=await db.from('contratos_parcelas').insert(pds).select();
+  if(ep){if(btnS){btnS.disabled=false;btnS.textContent='Registrar contrato';}toast('Erro nas parcelas: '+ep.message,'te');return;}
+  finLanc.unshift({id:ctr.id,cli,serv,val,data,pag,ent,np,obs,
+    parcs:(parcsIns||[]).sort((a,b)=>a.numero-b.numero).map(p=>({id:p.id,n:p.numero,label:p.label,valor:parseFloat(p.valor)||0,pago:p.pago}))});
+  if(btnS){btnS.disabled=false;btnS.textContent='Registrar contrato';}
+  closeM('m-fin-novo');
   ['fn-cli','fn-serv','fn-val','fn-ent','fn-np','fn-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('fn-pag').value='avista';document.getElementById('fn-parc-wrap').style.display='none';
   renderFin();toast('Contrato registrado!');
@@ -4361,7 +4444,7 @@ function renderFin(){
   tbody.innerHTML=lista.map(l=>{
     const r=l.parcs.filter(p=>p.pago).reduce((s,p)=>s+(parseFloat(p.valor)||0),0);
     const rest=(parseFloat(l.val)||0)-r;const quit=rest<=0.01;
-    return`<tr onclick="abrirFinDet(${l.id})" style="cursor:pointer;">
+    return`<tr onclick="abrirFinDet('${l.id}')" style="cursor:pointer;">
       <td style="font-weight:500;">${l.cli}</td>
       <td style="font-size:13px;color:var(--tx2);">${l.serv}</td>
       <td style="color:var(--gr);font-weight:500;">${fmtMoeda(l.val)}</td>
@@ -4381,19 +4464,29 @@ function abrirFinDet(id){
   const rec=l.parcs.filter(p=>p.pago).reduce((s,p)=>s+(parseFloat(p.valor)||0),0);
   document.getElementById('fd-rec').textContent=fmtMoeda(rec);
   document.getElementById('fd-rest').textContent=fmtMoeda((parseFloat(l.val)||0)-rec);
-  document.getElementById('fd-parcs').innerHTML=l.parcs.map((p,i)=>`
+  document.getElementById('fd-parcs').innerHTML=l.parcs.map(p=>`
     <div class="parc-row"><span class="parc-nome ${p.pago?'paga':''}">${p.label} — ${fmtMoeda(p.valor)}</span>
-    <button onclick="toggleParc2(${i})" class="btn btn-sm ${p.pago?'btn-gh':'btn-gd'}">${p.pago?'✓ Pago':'Dar baixa'}</button></div>`).join('');
+    <button onclick="toggleParc2('${p.id}')" class="btn btn-sm ${p.pago?'btn-gh':'btn-gd'}">${p.pago?'✓ Pago':'Dar baixa'}</button></div>`).join('');
   openM('m-fin-det');
 }
-function toggleParc2(idx){
+async function toggleParc2(parcId){
   const l=finLanc.find(x=>x.id===finDetId);if(!l)return;
-  l.parcs[idx].pago=!l.parcs[idx].pago;saveFin();abrirFinDet(finDetId);renderFin();
-  toast(l.parcs[idx].pago?'Baixa registrada!':'Baixa desfeita.');
+  const p=l.parcs.find(x=>x.id===parcId);if(!p)return;
+  const novoPago=!p.pago;
+  const{error}=await db.from('contratos_parcelas')
+    .update({pago:novoPago,data_pagamento:novoPago?new Date().toISOString().split('T')[0]:null})
+    .eq('id',parcId);
+  if(error){toast('Erro ao atualizar parcela.','te');return;}
+  p.pago=novoPago;
+  abrirFinDet(finDetId);renderFin();
+  toast(novoPago?'Baixa registrada!':'Baixa desfeita.');
 }
-function excluirContrato(){
+async function excluirContrato(){
   if(!confirm('Excluir este contrato?'))return;
-  finLanc=finLanc.filter(x=>x.id!==finDetId);saveFin();closeM('m-fin-det');renderFin();toast('Contrato excluído.');
+  const{error}=await db.from('contratos').delete().eq('id',finDetId);
+  if(error){toast('Erro ao excluir: '+error.message,'te');return;}
+  finLanc=finLanc.filter(x=>x.id!==finDetId);
+  closeM('m-fin-det');renderFin();toast('Contrato excluído.');
 }
 function exportFinContratoPDF(){
   const l=finLanc.find(x=>x.id===finDetId);if(!l)return;
@@ -5828,7 +5921,7 @@ window.addEventListener('load',async()=>{
 
   if(escData.etapas?.length)ETAPAS=escData.etapas;
   if(escData.tema)obAplicarTema(escData.tema);
-  renderSBInfo();verificarTrial();loadFin();loadNotifs();
+  renderSBInfo();verificarTrial();await migrarLocalStorageParaSupabase();await loadFin();loadNotifs();
 
   const[{data:d},{data:c},{data:cv}]=await Promise.all([
     db.from('demandas_escritorio').select('*').eq('escritorio_id',escData.id).order('created_at',{ascending:false}),
