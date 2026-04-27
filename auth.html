@@ -734,6 +734,15 @@ window.addEventListener('load',async()=>{
     mostrarDefinirSenha('invite');
     return;
   }
+  if(tipo==='magiclink'){
+    const at=hash.get('access_token'),rt=hash.get('refresh_token');
+    if(at&&rt) await db.auth.setSession({access_token:at,refresh_token:rt});
+    // Se há convite pendente, pede para definir senha antes de entrar
+    const{data:cv}=await db.rpc('buscar_meu_convite').maybeSingle();
+    if(cv){mostrarDefinirSenha('invite');return;}
+    window.location.href='app.html';
+    return;
+  }
 
   const{data:{session}}=await db.auth.getSession();
   const pv=getPV();
