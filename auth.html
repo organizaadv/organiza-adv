@@ -759,7 +759,12 @@ window.addEventListener('load',async()=>{
     if(step3){
       // Verifica se já completou o cadastro — usa SECURITY DEFINER para bypassar RLS
       const{data:registrado}=await db.rpc('sou_registrado');
-      if(registrado){clearPV();window.location.href='app.html';return;}
+      if(registrado){
+        clearPV();
+        // Se veio via ?c=1 o app.html falhou — desloga para login limpo e evita loop
+        if(params.get('c')==='1'){await db.auth.signOut();window.location.replace('auth.html');return;}
+        window.location.href='app.html';return;
+      }
       mostrarCriarSenha();return;
     }
     window.location.href='app.html';
