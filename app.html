@@ -968,9 +968,16 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--div);">Dados do cliente</div>
       <div class="fg2">
         <div class="field" style="position:relative;">
-          <label class="flabel">Nome completo <span class="req">*</span></label>
-          <input type="text" class="finp" id="f-nome" placeholder="Nome completo do cliente" autocomplete="off" oninput="autocompleteCliente(this.value)"/>
+          <label class="flabel">Cliente <span class="req">*</span></label>
+          <input type="text" class="finp" id="f-nome" placeholder="Digite para buscar cliente cadastrado..." autocomplete="off" oninput="autocompleteCliente(this.value)"/>
+          <input type="hidden" id="f-cliente-id"/>
           <div id="f-nome-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1.5px solid var(--bd);border-radius:var(--rmd);box-shadow:var(--s3s);z-index:300;max-height:200px;overflow-y:auto;"></div>
+          <div id="f-cliente-selecionado" style="display:none;margin-top:5px;font-size:12px;color:var(--gr);display:flex;align-items:center;gap:6px;">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2,8 6,12 14,4"/></svg>
+            <span id="f-cliente-selecionado-nome"></span>
+            <span style="cursor:pointer;color:var(--tx3);margin-left:4px;" onclick="limparClienteSelecionado()">✕</span>
+          </div>
+          <div style="margin-top:5px;font-size:11.5px;color:var(--tx3);">Cliente não cadastrado? <span style="color:var(--gd);cursor:pointer;text-decoration:underline;" onclick="abrirCadastroRapidoCliente()">Cadastrar agora</span></div>
         </div>
         <div class="field"><label class="flabel">CPF / CNPJ</label><input type="text" class="finp" id="f-cpf" placeholder="000.000.000-00 ou 00.000.000/0001-00" onblur="onBlurCpf(this)"/></div>
       </div>
@@ -3205,7 +3212,7 @@ function abrirPerfilCliente(cliId){
     </div>`).join('');
 
   // Botão nova demanda para este cliente
-  document.getElementById('cli-btn-nova').onclick=()=>abrirNovaDemandaCliente(nome,c.telefone,c.email,c.cpf_cnpj);
+  document.getElementById('cli-btn-nova').onclick=()=>abrirNovaDemandaCliente(c.id,nome,c.telefone,c.email,c.cpf_cnpj);
   openM('m-cliente');
 }
 
@@ -3215,12 +3222,20 @@ function abrirDetDoCliente(id){
   abrirDet(id);
 }
 
-function abrirNovaDemandaCliente(nome='',tel='',email='',cpf=''){
+function abrirNovaDemandaCliente(cliId='',nome='',tel='',email='',cpf=''){
   closeM('m-cliente');
   abrirNovaDemanda();
-  // Preencher dados do cliente automaticamente
   setTimeout(()=>{
-    if(nome)document.getElementById('f-nome').value=nome;
+    if(nome){
+      document.getElementById('f-nome').value=nome;
+      document.getElementById('f-nome').readOnly=true;
+    }
+    if(cliId){
+      document.getElementById('f-cliente-id').value=cliId;
+      const sel=document.getElementById('f-cliente-selecionado');
+      document.getElementById('f-cliente-selecionado-nome').textContent=nome;
+      sel.style.display='flex';
+    }
     if(tel)document.getElementById('f-tel').value=tel;
     if(email)document.getElementById('f-email').value=email;
     if(cpf)document.getElementById('f-cpf').value=cpf;
@@ -3853,10 +3868,29 @@ function selecionarClienteAuto(cliId){
   const c=clientes.find(x=>x.id===cliId);
   if(!c)return;
   document.getElementById('f-nome').value=c.nome;
+  document.getElementById('f-nome').readOnly=true;
+  document.getElementById('f-cliente-id').value=c.id;
   document.getElementById('f-nome-drop').style.display='none';
   if(c.telefone)document.getElementById('f-tel').value=c.telefone;
   if(c.email)document.getElementById('f-email').value=c.email;
   if(c.cpf_cnpj)document.getElementById('f-cpf').value=c.cpf_cnpj;
+  const sel=document.getElementById('f-cliente-selecionado');
+  document.getElementById('f-cliente-selecionado-nome').textContent=c.nome;
+  sel.style.display='flex';
+}
+function limparClienteSelecionado(){
+  document.getElementById('f-nome').value='';
+  document.getElementById('f-nome').readOnly=false;
+  document.getElementById('f-cliente-id').value='';
+  document.getElementById('f-cliente-selecionado').style.display='none';
+  document.getElementById('f-cpf').value='';
+  document.getElementById('f-tel').value='';
+  document.getElementById('f-email').value='';
+  document.getElementById('f-nome').focus();
+}
+function abrirCadastroRapidoCliente(){
+  closeM('m-nova');
+  openM('m-novo-cliente');
 }
 function toggleTipoOutro(){
   const sel=document.getElementById('f-tipo-sel').value;
@@ -3889,8 +3923,10 @@ async function salvarDemanda(){
   const tipoOutro=document.getElementById('f-tipo-outro')?.value.trim();
   const tipo=tipoSel==='Outro'?tipoOutro:tipoSel;
   const tel=document.getElementById('f-tel').value.trim();
+  const clienteId=document.getElementById('f-cliente-id').value||null;
 
-  if(!nome){toast('Informe o nome do cliente.','te');return;}
+  if(!nome){toast('Selecione um cliente cadastrado.','te');return;}
+  if(!clienteId){toast('Selecione um cliente da lista. Use "Cadastrar agora" se o cliente ainda não está cadastrado.','te');return;}
   if(!tipo){toast('Selecione o tipo de demanda.','te');return;}
   if(!tel){toast('Informe o WhatsApp do cliente.','te');return;}
   const cpfVal=document.getElementById('f-cpf').value.trim();
@@ -3901,7 +3937,7 @@ async function salvarDemanda(){
 
   const escId=escData.id;
   const{data,error}=await db.from('demandas_escritorio').insert([{
-    escritorio_id:escId,nome,tipo,
+    escritorio_id:escId,nome,tipo,cliente_id:clienteId,
     tel,
     email:document.getElementById('f-email').value.trim()||null,
     cpf:document.getElementById('f-cpf').value.trim()||null,
@@ -3959,6 +3995,9 @@ async function salvarDemanda(){
   ['f-nome','f-cpf','f-tel','f-email','f-obs','f-proc','f-honorario'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
+  document.getElementById('f-nome').readOnly=false;
+  document.getElementById('f-cliente-id').value='';
+  document.getElementById('f-cliente-selecionado').style.display='none';
   document.getElementById('f-tipo-sel').value='';
   document.getElementById('f-tipo-outro').value='';
   document.getElementById('f-tipo-outro-wrap').style.display='none';
