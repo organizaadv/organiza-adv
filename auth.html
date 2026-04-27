@@ -718,7 +718,7 @@ async function definirSenha(){
   if(senha.length<8){showErr('setpw-err','A senha precisa ter pelo menos 8 caracteres.');return;}
   if(senha!==conf){showErr('setpw-err','As senhas não coincidem.');return;}
   setLoading('btn-setpw',true,'');
-  const{error}=await db.auth.updateUser({password:senha});
+  const{error}=await db.auth.updateUser({password:senha,data:{convite_id:null}});
   if(error){setLoading('btn-setpw',false,_tipoToken==='invite'?'Entrar no sistema →':'Salvar nova senha →');showErr('setpw-err',error.message);return;}
   window.location.href='app.html';
 }
@@ -740,8 +740,6 @@ window.addEventListener('load',async()=>{
   const params=new URLSearchParams(location.search);
 
   if(session){
-    // Usuário convidado: tem convite_id nos metadados e ainda não definiu senha
-    if(session.user.user_metadata?.convite_id){mostrarDefinirSenha('invite');return;}
     // Sessão OTP ativa aguardando completar o cadastro (passo 3)
     const step3=(pv&&pv.step===3&&pv.email===session.user.email)||params.get('c')==='1';
     if(step3){mostrarCriarSenha();return;}
