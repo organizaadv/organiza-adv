@@ -757,11 +757,9 @@ window.addEventListener('load',async()=>{
     // Sessão OTP ativa aguardando completar o cadastro (passo 3)
     const step3=(pv&&pv.step===3&&pv.email===session.user.email)||params.get('c')==='1';
     if(step3){
-      // Verifica se já completou o cadastro — se sim, limpa pv e entra direto
-      const uid=session.user.id;
-      const{data:uEx}=await db.from('usuarios').select('id').eq('id',uid).maybeSingle();
-      const{data:eEx}=await db.from('escritorios').select('id').eq('user_id',uid).maybeSingle();
-      if(uEx||eEx){clearPV();window.location.href='app.html';return;}
+      // Verifica se já completou o cadastro — usa SECURITY DEFINER para bypassar RLS
+      const{data:registrado}=await db.rpc('sou_registrado');
+      if(registrado){clearPV();window.location.href='app.html';return;}
       mostrarCriarSenha();return;
     }
     window.location.href='app.html';
