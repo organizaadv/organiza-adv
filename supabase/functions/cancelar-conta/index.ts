@@ -31,7 +31,7 @@ serve(async (req) => {
     }
 
     const { escritorio_id, user_id } = await req.json()
-    if (!escritorio_id || !user_id) throw new Error('escritorio_id e user_id são obrigatórios')
+    if (!escritorio_id) throw new Error('escritorio_id é obrigatório')
 
     // Deleta dados na ordem certa (sem cascade)
     await admin.from('convites').delete().eq('escritorio_id', escritorio_id)
@@ -40,9 +40,12 @@ serve(async (req) => {
     await admin.from('usuarios').delete().eq('escritorio_id', escritorio_id)
     await admin.from('escritorios').delete().eq('id', escritorio_id)
 
-    // Remove o usuário do auth (permite recadastro com mesmo email)
-    const { error: delErr } = await admin.auth.admin.deleteUser(user_id)
-    if (delErr) throw delErr
+    // Remove o usuário do auth se user_id válido (permite recadastro com mesmo email)
+    const uid = user_id && user_id !== 'null' && user_id !== 'undefined' ? user_id : null
+    if (uid) {
+      const { error: delErr } = await admin.auth.admin.deleteUser(uid)
+      if (delErr) console.error('deleteUser:', delErr.message)
+    }
 
     return new Response(JSON.stringify({ ok: true }), {
       headers: { ...CORS, 'Content-Type': 'application/json' }

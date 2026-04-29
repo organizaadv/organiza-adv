@@ -409,7 +409,7 @@ function renderEscritorios(){
         <button class="btn-sm" onclick="abrirEsc('${e.id}')">Ver</button>
         ${!isPago(e.plano)?`<button class="btn-sm" onclick="abrirConverterPlano('${e.id}')">Converter</button>`:''}
         <button class="btn-sm danger" onclick="suspender('${e.id}')">Suspender</button>
-        <button class="btn-sm danger" onclick="cancelarConta('${e.id}','${e.user_id}','${e.nome}')">Cancelar</button>
+        <button class="btn-sm danger" onclick="cancelarConta('${e.id}','${e.user_id||''}','${e.nome}')">Cancelar</button>
       </td>
     </tr>`;
   }).join('');
