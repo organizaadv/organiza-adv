@@ -409,6 +409,7 @@ function renderEscritorios(){
         <button class="btn-sm" onclick="abrirEsc('${e.id}')">Ver</button>
         ${!isPago(e.plano)?`<button class="btn-sm" onclick="abrirConverterPlano('${e.id}')">Converter</button>`:''}
         <button class="btn-sm danger" onclick="suspender('${e.id}')">Suspender</button>
+        <button class="btn-sm danger" onclick="cancelarConta('${e.id}','${e.user_id}','${e.nome}')">Cancelar</button>
       </td>
     </tr>`;
   }).join('');
@@ -522,6 +523,21 @@ async function extenderTrial(id){
   e.trial_fim=novoVal;
   if(e.trial_expira)e.trial_expira=novoVal;
   renderDash();renderTrial();toast('Trial estendido por 7 dias!');
+}
+
+async function cancelarConta(escritorioId, userId, nome){
+  if(!confirm(`Cancelar e DELETAR a conta de "${nome}"?\n\nTodos os dados serão removidos e o email ficará livre para recadastro.\n\nEssa ação não pode ser desfeita.`))return;
+  const{data:{session}}=await db.auth.getSession();
+  const res=await fetch(`${SB_URL}/functions/v1/cancelar-conta`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
+    body:JSON.stringify({escritorio_id:escritorioId,user_id:userId})
+  });
+  const json=await res.json();
+  if(!res.ok){toast('Erro: '+(json.error||'Falha ao cancelar'));return;}
+  escritorios=escritorios.filter(e=>e.id!==escritorioId);
+  renderEscritorios();renderDash();
+  toast('Conta cancelada e email liberado para recadastro.');
 }
 
 async function suspender(id){
