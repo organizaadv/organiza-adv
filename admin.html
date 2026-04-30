@@ -305,10 +305,9 @@ async function loginAdmin(){
   document.getElementById('adm-err').textContent='';
   const{data,error}=await db.auth.signInWithPassword({email,password:senha});
   if(error||!data.user){document.getElementById('adm-err').textContent='Email ou senha incorretos.';return;}
-  const admins=['organizaadv81@gmail.com','monicableg01@gmail.com'];
-  if(!admins.includes(data.user.email)&&!data.user.email.endsWith('@organizaadv.com.br')){
+  if(data.user.email!==ADMIN_EMAIL){
     await db.auth.signOut();
-    document.getElementById('adm-err').textContent='Acesso nao autorizado.';
+    document.getElementById('adm-err').textContent='Acesso não autorizado.';
     return;
   }
   document.getElementById('auth-screen').style.display='none';
@@ -526,6 +525,8 @@ async function extenderTrial(id){
 }
 
 async function cancelarConta(escritorioId, userId, nome){
+  const{data:{session}}=await db.auth.getSession();
+  if(userId&&userId===session?.user?.id){toast('Não é possível cancelar a conta do administrador.');return;}
   if(!confirm(`Cancelar e DELETAR a conta de "${nome}"?\n\nTodos os dados serão removidos e o email ficará livre para recadastro.\n\nEssa ação não pode ser desfeita.`))return;
   const{data:{session}}=await db.auth.getSession();
   const res=await fetch(`${SB_URL}/functions/v1/cancelar-conta`,{
@@ -587,8 +588,7 @@ async function init(){
 
 window.addEventListener('load',async()=>{
   const{data:{session}}=await db.auth.getSession();
-  const adminsLoad=['organizaadv81@gmail.com','monicableg01@gmail.com'];
-  if(session&&(adminsLoad.includes(session.user.email)||session.user.email.endsWith('@organizaadv.com.br'))){
+  if(session&&session.user.email===ADMIN_EMAIL){
     document.getElementById('auth-screen').style.display='none';
     document.getElementById('sb-user-email').textContent=session.user.email;
     init();
