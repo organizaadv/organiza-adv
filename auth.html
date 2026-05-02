@@ -6,7 +6,6 @@
 <title>OrganizaADV — Entrar</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=tsInit" async defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
@@ -136,7 +135,6 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-sm
             </button>
           </div>
         </div>
-        <div id="ts-widget-login" style="margin-bottom:10px"></div>
         <button class="btn-sub primary" id="btn-login" onclick="login()">Entrar na minha conta</button>
         <div class="form-link" style="margin-top:20px">Ainda não tem conta? <button onclick="setTab('signup')">Testar grátis por 7 dias</button></div>
       </div>
@@ -156,7 +154,6 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-sm
           <label class="flabel">E-mail profissional <span style="color:#DC2626">*</span></label>
           <input class="finp" id="s-email" type="email" placeholder="seu@email.com.br" autocomplete="email"/>
         </div>
-        <div id="ts-widget-signup" style="margin-bottom:10px"></div>
         <button class="btn-sub trial" id="btn-signup" onclick="enviarCodigo()">Continuar →</button>
         <div class="hint" style="text-align:center;margin-top:10px">Enviaremos um código de verificação para o seu e-mail</div>
         <div class="form-link" style="margin-top:16px">Já tem conta? <button onclick="setTab('login')">Entrar</button></div>
@@ -224,7 +221,6 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-sm
           <label class="flabel">E-mail</label>
           <input class="finp" id="f-email" type="email" placeholder="seu@email.com.br"/>
         </div>
-        <div id="ts-widget-forgot" style="margin-bottom:10px"></div>
         <button class="btn-sub primary" id="btn-forgot" onclick="recuperar()">Enviar código</button>
         <div class="form-link" style="margin-top:16px"><button onclick="setTab('login')">← Voltar para o login</button></div>
       </div>
@@ -325,13 +321,11 @@ function setTab(t){
     if(tab)tab.classList.toggle('on',p===t);
   });
   ['login-err','signup-err'].forEach(id=>{const el=document.getElementById(id);if(el){el.classList.remove('show');el.textContent='';}});
-  if(t==='login'||t==='signup')tsRender(t);
 }
 
 function showForgot(){
   showOnly('panel-forgot');hideTabs();
   ['login','signup'].forEach(id=>{const tab=document.getElementById('tab-'+id);if(tab)tab.classList.remove('on');});
-  tsRender('forgot');
 }
 
 // ── UTILS ──
@@ -377,16 +371,14 @@ async function login(){
   if(!email){document.getElementById('l-email').classList.add('err');return;}
   if(!senha){document.getElementById('l-senha').classList.add('err');return;}
   if(!checkRL(email))return;
-  if(!tsCheck('login','login-err'))return;
   setLoading('btn-login',true,'');
   try{
-    const{error}=await db.auth.signInWithPassword({email,password:senha,options:{captchaToken:_tsTok.login}});
+    const{error}=await db.auth.signInWithPassword({email,password:senha});
     if(error)throw error;
     delete attempts[email];
     window.location.href='app.html';
   }catch(e){
     failRL(email);
-    tsReset('login');
     showErr('login-err','E-mail ou senha incorretos. Verifique e tente novamente.');
     document.getElementById('l-email').classList.add('err');
     document.getElementById('l-senha').classList.add('err');
@@ -402,10 +394,9 @@ async function enviarCodigo(){
   const email=document.getElementById('s-email').value.trim();
   if(!nome){document.getElementById('s-nome').classList.add('err');showErr('signup-err','Informe seu nome completo.');return;}
   if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){document.getElementById('s-email').classList.add('err');showErr('signup-err','Informe um e-mail válido.');return;}
-  if(!tsCheck('signup','signup-err'))return;
   setLoading('btn-signup',true,'');
   try{
-    const{error}=await db.auth.signInWithOtp({email,options:{shouldCreateUser:true,captchaToken:_tsTok.signup}});
+    const{error}=await db.auth.signInWithOtp({email,options:{shouldCreateUser:true}});
     if(error)throw error;
     setPV({nome,email,step:2});
     mostrarVerify(email);
@@ -558,7 +549,6 @@ async function recuperar(){
   clearMsg('forgot-err');
   const email=document.getElementById('f-email').value.trim();
   if(!email){document.getElementById('f-email').classList.add('err');return;}
-  if(!tsCheck('forgot','forgot-err'))return;
   setLoading('btn-forgot',true,'');
   try{
     const res=await fetch(`${SB_URL}/functions/v1/recovery-otp`,{
@@ -738,29 +728,6 @@ async function definirSenha(){
   window.location.href='app.html';
 }
 
-// ── TURNSTILE ──
-const TS_KEY='0x4AAAAAADGXpYm-u7kj6h8_';
-const _tsTok={login:null,signup:null,forgot:null};
-const _tsId={};
-function tsInit(){tsRender('login');}
-function tsRender(k){
-  if(_tsId[k]!==undefined)return;
-  const el=document.getElementById('ts-widget-'+k);
-  if(!el||typeof turnstile==='undefined')return;
-  _tsId[k]=turnstile.render(el,{
-    sitekey:TS_KEY,theme:'light',
-    callback:t=>{_tsTok[k]=t;},
-    'expired-callback':()=>{_tsTok[k]=null;}
-  });
-}
-function tsCheck(k,errId){
-  if(!_tsTok[k]){showErr(errId,'Complete a verificação de segurança.');return false;}
-  return true;
-}
-function tsReset(k){
-  _tsTok[k]=null;
-  if(_tsId[k]!==undefined&&typeof turnstile!=='undefined')try{turnstile.reset(_tsId[k]);}catch(e){}
-}
 
 // ── INICIALIZAÇÃO ──
 window.addEventListener('load',async()=>{
