@@ -1928,6 +1928,37 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
   </div>
 </div>
 
+<div class="mov" id="m-etapa-inicial">
+  <div class="mbox narrow">
+    <div class="mhead">
+      <div><div class="mtitle">Em qual etapa começa?</div><div class="msubt">O card vai direto para a coluna escolhida</div></div>
+      <button class="mx" onclick="closeM('m-etapa-inicial')">✕</button>
+    </div>
+    <div class="mbody" style="display:flex;flex-direction:column;gap:8px;">
+      <button class="btn btn-gh" style="text-align:left;justify-content:flex-start;gap:10px;padding:12px 14px;" onclick="_confirmarEtapaEConverter(0)">
+        <span style="font-size:18px">📋</span>
+        <div><div style="font-weight:600;font-size:13.5px;">Documentação</div><div style="font-size:12px;color:var(--tx3);margin-top:2px;">Cliente novo — assinar procuração e coletar documentos</div></div>
+      </button>
+      <button class="btn btn-gh" style="text-align:left;justify-content:flex-start;gap:10px;padding:12px 14px;" onclick="_confirmarEtapaEConverter(1)">
+        <span style="font-size:18px">⏳</span>
+        <div><div style="font-weight:600;font-size:13.5px;">Aguardando Docs</div><div style="font-size:12px;color:var(--tx3);margin-top:2px;">Documentos já solicitados, esperando retorno</div></div>
+      </button>
+      <button class="btn btn-gh" style="text-align:left;justify-content:flex-start;gap:10px;padding:12px 14px;" onclick="_confirmarEtapaEConverter(2)">
+        <span style="font-size:18px">🔍</span>
+        <div><div style="font-weight:600;font-size:13.5px;">Análise</div><div style="font-size:12px;color:var(--tx3);margin-top:2px;">Caso documentado — pesquisar e definir estratégia</div></div>
+      </button>
+      <button class="btn btn-gh" style="text-align:left;justify-content:flex-start;gap:10px;padding:12px 14px;" onclick="_confirmarEtapaEConverter(3)">
+        <span style="font-size:18px">⚖️</span>
+        <div><div style="font-weight:600;font-size:13.5px;">Pré-judicial</div><div style="font-size:12px;color:var(--tx3);margin-top:2px;">Acordo ou negociação antes de acionar a Justiça</div></div>
+      </button>
+      <button class="btn btn-gh" style="text-align:left;justify-content:flex-start;gap:10px;padding:12px 14px;" onclick="_confirmarEtapaEConverter(4)">
+        <span style="font-size:18px">✍️</span>
+        <div><div style="font-weight:600;font-size:13.5px;">Elaboração</div><div style="font-size:12px;color:var(--tx3);margin-top:2px;">Já pode peticionar — elaborar a peça</div></div>
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- ══ ONBOARDING ══ -->
@@ -2193,144 +2224,178 @@ const db=createClient(SB_URL,SB_KEY);
 
 // ── ETAPAS ──
 const ETAPAS_DEFAULT=[
-  {nome:'Recepção',label:'Recepção'},
-  {nome:'Consulta',label:'Consulta'},
-  {nome:'Petição',label:'Petição'},
+  {nome:'Documentação',label:'Documentação'},
+  {nome:'Aguardando Docs',label:'Aguardando Docs'},
+  {nome:'Análise',label:'Análise'},
+  {nome:'Pré-judicial',label:'Pré-judicial'},
+  {nome:'Elaboração',label:'Elaboração'},
   {nome:'Revisão',label:'Revisão'},
-  {nome:'Organização',label:'Organização'},
   {nome:'Protocolo',label:'Protocolo'},
+  {nome:'Concluído',label:'Concluído'},
 ];
 let ETAPAS=[...ETAPAS_DEFAULT];
 
 // ── TEMPLATES DE ATOS ──
 const TMPL={
   'Trabalhista':{
-    'Recepção':['Reunião inicial com o cliente','Coleta de documentos (CTPS, contracheques, TRCT)','Análise de admissibilidade da causa'],
-    'Consulta':['Avaliação do mérito da causa','Orientação jurídica ao cliente','Definição da estratégia processual'],
-    'Petição':['Pesquisa de jurisprudência no TRT','Elaboração da petição inicial','Revisão técnica da petição','Assinatura digital'],
-    'Revisão':['Revisão pelo advogado responsável','Correções e ajustes finais','Aprovação para protocolo'],
-    'Organização':['Organização do dossiê','Numeração e indexação das páginas'],
+    'Documentação':['Reunião inicial com o cliente','Assinatura de procuração e contrato de honorários','Coleta de documentos (CTPS, contracheques, TRCT, rescisão)'],
+    'Aguardando Docs':['Aguardando documentos solicitados ao cliente','Verificar pendências e cobrar retorno'],
+    'Análise':['Análise da admissibilidade da causa','Pesquisa de jurisprudência no TRT/TST','Definição da estratégia processual'],
+    'Pré-judicial':['Notificação extrajudicial ao empregador','Aguardo de resposta (tentativa de acordo)','Avaliação da proposta de acordo'],
+    'Elaboração':['Elaboração da petição inicial','Organização do dossiê e anexos','Numeração e indexação das páginas'],
+    'Revisão':['Revisão técnica da petição','Correções e ajustes finais','Aprovação para protocolo'],
     'Protocolo':['Protocolo no PJe','Registro do número do processo','Acompanhamento do despacho inicial'],
+    'Concluído':['Sentença transitada em julgado','Cumprimento de sentença / acordo homologado','Encerramento do arquivo'],
   },
   'Família':{
-    'Recepção':['Consulta inicial com as partes','Coleta de documentos pessoais','Análise do caso familiar'],
-    'Consulta':['Avaliação jurídica da situação','Orientação sobre direitos e deveres','Definição do pedido'],
-    'Petição':['Elaboração da petição inicial','Pesquisa de jurisprudência','Revisão da peça'],
+    'Documentação':['Reunião inicial com as partes','Assinatura de procuração','Coleta de documentos pessoais e certidões'],
+    'Aguardando Docs':['Aguardando documentos solicitados','Cobrar retorno do cliente'],
+    'Análise':['Avaliação jurídica da situação familiar','Orientação sobre direitos e deveres','Definição do pedido e estratégia'],
+    'Pré-judicial':['Tentativa de acordo extrajudicial','Mediação familiar se cabível'],
+    'Elaboração':['Elaboração da petição inicial','Organização dos documentos e dossiê'],
     'Revisão':['Revisão pelo responsável','Ajustes finais','Aprovação'],
-    'Organização':['Organização dos documentos','Preparação do dossiê'],
     'Protocolo':['Protocolo no cartório ou tribunal','Acompanhamento da distribuição'],
+    'Concluído':['Sentença ou acordo homologado','Encerramento'],
   },
   'Inventário':{
-    'Recepção':['Habilitação do espólio','Coleta de certidão de óbito','Levantamento dos herdeiros'],
-    'Consulta':['Avaliação dos bens do espólio','Orientação aos herdeiros','Definição do procedimento'],
-    'Petição':['Elaboração do inventário','Cálculo do ITCMD','Avaliação judicial dos bens'],
+    'Documentação':['Habilitação do espólio','Coleta de certidão de óbito','Levantamento e documentação dos herdeiros'],
+    'Aguardando Docs':['Aguardando certidões e matrículas de bens','Cobrar pendências'],
+    'Análise':['Avaliação dos bens do espólio','Cálculo do ITCMD','Orientação aos herdeiros sobre procedimento'],
+    'Pré-judicial':['Tentativa de partilha amigável','Lavratura de escritura pública se extrajudicial'],
+    'Elaboração':['Elaboração do inventário judicial','Minuta de partilha'],
     'Revisão':['Revisão da partilha','Concordância dos herdeiros','Aprovação final'],
-    'Organização':['Organização do processo','Preparação para homologação'],
     'Protocolo':['Protocolo','Homologação judicial','Registro em cartório'],
+    'Concluído':['Partilha registrada','Encerramento do espólio'],
   },
   'Divórcio':{
-    'Recepção':['Consulta inicial do casal','Coleta de certidão de casamento','Levantamento dos bens comuns'],
-    'Consulta':['Avaliação do regime de bens','Orientação jurídica','Proposta de acordo ou litigiosa'],
-    'Petição':['Elaboração da petição de divórcio','Minuta de partilha','Revisão'],
+    'Documentação':['Coleta de certidão de casamento','Documentos pessoais do casal','Levantamento dos bens comuns'],
+    'Aguardando Docs':['Aguardando documentos solicitados'],
+    'Análise':['Avaliação do regime de bens','Orientação jurídica','Definição: consensual ou litigioso'],
+    'Pré-judicial':['Proposta de acordo entre as partes','Minuta de partilha extrajudicial'],
+    'Elaboração':['Elaboração da petição de divórcio','Minuta de partilha judicial'],
     'Revisão':['Revisão pelo responsável','Ajustes no acordo','Aprovação das partes'],
-    'Organização':['Organização do processo'],
     'Protocolo':['Protocolo no cartório ou tribunal'],
+    'Concluído':['Divórcio decretado','Partilha concluída','Encerramento'],
   },
   'Consumidor':{
-    'Recepção':['Consulta inicial com o cliente','Coleta de documentos do escritório','Coleta de documentos do cliente (notas fiscais, contratos, fotos)'],
-    'Consulta':['Análise do caso e viabilidade da demanda','Orientação jurídica ao cliente','Definição da estratégia (extrajudicial ou judicial)'],
-    'Petição':['Notificação extrajudicial ao fornecedor','Aguardo da resposta à notificação (15 dias)','Elaboração da petição inicial','Pesquisa de jurisprudência no TJBA/STJ'],
+    'Documentação':['Reunião inicial com o cliente','Coleta de notas fiscais, contratos e fotos','Assinatura de procuração'],
+    'Aguardando Docs':['Aguardando documentos solicitados ao cliente'],
+    'Análise':['Análise do caso e viabilidade da demanda','Definição da estratégia (extrajudicial ou judicial)'],
+    'Pré-judicial':['Notificação extrajudicial ao fornecedor','Aguardo da resposta (15 dias)','Avaliação de acordo'],
+    'Elaboração':['Elaboração da petição inicial','Pesquisa de jurisprudência no TJBA/STJ','Organização dos anexos e provas'],
     'Revisão':['Revisão técnica da peça','Ajustes e correções finais','Aprovação para protocolo'],
-    'Organização':['Organização do dossiê','Preparação dos anexos e provas'],
-    'Protocolo':['Protocolo no Juizado ou Vara Cível','Audiência de conciliação','Instrução processual','Acompanhamento da sentença','Encerramento do caso'],
+    'Protocolo':['Protocolo no Juizado ou Vara Cível','Audiência de conciliação'],
+    'Concluído':['Instrução processual','Sentença','Encerramento do caso'],
   },
   'Previdenciário':{
-    'Recepção':['Consulta inicial com o cliente','Coleta de documentos do escritório','Coleta de documentos do cliente (CNIS, CTPS, laudos médicos)'],
-    'Consulta':['Organização da pasta do cliente','Análise do CNIS e tempo de contribuição','Definição da estratégia (via administrativa ou judicial)'],
-    'Petição':['Requerimento administrativo ao INSS','Elaboração de recurso administrativo (se indeferido)','Elaboração da petição judicial (se necessário)','Pesquisa de precedentes no TRF e STJ'],
+    'Documentação':['Reunião inicial com o cliente','Coleta de CNIS, CTPS e laudos médicos','Assinatura de procuração'],
+    'Aguardando Docs':['Aguardando documentos do INSS ou do cliente'],
+    'Análise':['Análise do CNIS e tempo de contribuição','Definição da estratégia (administrativa ou judicial)'],
+    'Pré-judicial':['Requerimento administrativo ao INSS','Recurso administrativo se indeferido'],
+    'Elaboração':['Elaboração da petição judicial','Pesquisa de precedentes no TRF e STJ'],
     'Revisão':['Revisão técnica da peça','Ajustes e correções','Aprovação para protocolo'],
-    'Organização':['Organização do processo','Preparação da documentação para protocolo'],
-    'Protocolo':['Protocolo no INSS ou na Justiça Federal','Aguardo da decisão administrativa','Instrução judicial','Sentença','Implantação do benefício','Encerramento'],
+    'Protocolo':['Protocolo na Justiça Federal','Instrução judicial'],
+    'Concluído':['Sentença','Implantação do benefício','Encerramento'],
   },
   'Eleitoral':{
-    'Recepção':['Consulta inicial de urgência','Coleta de documentos do escritório','Coleta de documentos do cliente'],
-    'Consulta':['Estudo do caso e verificação imediata de prazos eleitorais','Definição urgente da estratégia eleitoral'],
-    'Petição':['Elaboração da peça eleitoral (prazo curtíssimo)','Pesquisa de jurisprudência no TRE/TSE'],
+    'Documentação':['Consulta inicial de urgência','Coleta de documentos do cliente'],
+    'Aguardando Docs':['Aguardando documentos solicitados'],
+    'Análise':['Estudo do caso e verificação imediata de prazos eleitorais','Definição urgente da estratégia'],
+    'Pré-judicial':['Notificação ou impugnação extrajudicial se cabível'],
+    'Elaboração':['Elaboração da peça eleitoral (prazo curtíssimo)','Pesquisa de jurisprudência no TRE/TSE'],
     'Revisão':['Revisão urgente da peça','Aprovação imediata para protocolo'],
-    'Organização':['Organização da documentação eleitoral'],
-    'Protocolo':['Protocolo no TRE/TSE','Aguardo da decisão','Elaboração e protocolo de recurso','Encerramento'],
+    'Protocolo':['Protocolo no TRE/TSE','Aguardo da decisão'],
+    'Concluído':['Decisão final','Recurso se necessário','Encerramento'],
   },
   'Criminal':{
-    'Recepção':['Consulta inicial com o cliente ou familiar','Coleta de BO e auto de prisão em flagrante','Coleta de documentos pessoais do cliente'],
-    'Consulta':['Organização da pasta criminal','Estudo do caso e definição da estratégia de defesa','Diligências preliminares (testemunhas, laudos periciais)'],
-    'Petição':['Elaboração da peça de defesa','Pesquisa de jurisprudência criminal','Habeas corpus se necessário'],
+    'Documentação':['Reunião com o cliente ou familiar','Coleta de BO e auto de prisão','Coleta de documentos pessoais'],
+    'Aguardando Docs':['Aguardando documentos solicitados'],
+    'Análise':['Estudo do caso e definição da estratégia de defesa','Diligências preliminares (testemunhas, laudos periciais)'],
+    'Pré-judicial':['Negociação de acordo ou colaboração premiada se cabível','Habeas corpus preventivo se necessário'],
+    'Elaboração':['Elaboração da peça de defesa','Pesquisa de jurisprudência criminal'],
     'Revisão':['Revisão técnica da peça','Ajustes e correções','Aprovação para protocolo'],
-    'Organização':['Organização do processo criminal','Preparação para audiência de instrução'],
-    'Protocolo':['Protocolo','Aguardo da decisão','Audiência de instrução','Alegações finais','Sentença','Recurso se necessário','Encerramento'],
+    'Protocolo':['Protocolo','Audiência de instrução','Alegações finais'],
+    'Concluído':['Sentença','Recurso se necessário','Encerramento'],
   },
   'Tributário':{
-    'Recepção':['Consulta inicial com o cliente','Coleta de documentos do escritório','Coleta de certidões de débito e autos de infração'],
-    'Consulta':['Organização da pasta tributária','Estudo fiscal e análise dos débitos/autuações','Definição da estratégia (administrativo ou judicial)'],
-    'Petição':['Elaboração da impugnação administrativa','Elaboração da petição judicial (se necessário)','Pesquisa de precedentes no CARF e STJ'],
+    'Documentação':['Reunião inicial com o cliente','Coleta de certidões de débito e autos de infração'],
+    'Aguardando Docs':['Aguardando documentos da Receita ou do cliente'],
+    'Análise':['Estudo fiscal e análise dos débitos/autuações','Definição da estratégia (administrativo ou judicial)'],
+    'Pré-judicial':['Impugnação administrativa','Recurso ao CARF se indeferido'],
+    'Elaboração':['Elaboração da petição judicial','Pesquisa de precedentes no CARF e STJ'],
     'Revisão':['Revisão técnica da peça','Ajustes e correções','Aprovação para protocolo'],
-    'Organização':['Organização do dossiê tributário'],
-    'Protocolo':['Protocolo na Receita Federal, SEFAZ ou tribunal','Aguardo da resposta administrativa','Instrução judicial','Sentença','Encerramento'],
+    'Protocolo':['Protocolo na Receita Federal, SEFAZ ou tribunal'],
+    'Concluído':['Instrução judicial','Sentença','Encerramento'],
   },
   'Empresarial':{
-    'Recepção':['Consulta inicial com o cliente','Coleta de documentos do escritório','Coleta de contrato social, registros e documentos empresariais'],
-    'Consulta':['Organização da pasta empresarial','Estudo do caso e análise societária/contratual','Definição da estratégia'],
-    'Petição':['Elaboração do documento empresarial (contrato, parecer ou petição)','Pesquisa de legislação empresarial aplicável'],
+    'Documentação':['Reunião inicial com o cliente','Coleta de contrato social, registros e documentos empresariais'],
+    'Aguardando Docs':['Aguardando documentos solicitados'],
+    'Análise':['Estudo do caso e análise societária/contratual','Definição da estratégia'],
+    'Pré-judicial':['Notificação extrajudicial à contraparte','Tentativa de acordo ou negociação'],
+    'Elaboração':['Elaboração do documento empresarial (contrato, parecer ou petição)','Pesquisa de legislação empresarial'],
     'Revisão':['Revisão técnica do documento','Ajustes e correções','Aprovação pelas partes'],
-    'Organização':['Assinatura e formalização do documento','Autenticação e reconhecimento de firma se necessário'],
-    'Protocolo':['Protocolo na Junta Comercial ou entrega às partes','Aguardo da resposta ou registro','Instrução judicial se litigioso','Sentença se litigioso','Encerramento'],
+    'Protocolo':['Protocolo na Junta Comercial ou entrega às partes'],
+    'Concluído':['Registro ou sentença','Encerramento'],
   },
   'Imobiliário':{
-    'Recepção':['Consulta inicial com o cliente','Coleta de matrícula do imóvel e contratos','Coleta de documentos do escritório e das partes'],
-    'Consulta':['Organização da pasta imobiliária','Estudo do caso e análise jurídica do imóvel','Busca de jurisprudência imobiliária'],
-    'Petição':['Elaboração da peça processual ou contrato','Pesquisa de legislação imobiliária e registral'],
+    'Documentação':['Reunião inicial com o cliente','Coleta de matrícula do imóvel e contratos'],
+    'Aguardando Docs':['Aguardando certidões e documentos do imóvel'],
+    'Análise':['Estudo do caso e análise jurídica do imóvel','Busca de jurisprudência imobiliária'],
+    'Pré-judicial':['Notificação extrajudicial','Tentativa de acordo'],
+    'Elaboração':['Elaboração da peça processual ou contrato','Pesquisa de legislação imobiliária e registral'],
     'Revisão':['Revisão técnica da peça ou contrato','Ajustes e correções','Aprovação das partes'],
-    'Organização':['Organização do dossiê imobiliário','Preparação para protocolo ou cartório'],
-    'Protocolo':['Protocolo judicial ou registro em cartório','Aguardo do despacho ou análise','Audiência se necessário','Sentença ou registro do imóvel','Encerramento'],
+    'Protocolo':['Protocolo judicial ou registro em cartório'],
+    'Concluído':['Sentença ou registro do imóvel','Encerramento'],
   },
   'Administrativo':{
-    'Recepção':['Consulta inicial com o cliente','Coleta de documentos do escritório','Coleta de documentos do cliente (atos administrativos, contratos)'],
-    'Consulta':['Organização da pasta administrativa','Estudo do caso e análise do ato impugnado','Definição da estratégia'],
-    'Petição':['Elaboração do recurso administrativo','Elaboração da petição judicial (se necessário)','Pesquisa de precedentes nos tribunais'],
+    'Documentação':['Reunião inicial com o cliente','Coleta de atos administrativos e contratos'],
+    'Aguardando Docs':['Aguardando documentos do órgão ou do cliente'],
+    'Análise':['Estudo do caso e análise do ato impugnado','Definição da estratégia'],
+    'Pré-judicial':['Recurso administrativo','Aguardo da decisão do órgão'],
+    'Elaboração':['Elaboração da petição judicial','Pesquisa de precedentes nos tribunais'],
     'Revisão':['Revisão técnica da peça','Ajustes e correções','Aprovação para protocolo'],
-    'Organização':['Organização do processo administrativo'],
-    'Protocolo':['Protocolo no órgão ou tribunal','Aguardo da resposta administrativa','Instrução judicial','Sentença','Encerramento'],
+    'Protocolo':['Protocolo no órgão ou tribunal'],
+    'Concluído':['Instrução judicial','Sentença','Encerramento'],
   },
   'Ambiental':{
-    'Recepção':['Consulta inicial com o cliente','Coleta de autos de infração e licenças ambientais','Coleta de documentos do cliente'],
-    'Consulta':['Organização da pasta ambiental','Estudo do caso e análise da infração ou dano ambiental','Definição da estratégia'],
-    'Petição':['Elaboração da defesa administrativa','Elaboração da petição judicial (se necessário)','Pesquisa de legislação ambiental (Lei 9.605/98 e outras)'],
+    'Documentação':['Reunião inicial com o cliente','Coleta de autos de infração e licenças ambientais'],
+    'Aguardando Docs':['Aguardando documentos do órgão ambiental ou do cliente'],
+    'Análise':['Estudo do caso e análise da infração ou dano','Definição da estratégia'],
+    'Pré-judicial':['Defesa administrativa','Recursos ao órgão ambiental'],
+    'Elaboração':['Elaboração da petição judicial','Pesquisa de legislação ambiental (Lei 9.605/98 e outras)'],
     'Revisão':['Revisão técnica da peça','Ajustes e correções','Aprovação para protocolo'],
-    'Organização':['Organização do processo ambiental'],
-    'Protocolo':['Protocolo no órgão ambiental ou tribunal','Aguardo da resposta','Instrução judicial','Sentença','Encerramento'],
+    'Protocolo':['Protocolo no órgão ambiental ou tribunal'],
+    'Concluído':['Instrução judicial','Sentença','Encerramento'],
   },
   'Digital':{
-    'Recepção':['Consulta inicial com o cliente','Coleta de prints, URLs e registros digitais','Coleta de documentos do escritório'],
-    'Consulta':['Organização da pasta digital','Estudo do caso (remoção de conteúdo, crimes digitais, LGPD)','Definição da estratégia'],
-    'Petição':['Notificação à plataforma ou provedor','Elaboração da petição judicial após prazo sem resposta','Pesquisa de jurisprudência em direito digital'],
+    'Documentação':['Reunião inicial com o cliente','Coleta de prints, URLs e registros digitais'],
+    'Aguardando Docs':['Aguardando documentos e evidências digitais do cliente'],
+    'Análise':['Estudo do caso (remoção de conteúdo, crimes digitais, LGPD)','Definição da estratégia'],
+    'Pré-judicial':['Notificação à plataforma ou provedor','Aguardo da resposta'],
+    'Elaboração':['Elaboração da petição judicial','Pesquisa de jurisprudência em direito digital','Preservação e autenticação de provas digitais'],
     'Revisão':['Revisão técnica da peça','Ajustes e correções','Aprovação para protocolo'],
-    'Organização':['Organização do processo digital','Preservação e autenticação de provas digitais'],
-    'Protocolo':['Protocolo','Aguardo da resposta da plataforma ou decisão judicial','Instrução judicial','Sentença','Encerramento'],
+    'Protocolo':['Protocolo','Instrução judicial'],
+    'Concluído':['Sentença','Encerramento'],
   },
   'Médico':{
-    'Recepção':['Consulta inicial com o cliente','Coleta de prontuários e laudos médicos','Coleta de documentos do escritório'],
-    'Consulta':['Organização da pasta médica','Estudo do caso e análise técnica com perito','Notificação extrajudicial ao responsável'],
-    'Petição':['Requerimento de perícia técnica médica','Elaboração da petição inicial','Pesquisa de jurisprudência em responsabilidade médica'],
+    'Documentação':['Reunião inicial com o cliente','Coleta de prontuários e laudos médicos'],
+    'Aguardando Docs':['Aguardando prontuários ou laudos periciais'],
+    'Análise':['Estudo do caso e análise técnica com perito','Avaliação da viabilidade da ação'],
+    'Pré-judicial':['Notificação extrajudicial ao responsável','Tentativa de acordo'],
+    'Elaboração':['Requerimento de perícia técnica médica','Elaboração da petição inicial','Pesquisa de jurisprudência em responsabilidade médica'],
     'Revisão':['Revisão técnica da peça','Ajustes e correções','Aprovação para protocolo'],
-    'Organização':['Organização do dossiê médico','Preparação dos laudos e documentação técnica'],
-    'Protocolo':['Protocolo','Instrução e perícia judicial','Laudo pericial','Sentença','Encerramento'],
+    'Protocolo':['Protocolo','Instrução e perícia judicial'],
+    'Concluído':['Laudo pericial','Sentença','Encerramento'],
   },
   'default':{
-    'Recepção':['Consulta inicial com o cliente','Coleta de documentos','Análise de admissibilidade'],
-    'Consulta':['Avaliação jurídica','Orientação ao cliente','Definição da estratégia'],
-    'Petição':['Pesquisa jurídica','Elaboração do documento','Revisão técnica'],
+    'Documentação':['Reunião inicial com o cliente','Coleta de documentos','Assinatura de procuração'],
+    'Aguardando Docs':['Aguardando documentos solicitados'],
+    'Análise':['Avaliação jurídica do caso','Orientação ao cliente','Definição da estratégia'],
+    'Pré-judicial':['Tentativa extrajudicial de resolução'],
+    'Elaboração':['Pesquisa jurídica','Elaboração do documento ou petição'],
     'Revisão':['Revisão pelo responsável','Ajustes finais','Aprovação'],
-    'Organização':['Organização do processo'],
     'Protocolo':['Protocolo','Registro','Acompanhamento'],
+    'Concluído':['Encerramento do caso'],
   }
 };
 
@@ -6102,9 +6167,11 @@ function converterAtendimento(){
   closeM('m-det-atend');
   openM('m-converter-cliente');
 }
+let _clienteIdConversao=null;
 function pularCadastroCliente(){
   closeM('m-converter-cliente');
-  _executarConversaoDemanda(null);
+  _clienteIdConversao=null;
+  openM('m-etapa-inicial');
 }
 async function cadastrarClienteEConverter(){
   const a=atendimentos.find(x=>x.id===atDetId);
@@ -6156,9 +6223,14 @@ async function salvarClienteEAbrirDemanda(){
   document.getElementById('nc-btn-salvar').textContent='Salvar cliente';
   closeM('m-novo-cliente');
   toast('Cliente cadastrado!');
-  await _executarConversaoDemanda(novoCliente.id);
+  _clienteIdConversao=novoCliente.id;
+  openM('m-etapa-inicial');
 }
-async function _executarConversaoDemanda(clienteId){
+function _confirmarEtapaEConverter(etapaIdx){
+  closeM('m-etapa-inicial');
+  _executarConversaoDemanda(_clienteIdConversao,etapaIdx);
+}
+async function _executarConversaoDemanda(clienteId,etapaIdx){
   const a=atendimentos.find(x=>x.id===atDetId);
   if(!a)return;
   const{data:d,error}=await db.from('demandas_escritorio').insert([{
@@ -6171,7 +6243,7 @@ async function _executarConversaoDemanda(clienteId){
     tipo:a.tipo||null,
     obs:a.assunto||null,
     responsavel:a.responsavel||null,
-    etapa_atual:0,
+    etapa_atual:etapaIdx||0,
     status:'Em andamento',
     data:hoje(),
     criado_por:userAtual||null
