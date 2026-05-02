@@ -2711,7 +2711,7 @@ function renderSBInfo(){
   const sbPowered=document.getElementById('sb-powered');
   if(sbMark){
     if(escData.logo_url){
-      sbMark.innerHTML=`<img src="${escData.logo_url}" style="max-height:72px;max-width:200px;object-fit:contain;display:block;margin-bottom:6px;" alt="${escData.nome||''}"/>`;
+      sbMark.innerHTML=`<img src="${escData.logo_url}" style="max-height:80px;max-width:100%;width:100%;object-fit:contain;object-position:left;display:block;margin-bottom:6px;" alt="${escData.nome||''}"/>`;
       if(sbPowered)sbPowered.style.display='block';
     }else{
       sbMark.innerHTML=`<div class="sb-mark">Organiza<span>ADV</span></div>`;
