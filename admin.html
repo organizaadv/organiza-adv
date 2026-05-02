@@ -536,7 +536,6 @@ async function cancelarConta(escritorioId, userId, nome){
   const{data:{session}}=await db.auth.getSession();
   if(userId&&userId===session?.user?.id){toast('Não é possível cancelar a conta do administrador.');return;}
   if(!confirm(`Cancelar e DELETAR a conta de "${nome}"?\n\nTodos os dados serão removidos e o email ficará livre para recadastro.\n\nEssa ação não pode ser desfeita.`))return;
-  const{data:{session}}=await db.auth.getSession();
   const res=await fetch(`${SB_URL}/functions/v1/cancelar-conta`,{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
