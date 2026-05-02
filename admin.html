@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>OrganizaADV — Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
+<script>window.addEventListener('error',function(e){console.error('JS Error:',e.message,e.filename,e.lineno);});</script>
 <style>
 :root{--ink:#0D0F1A;--gold:#C9A84C;--gold2:#E2C470;--gold-bg:#FDF8ED;--cream:#FAF9F5;--white:#fff;--gray:#64748B;--gray-light:#E2E8F0;--gray-bg:#F8FAFC;--green:#16A34A;--green-bg:#F0FDF4;--red:#DC2626;--red-bg:#FEF2F2;--amber:#D97706;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -287,6 +288,7 @@ tbody td{padding:13px 16px;font-size:13px;color:var(--ink);vertical-align:middle
 const SB_URL='https://cfoastlckbscoggiiqlr.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmb2FzdGxja2JzY29nZ2lpcWxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NTIwODYsImV4cCI6MjA5MTIyODA4Nn0.sJPwSXCTE8xkC8vxz69kxs_ViWDvmOZGS1UctORuZRA';
 const ADMIN_EMAIL='organizaadv81@gmail.com';
+if(typeof supabase==='undefined'){document.getElementById('adm-err').textContent='Erro ao carregar biblioteca. Verifique sua conexão e recarregue a página.';throw new Error('supabase not loaded');}
 const{createClient}=supabase;
 const db=createClient(SB_URL,SB_KEY);
 
