@@ -519,8 +519,7 @@ async function converterPlano(id,novoPlano){
 
 async function extenderTrial(id){
   const e=escritorios.find(x=>x.id===id);if(!e)return;
-  const tfim=trialFimEsc(e);
-  const atual=new Date(tfim||new Date());
+  const atual=new Date();
   atual.setDate(atual.getDate()+7);
   const novoVal=atual.toISOString();
   const updates={trial_fim:novoVal};
