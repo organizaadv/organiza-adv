@@ -561,11 +561,6 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       Tribunal &amp; IA
       <span class="ni-badge" id="n-notif-badge" style="display:none">0</span>
     </div>
-    <div class="ni" id="n-pub" onclick="showView('pub')">
-      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><path d="M12 5A4 4 0 004 5c0 5-2 6-2 6h12s-2-1-2-6"/><path d="M9.15 14a2 2 0 01-2.3 0"/></svg>
-      Publicações
-      <span class="ni-badge" id="n-pub-badge" style="display:none">0</span>
-    </div>
     <div class="ni" id="n-diario" onclick="showView('diario')" style="display:none">
       <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><path d="M2 2h12v12H2z"/><path d="M5 2v12M2 6h3M2 10h3M8 5h4M8 8h4M8 11h2"/></svg>
       Diário Oficial
@@ -755,30 +750,6 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
     </div>
 
     <!-- PUBLICAÇÕES -->
-    <div id="v-pub" style="display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-        <div class="fbar" style="margin-bottom:0">
-          <button class="fc on" data-pubf="todos" onclick="setFiltroPub(this)">Todas</button>
-          <button class="fc" data-pubf="tribunal" onclick="setFiltroPub(this)">Tribunal</button>
-          <button class="fc" data-pubf="diario" onclick="setFiltroPub(this)">Diário Oficial</button>
-          <button class="fc" data-pubf="pendentes" onclick="setFiltroPub(this)">Pendentes</button>
-          <button class="fc" data-pubf="lidas" onclick="setFiltroPub(this)">Lidas</button>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <button class="btn btn-gh btn-sm" onclick="novaPublicacao()">+ Registrar manual</button>
-          <button class="btn btn-p" id="btn-buscar-pub" onclick="buscarPorNome()">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
-            Buscar agora
-          </button>
-        </div>
-      </div>
-      <div id="pub-status-bar" class="pub-status-bar" style="display:none">
-        <span class="spin" style="border-color:var(--bd2);border-top-color:var(--gd)"></span>
-        <span id="pub-status-txt">Buscando publicações...</span>
-      </div>
-      <div id="pub-lista"></div>
-    </div>
-
     <!-- AGENDA -->
     <div id="v-agenda" style="display:none">
       <div class="fbar" id="ag-topbar">
@@ -2792,8 +2763,8 @@ function initRespSel(){
 }
 
 // ── VIEWS ──
-const VIEWS=['kanban','demandas','processos','clientes','atendimentos','pub','agenda','diario','notif','equipe','relatorio','fin','cfg'];
-const VTITLES={kanban:'Fluxo de trabalho',demandas:'Demandas',processos:'Processos',clientes:'Carteira de Clientes',atendimentos:'Atendimentos',pub:'Publicações',agenda:'Agenda',diario:'Diário Oficial',notif:'Tribunal & IA',equipe:'Advogados e colaboradores',relatorio:'Relatórios',fin:'Contratos & Pagamentos',cfg:'Configurações'};
+const VIEWS=['kanban','demandas','processos','clientes','atendimentos','agenda','diario','notif','equipe','relatorio','fin','cfg'];
+const VTITLES={kanban:'Fluxo de trabalho',demandas:'Demandas',processos:'Processos',clientes:'Carteira de Clientes',atendimentos:'Atendimentos',agenda:'Agenda',diario:'Diário Oficial',notif:'Tribunal & IA',equipe:'Advogados e colaboradores',relatorio:'Relatórios',fin:'Contratos & Pagamentos',cfg:'Configurações'};
 function showView(v){
   // bloqueia views por permissão
   if(v==='fin'&&!temPermissao('ver_financeiro')){toast('Sem permissão para acessar o financeiro.','te');return;}
@@ -2807,14 +2778,13 @@ function showView(v){
   document.getElementById('view-title').textContent=VTITLES[v]||v;
   // oculta busca global nas abas que têm busca própria
   const bgWrap=document.querySelector('.topbar .tb-right > div[style*="relative"]')||document.getElementById('busca-global')?.parentElement;
-  if(bgWrap)bgWrap.style.display=['clientes','atendimentos','demandas','fin'].includes(v)?'none':'';
+  if(bgWrap)bgWrap.style.display=['clientes','atendimentos','demandas','fin','processos'].includes(v)?'none':'';
 
   if(v==='kanban')renderKanban();
   if(v==='demandas')renderLista();
   if(v==='processos')renderProcessos();
   if(v==='clientes')renderClientes();
   if(v==='atendimentos')renderAtendimentos();
-  if(v==='pub'){renderPublicacoes();if(!pubBuscado){pubBuscado=true;buscarPorNome();}}
   if(v==='agenda'){
     if(!agendaDiaSel)agendaDiaSel=new Date().toISOString().split('T')[0];
     renderAgenda();
