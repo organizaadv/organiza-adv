@@ -1342,6 +1342,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
 
     </div>
     <div class="mfoot">
+      <button class="btn btn-danger" onclick="confirmarExcluirCliente()">Excluir cliente</button>
       <div class="mfoot-r">
         <button class="btn btn-p" onclick="abrirNovaDemandaCliente()" id="cli-btn-nova">+ Nova demanda para este cliente</button>
         <button class="btn btn-gh" onclick="closeM('m-cliente')">Fechar</button>
@@ -2443,7 +2444,7 @@ function getAtosTemplate(tipo,etapa){
 }
 
 // ── ESTADO ──
-let demandas=[],colabs=[],convitesPendentes=[],escData={},userAtual=null,usuarioAtual=null,filtroAtivo='todos',filtroFinAtivo='todos',detId=null,quickAvId=null;
+let demandas=[],colabs=[],convitesPendentes=[],escData={},userAtual=null,usuarioAtual=null,filtroAtivo='todos',filtroFinAtivo='todos',detId=null,quickAvId=null,cliDetId=null;
 let sortDem={col:null,asc:true},sortCli={col:null,asc:true};
 let finLanc=[],finDetId=null,notifs=[],notifNextId=1;
 
@@ -3353,6 +3354,7 @@ function renderClientes(){
 function abrirPerfilCliente(cliId){
   const c=clientes.find(x=>x.id===cliId);
   if(!c)return;
+  cliDetId=cliId;
   const nome=c.nome;
   const demandasCli=demandas.filter(d=>d.cliente_id===cliId||d.nome===nome).sort((a,b)=>(calcPrazo(a.prazo)??999)-(calcPrazo(b.prazo)??999));
 
@@ -3402,6 +3404,27 @@ function abrirDetDoCliente(id){
   closeM('m-cliente');
   detId=id;
   abrirDet(id);
+}
+function confirmarExcluirCliente(){
+  const c=clientes.find(x=>x.id===cliDetId);
+  if(!c)return;
+  if(!confirm(`Tem certeza que deseja excluir ${c.nome} e todas as suas demandas? Esta ação não pode ser desfeita.`))return;
+  excluirCliente();
+}
+async function excluirCliente(){
+  const c=clientes.find(x=>x.id===cliDetId);
+  if(!c)return;
+  const{error:e1}=await db.from('demandas_escritorio').delete().eq('cliente_id',cliDetId);
+  if(e1){toast('Erro ao excluir demandas: '+e1.message,'te');return;}
+  const{error:e2}=await db.from('clientes').delete().eq('id',cliDetId);
+  if(e2){toast('Erro ao excluir cliente: '+e2.message,'te');return;}
+  demandas=demandas.filter(d=>d.cliente_id!==cliDetId);
+  clientes=clientes.filter(x=>x.id!==cliDetId);
+  cliDetId=null;
+  closeM('m-cliente');
+  renderClientes();
+  renderKanban();
+  toast('Cliente excluído.');
 }
 
 function abrirNovaDemandaCliente(cliId='',nome='',tel='',email='',cpf=''){
