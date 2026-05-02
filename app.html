@@ -2805,6 +2805,10 @@ function showView(v){
   });
   const n=document.getElementById('n-'+v);if(n)n.classList.add('on');
   document.getElementById('view-title').textContent=VTITLES[v]||v;
+  // oculta busca global nas abas que têm busca própria
+  const bgWrap=document.querySelector('.topbar .tb-right > div[style*="relative"]')||document.getElementById('busca-global')?.parentElement;
+  if(bgWrap)bgWrap.style.display=['clientes','atendimentos','demandas','fin'].includes(v)?'none':'';
+
   if(v==='kanban')renderKanban();
   if(v==='demandas')renderLista();
   if(v==='processos')renderProcessos();
