@@ -595,6 +595,7 @@ async function init(){
 }
 
 window.addEventListener('load',async()=>{
+  if(!db)return;
   const{data:{session}}=await db.auth.getSession();
   if(session&&session.user.email===ADMIN_EMAIL){
     document.getElementById('auth-screen').style.display='none';
