@@ -6,7 +6,7 @@
 <title>OrganizaADV — Entrar</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=tsInit" async defer></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
@@ -136,7 +136,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-sm
             </button>
           </div>
         </div>
-        <div id="ts-login" style="margin-bottom:10px"></div>
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAADGXpYm-u7kj6h8_" data-callback="tsLoginOk" data-expired-callback="tsLoginExp" data-theme="light" style="margin-bottom:10px"></div>
         <button class="btn-sub primary" id="btn-login" onclick="login()">Entrar na minha conta</button>
         <div class="form-link" style="margin-top:20px">Ainda não tem conta? <button onclick="setTab('signup')">Testar grátis por 7 dias</button></div>
       </div>
@@ -156,7 +156,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-sm
           <label class="flabel">E-mail profissional <span style="color:#DC2626">*</span></label>
           <input class="finp" id="s-email" type="email" placeholder="seu@email.com.br" autocomplete="email"/>
         </div>
-        <div id="ts-signup" style="margin-bottom:10px"></div>
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAADGXpYm-u7kj6h8_" data-callback="tsSignupOk" data-expired-callback="tsSignupExp" data-theme="light" style="margin-bottom:10px"></div>
         <button class="btn-sub trial" id="btn-signup" onclick="enviarCodigo()">Continuar →</button>
         <div class="hint" style="text-align:center;margin-top:10px">Enviaremos um código de verificação para o seu e-mail</div>
         <div class="form-link" style="margin-top:16px">Já tem conta? <button onclick="setTab('login')">Entrar</button></div>
@@ -224,7 +224,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-sm
           <label class="flabel">E-mail</label>
           <input class="finp" id="f-email" type="email" placeholder="seu@email.com.br"/>
         </div>
-        <div id="ts-forgot" style="margin-bottom:10px"></div>
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAADGXpYm-u7kj6h8_" data-callback="tsForgotOk" data-expired-callback="tsForgotExp" data-theme="light" style="margin-bottom:10px"></div>
         <button class="btn-sub primary" id="btn-forgot" onclick="recuperar()">Enviar código</button>
         <div class="form-link" style="margin-top:16px"><button onclick="setTab('login')">← Voltar para o login</button></div>
       </div>
@@ -737,28 +737,20 @@ async function definirSenha(){
 }
 
 // ── TURNSTILE ──
-const TS_KEY='0x4AAAAAADGXpYm-u7kj6h8_';
-const _tsIds={};const _tsTok={};
-function tsInit(){
-  ['login','signup','forgot'].forEach(k=>{
-    const el=document.getElementById('ts-'+k);
-    if(!el||_tsIds[k]!==undefined)return;
-    _tsIds[k]=turnstile.render('#ts-'+k,{
-      sitekey:TS_KEY,
-      size:'flexible',
-      theme:'light',
-      callback:t=>{_tsTok[k]=t;},
-      'expired-callback':()=>{_tsTok[k]=null;}
-    });
-  });
-}
-function tsReset(k){
-  _tsTok[k]=null;
-  if(_tsIds[k]!==undefined)try{turnstile.reset(_tsIds[k]);}catch(e){}
-}
+const _tsTok={login:null,signup:null,forgot:null};
+function tsLoginOk(t){_tsTok.login=t;}   function tsLoginExp(){_tsTok.login=null;}
+function tsSignupOk(t){_tsTok.signup=t;} function tsSignupExp(){_tsTok.signup=null;}
+function tsForgotOk(t){_tsTok.forgot=t;} function tsForgotExp(){_tsTok.forgot=null;}
 function tsCheck(k,errId){
   if(!_tsTok[k]){showErr(errId,'Complete a verificação de segurança.');return false;}
   return true;
+}
+function tsReset(k){
+  _tsTok[k]=null;
+  if(typeof turnstile==='undefined')return;
+  const panels={login:'panel-login',signup:'panel-signup',forgot:'panel-forgot'};
+  const el=document.querySelector('#'+panels[k]+' .cf-turnstile');
+  if(el)try{turnstile.reset(el);}catch(e){}
 }
 
 // ── INICIALIZAÇÃO ──
