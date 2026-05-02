@@ -4993,9 +4993,17 @@ function exportFinContratoPDF(){
   .assinaturas{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:36px}
   .assin-linha{border-bottom:1px solid #333;margin-bottom:8px;height:40px}
   .assin-label{font-size:11px;text-align:center;color:#333;line-height:1.5}
-  @media print{body{margin:20px 48px}}
+  @media print{body{margin:20px 48px}.noprint{display:none!important}}
+  .noprint{position:fixed;top:14px;right:14px;display:flex;gap:8px;z-index:999}
+  .noprint button{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600}
+  .btn-fechar{background:#eee;color:#333}
+  .btn-imprimir{background:#1C1F2E;color:#fff}
 </style>
 </head><body>
+<div class="noprint">
+  <button class="btn-fechar" onclick="window.close()">✕ Fechar</button>
+  <button class="btn-imprimir" onclick="window.print()">🖨 Imprimir / Salvar PDF</button>
+</div>
 
 <div class="cabecalho">
   ${logoHTML}
