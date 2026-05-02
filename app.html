@@ -4785,7 +4785,9 @@ async function loadFin(){
     pag:c.forma_pagamento,
     ent:parseFloat(c.entrada)||0,
     np:c.num_parcelas||1,
+    resp:c.responsavel||'',
     obs:c.obs||'',
+    foro:(()=>{const m=(c.obs||'').match(/^Foro:\s*(.+)/m);return m?m[1].trim():''})(),
     parcs:(c.contratos_parcelas||[])
       .sort((a,b)=>a.numero-b.numero)
       .map(p=>({id:p.id,n:p.numero,label:p.label,valor:parseFloat(p.valor)||0,pago:p.pago}))
@@ -5049,11 +5051,11 @@ function exportFinContratoPDF(){
 
 <div class="clausula">
   <div class="clausula-titulo">Cláusula 6ª — Do Foro</div>
-  <p>Fica eleito o foro da Comarca de __________________________ para dirimir quaisquer dúvidas ou litígios decorrentes do presente contrato, com renúncia expressa a qualquer outro, por mais privilegiado que seja.</p>
+  <p>Fica eleito o foro da Comarca de <strong>${l.foro||'__________________________'}</strong> para dirimir quaisquer dúvidas ou litígios decorrentes do presente contrato, com renúncia expressa a qualquer outro, por mais privilegiado que seja.</p>
 </div>
 
 <div class="rodape">
-  <p style="text-align:center;margin-bottom:8px">__________________________, ${dataExtenso}.</p>
+  <p style="text-align:center;margin-bottom:8px">${l.foro||'__________________________'}, ${dataExtenso}.</p>
   <div class="assinaturas">
     <div>
       <div class="assin-linha"></div>
