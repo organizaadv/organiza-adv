@@ -951,10 +951,10 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
               <div id="cfg-logo-preview" style="flex-shrink:0;min-width:64px;text-align:center"></div>
               <div style="flex:1">
                 <button type="button" class="btn btn-gh" onclick="document.getElementById('cfg-logo-inp').click()" style="margin-bottom:6px;font-size:13px">Selecionar logo</button>
-                <div id="cfg-logo-nome" style="font-size:11px;color:var(--tx3)">PNG, JPG ou SVG · aparece na sidebar e nos documentos</div>
+                <div id="cfg-logo-nome" style="font-size:11px;color:var(--tx3)">Use o formato JPG · aparece na sidebar e nos documentos</div>
               </div>
             </div>
-            <input type="file" id="cfg-logo-inp" accept="image/*" style="display:none" onchange="cfgPreviewLogo(this)"/>
+            <input type="file" id="cfg-logo-inp" accept="image/jpeg,image/jpg" style="display:none" onchange="cfgPreviewLogo(this)"/>
           </div>
           <button class="btn btn-p" onclick="salvarCfg()" style="margin-top:12px">Salvar alterações</button>
         </div>
