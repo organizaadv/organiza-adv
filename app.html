@@ -1677,10 +1677,13 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <div class="field"><label class="flabel">Nome da Ação <span class="req">*</span></label><input type="text" class="finp" id="fn-serv" placeholder="Ex: Ação Trabalhista, Inventário..."/></div>
       <div class="field"><label class="flabel">Advogado responsável <span class="req">*</span></label><select class="fsel" id="fn-resp"><option value="">Selecione...</option></select></div>
       <div class="fg2">
-        <div class="field"><label class="flabel">Valor total (R$) <span class="req">*</span></label><input type="number" class="finp" id="fn-val" placeholder="0,00" step="0.01" oninput="calcParc()"/></div>
+        <div class="field"><label class="flabel">Foro <span class="req">*</span></label><input type="text" class="finp" id="fn-foro" placeholder="Ex: São Paulo, Brasília..."/></div>
         <div class="field"><label class="flabel">Data de fechamento <span class="req">*</span></label><input type="date" class="finp" id="fn-data"/></div>
       </div>
-      <div class="field"><label class="flabel">Forma de pagamento</label><select class="fsel" id="fn-pag" onchange="toggleParc()"><option value="avista">À vista</option><option value="parcelado">Parcelado</option></select></div>
+      <div class="fg2">
+        <div class="field"><label class="flabel">Valor total (R$) <span class="req">*</span></label><input type="number" class="finp" id="fn-val" placeholder="0,00" step="0.01" oninput="calcParc()"/></div>
+        <div class="field"><label class="flabel">Forma de pagamento</label><select class="fsel" id="fn-pag" onchange="toggleParc()"><option value="avista">À vista</option><option value="parcelado">Parcelado</option></select></div>
+      </div>
       <div id="fn-parc-wrap" style="display:none;">
         <div class="fg2">
           <div class="field"><label class="flabel">Entrada (R$)</label><input type="number" class="finp" id="fn-ent" placeholder="0,00" step="0.01" oninput="calcParc()"/></div>
@@ -4224,6 +4227,8 @@ function selecionarFinCli(cliId){
   const end=[c.endereco,c.complemento,c.bairro].filter(Boolean).join(', ');
   document.getElementById('fn-cli-end').value=end;
   document.getElementById('fn-cli-cidade').value=[c.cidade,c.estado].filter(Boolean).join(' — ');
+  // sugerir foro com a cidade do cliente
+  if(c.cidade){const foro=document.getElementById('fn-foro');if(!foro.value)foro.value=c.cidade;}
   const sel=document.getElementById('fn-cli-selecionado');
   document.getElementById('fn-cli-selecionado-nome').textContent=c.nome;
   sel.style.display='flex';
@@ -4842,12 +4847,14 @@ async function salvarContrato(){
   const cliId=document.getElementById('fn-cli-id').value||null;
   const serv=document.getElementById('fn-serv').value.trim();
   const resp=document.getElementById('fn-resp').value;
+  const foro=document.getElementById('fn-foro').value.trim();
   const val=parseFloat(document.getElementById('fn-val').value)||0;
   const data=document.getElementById('fn-data').value;
   if(!cli){toast('Selecione um cliente cadastrado.','te');return;}
   if(!cliId){toast('Selecione um cliente da lista.','te');return;}
   if(!serv){toast('Informe o nome da ação.','te');return;}
   if(!resp){toast('Selecione o advogado responsável.','te');return;}
+  if(!foro){toast('Informe o foro do contrato.','te');return;}
   if(!val||!data){toast('Preencha todos os campos obrigatórios.','te');return;}
   const pag=document.getElementById('fn-pag').value;
   const ent=parseFloat(document.getElementById('fn-ent')?.value)||0;
@@ -4859,7 +4866,7 @@ async function salvarContrato(){
     escritorio_id:escData.id,cliente_nome:cli,cliente_id:cliId,servico:serv,
     responsavel:resp,
     valor_total:val,forma_pagamento:pag,entrada:ent,num_parcelas:np,
-    data_contrato:data,obs:obs||null
+    data_contrato:data,obs:[foro?'Foro: '+foro:'',obs].filter(Boolean).join('\n')||null
   }]).select().single();
   if(error){if(btnS){btnS.disabled=false;btnS.textContent='Registrar contrato';}toast('Erro: '+error.message,'te');return;}
   const pds=[];
@@ -4871,11 +4878,11 @@ async function salvarContrato(){
   }
   const{data:parcsIns,error:ep}=await db.from('contratos_parcelas').insert(pds).select();
   if(ep){if(btnS){btnS.disabled=false;btnS.textContent='Registrar contrato';}toast('Erro nas parcelas: '+ep.message,'te');return;}
-  finLanc.unshift({id:ctr.id,cli,cliente_id:cliId,serv,val,data,pag,ent,np,obs,
+  finLanc.unshift({id:ctr.id,cli,cliente_id:cliId,serv,resp,foro,val,data,pag,ent,np,obs,
     parcs:(parcsIns||[]).sort((a,b)=>a.numero-b.numero).map(p=>({id:p.id,n:p.numero,label:p.label,valor:parseFloat(p.valor)||0,pago:p.pago}))});
   if(btnS){btnS.disabled=false;btnS.textContent='Registrar contrato';}
   closeM('m-fin-novo');
-  ['fn-cli','fn-serv','fn-val','fn-ent','fn-np','fn-obs','fn-cli-cpf','fn-cli-end','fn-cli-cidade'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['fn-cli','fn-serv','fn-foro','fn-val','fn-ent','fn-np','fn-obs','fn-cli-cpf','fn-cli-end','fn-cli-cidade'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('fn-cli').readOnly=false;
   document.getElementById('fn-cli-id').value='';
   document.getElementById('fn-cli-selecionado').style.display='none';
