@@ -1895,13 +1895,10 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <div class="mx" onclick="closeM('m-det-atend')">✕</div>
     </div>
     <div class="mbody" id="dat-body"></div>
-    <div class="mfoot">
-      <button class="btn btn-danger" id="dat-btn-cancel" onclick="cancelarAtendimento()">Cancelar atendimento</button>
-      <div class="mfoot-r">
-        <button class="btn btn-gh" onclick="closeM('m-det-atend')">Fechar</button>
-        <button class="btn btn-p" id="dat-btn-realizado" onclick="marcarRealizado()">Marcar como realizado</button>
-        <button class="btn btn-gd" id="dat-btn-converter" onclick="converterAtendimento()">Converter em demanda →</button>
-      </div>
+    <div class="mfoot" style="justify-content:flex-end;">
+      <button class="btn btn-danger" id="dat-btn-cancel" onclick="cancelarAtendimento()">Cancelar</button>
+      <button class="btn btn-p" id="dat-btn-realizado" onclick="marcarRealizado()">Marcar como realizado</button>
+      <button class="btn btn-gd" id="dat-btn-converter" onclick="converterAtendimento()">Converter em demanda →</button>
     </div>
   </div>
 </div>
