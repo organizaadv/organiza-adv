@@ -1957,6 +1957,25 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
   </div>
 </div>
 
+<div class="mov" id="m-av-etapa">
+  <div class="mbox narrow">
+    <div class="mhead">
+      <div><div class="mtitle" id="av-etapa-titulo">Avançar etapa</div><div class="msubt" id="av-etapa-subt"></div></div>
+      <button class="mx" onclick="closeM('m-av-etapa')">✕</button>
+    </div>
+    <div class="mbody" style="display:flex;flex-direction:column;gap:14px;">
+      <div class="field">
+        <label class="flabel">Responsável pela próxima etapa <span class="req">*</span></label>
+        <select class="fsel" id="av-etapa-resp"></select>
+      </div>
+    </div>
+    <div class="mfoot" style="justify-content:flex-end;">
+      <button class="btn btn-gh" onclick="closeM('m-av-etapa')">Cancelar</button>
+      <button class="btn btn-p" onclick="confirmarAvEtapa()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- ══ ONBOARDING ══ -->
@@ -2815,7 +2834,16 @@ function abrirQuickAv(id,evt){
   quickAvId=id;
   const et=ETAPAS[d.etapa_atual]?.nome||'';
   const atosPend=getA(d).filter(a=>a.etapa===et&&!a.feito);
-  if(!atosPend.length){toast('Todos os atos desta etapa já foram concluídos. Abra a demanda para avançar a etapa.','ti');return;}
+  if(!atosPend.length){
+    const proxIdx=d.etapa_atual+1;
+    const proxNome=proxIdx>=ETAPAS.length?'Concluído':ETAPAS[proxIdx]?.nome;
+    _avEtapaCtx={tipo:'avancar',demandaId:id};
+    document.getElementById('av-etapa-titulo').textContent=`Confirmar avanço para "${proxNome}"?`;
+    document.getElementById('av-etapa-subt').textContent=d.nome;
+    document.getElementById('av-etapa-resp').innerHTML='<option value="">Selecione...</option>'+colabs.map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('');
+    openM('m-av-etapa');
+    return;
+  }
   document.getElementById('qav-titulo').textContent=d.nome;
   document.getElementById('qav-subt').textContent=et;
   document.getElementById('qav-ato').innerHTML=atosPend.map(a=>`<option value="${a.nome}">${a.nome}${a.prioridade==='alta'?' — urgente':''}</option>`).join('');
@@ -6166,6 +6194,7 @@ function converterAtendimento(){
   openM('m-converter-cliente');
 }
 let _clienteIdConversao=null;
+let _avEtapaCtx=null; // {tipo:'avancar'|'converter', demandaId, etapaIdx}
 function pularCadastroCliente(){
   closeM('m-converter-cliente');
   _clienteIdConversao=null;
@@ -6226,9 +6255,40 @@ async function salvarClienteEAbrirDemanda(){
 }
 function _confirmarEtapaEConverter(etapaIdx){
   closeM('m-etapa-inicial');
-  _executarConversaoDemanda(_clienteIdConversao,etapaIdx);
+  _avEtapaCtx={tipo:'converter',etapaIdx};
+  document.getElementById('av-etapa-titulo').textContent='Quem será o responsável?';
+  document.getElementById('av-etapa-subt').textContent=ETAPAS[etapaIdx]?.nome||'';
+  document.getElementById('av-etapa-resp').innerHTML='<option value="">Selecione...</option>'+colabs.map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('');
+  openM('m-av-etapa');
 }
-async function _executarConversaoDemanda(clienteId,etapaIdx){
+async function confirmarAvEtapa(){
+  const resp=document.getElementById('av-etapa-resp').value;
+  if(!resp){toast('Selecione o responsável.','te');return;}
+  closeM('m-av-etapa');
+  const ctx=_avEtapaCtx;
+  _avEtapaCtx=null;
+  if(!ctx)return;
+  if(ctx.tipo==='converter'){
+    await _executarConversaoDemanda(_clienteIdConversao,ctx.etapaIdx,resp);
+  } else {
+    const d=demandas.find(x=>x.id===ctx.demandaId);
+    if(!d)return;
+    const nova=d.etapa_atual+1;const conc=nova>=ETAPAS.length;
+    const hist=getH(d);hist.push({etapa:ETAPAS[d.etapa_atual]?.nome||'',quem:resp,obs:'',data:hoje()});
+    const{error}=await db.from('demandas_escritorio').update({
+      etapa_atual:nova,
+      responsavel:resp,
+      status:conc?'Concluído':'Em andamento',
+      hist_fases:JSON.stringify(hist)
+    }).eq('id',ctx.demandaId);
+    if(error){toast('Erro: '+error.message,'te');return;}
+    d.etapa_atual=nova;d.responsavel=resp;d.hist_fases=JSON.stringify(hist);
+    if(conc){d.status='Concluído';notifConc(d,resp);}
+    renderKanban();
+    toast(conc?'Demanda concluída! 🎉':`Avançou para: ${ETAPAS[nova]?.nome||'Concluída'}`);
+  }
+}
+async function _executarConversaoDemanda(clienteId,etapaIdx,responsavel){
   const a=atendimentos.find(x=>x.id===atDetId);
   if(!a)return;
   const{data:d,error}=await db.from('demandas_escritorio').insert([{
@@ -6240,7 +6300,7 @@ async function _executarConversaoDemanda(clienteId,etapaIdx){
     email:a.email||null,
     tipo:a.tipo||null,
     obs:a.assunto||null,
-    responsavel:a.responsavel||null,
+    responsavel:responsavel||a.responsavel||null,
     etapa_atual:etapaIdx||0,
     status:'Em andamento',
     data:hoje(),
