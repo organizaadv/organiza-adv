@@ -959,6 +959,42 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
           <button class="btn btn-p" onclick="salvarCfg()" style="margin-top:12px">Salvar alterações</button>
         </div>
         <div class="cfg-sec">
+          <div class="cfg-title">Cor do tema</div>
+          <div class="cfg-sub">Escolha a aparência da barra lateral e cor de destaque</div>
+          <div class="ob-temas" id="cfg-temas">
+            <div class="ob-tema-card" data-tema="preto-dourado" onclick="cfgSelecionarTema('preto-dourado')">
+              <div class="ob-tema-sb" style="background:#1C1F2E"></div>
+              <div class="ob-tema-acc" style="background:#C9A84C"></div>
+              <div class="ob-tema-nome">Preto &amp; Dourado</div>
+            </div>
+            <div class="ob-tema-card" data-tema="azul-marinho" onclick="cfgSelecionarTema('azul-marinho')">
+              <div class="ob-tema-sb" style="background:#0E2240"></div>
+              <div class="ob-tema-acc" style="background:#E2E8F0"></div>
+              <div class="ob-tema-nome">Azul Marinho</div>
+            </div>
+            <div class="ob-tema-card" data-tema="vermelho-dourado" onclick="cfgSelecionarTema('vermelho-dourado')">
+              <div class="ob-tema-sb" style="background:#3D0B0B"></div>
+              <div class="ob-tema-acc" style="background:#C9A84C"></div>
+              <div class="ob-tema-nome">Vermelho &amp; Dourado</div>
+            </div>
+            <div class="ob-tema-card" data-tema="bege-marrom" onclick="cfgSelecionarTema('bege-marrom')">
+              <div class="ob-tema-sb" style="background:#2D1C10"></div>
+              <div class="ob-tema-acc" style="background:#A0785A"></div>
+              <div class="ob-tema-nome">Bege &amp; Marrom</div>
+            </div>
+            <div class="ob-tema-card" data-tema="verde-bege" onclick="cfgSelecionarTema('verde-bege')">
+              <div class="ob-tema-sb" style="background:#0D2B1A"></div>
+              <div class="ob-tema-acc" style="background:#C8B560"></div>
+              <div class="ob-tema-nome">Verde &amp; Bege</div>
+            </div>
+            <div class="ob-tema-card" data-tema="cinza-azul" onclick="cfgSelecionarTema('cinza-azul')">
+              <div class="ob-tema-sb" style="background:#1E2A38"></div>
+              <div class="ob-tema-acc" style="background:#4A90D9"></div>
+              <div class="ob-tema-nome">Cinza &amp; Azul</div>
+            </div>
+          </div>
+        </div>
+        <div class="cfg-sec">
           <div class="cfg-title">Fluxo de etapas</div>
           <div class="cfg-sub">Defina as etapas do fluxo de trabalho do escritório. A ordem importa.</div>
           <div id="cfg-etapas-lista" style="margin-bottom:14px;display:flex;flex-direction:column;gap:6px;"></div>
@@ -5131,6 +5167,7 @@ function renderCfg(){
   document.getElementById('meu-pw1').value='';
   document.getElementById('meu-pw2').value='';
   renderCfgEtapas();
+  renderCfgTema();
 }
 
 async function salvarMeuPerfil(){
@@ -6461,6 +6498,18 @@ function obAplicarTema(tema){
 function obSelecionarTema(tema){
   obAplicarTema(tema);obTemaSel=tema;
   document.querySelectorAll('.ob-tema-card').forEach(c=>c.classList.toggle('ativo',c.dataset.tema===tema));
+}
+async function cfgSelecionarTema(tema){
+  obAplicarTema(tema);
+  document.querySelectorAll('#cfg-temas .ob-tema-card').forEach(c=>c.classList.toggle('ativo',c.dataset.tema===tema));
+  const{error}=await db.from('escritorios').update({tema}).eq('id',usuarioAtual.escritorio_id);
+  if(error){toast('Erro ao salvar tema','te');return;}
+  escData.tema=tema;
+  toast('Tema atualizado!');
+}
+function renderCfgTema(){
+  const atual=escData.tema||'preto-dourado';
+  document.querySelectorAll('#cfg-temas .ob-tema-card').forEach(c=>c.classList.toggle('ativo',c.dataset.tema===atual));
 }
 function obPreviewLogo(inp){
   if(!inp.files[0])return;
