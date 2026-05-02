@@ -1022,6 +1022,31 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
               <div class="ob-tema-acc" style="background:#F97316"></div>
               <div class="ob-tema-nome">Preto &amp; Laranja</div>
             </div>
+            <div class="ob-tema-card" data-tema="branco-dourado" onclick="cfgSelecionarTema('branco-dourado')">
+              <div class="ob-tema-sb" style="background:#FFFFFF;border:1px solid #E5E7EB"></div>
+              <div class="ob-tema-acc" style="background:#B8922E"></div>
+              <div class="ob-tema-nome">Branco &amp; Dourado</div>
+            </div>
+            <div class="ob-tema-card" data-tema="cinza-azul-claro" onclick="cfgSelecionarTema('cinza-azul-claro')">
+              <div class="ob-tema-sb" style="background:#EEF2F7;border:1px solid #E5E7EB"></div>
+              <div class="ob-tema-acc" style="background:#2563EB"></div>
+              <div class="ob-tema-nome">Cinza &amp; Azul</div>
+            </div>
+            <div class="ob-tema-card" data-tema="creme-marrom" onclick="cfgSelecionarTema('creme-marrom')">
+              <div class="ob-tema-sb" style="background:#FAF7F2;border:1px solid #E5E7EB"></div>
+              <div class="ob-tema-acc" style="background:#92583A"></div>
+              <div class="ob-tema-nome">Creme &amp; Marrom</div>
+            </div>
+            <div class="ob-tema-card" data-tema="branco-verde" onclick="cfgSelecionarTema('branco-verde')">
+              <div class="ob-tema-sb" style="background:#F0FDF4;border:1px solid #E5E7EB"></div>
+              <div class="ob-tema-acc" style="background:#059669"></div>
+              <div class="ob-tema-nome">Branco &amp; Verde</div>
+            </div>
+            <div class="ob-tema-card" data-tema="lavanda-roxo" onclick="cfgSelecionarTema('lavanda-roxo')">
+              <div class="ob-tema-sb" style="background:#F5F3FF;border:1px solid #E5E7EB"></div>
+              <div class="ob-tema-acc" style="background:#7C3AED"></div>
+              <div class="ob-tema-nome">Lavanda &amp; Roxo</div>
+            </div>
           </div>
         </div>
         <div class="cfg-sec">
@@ -6522,13 +6547,24 @@ const OB_TEMAS={
   'cafe-cobre':{sb:'#1C0D06',gd:'#D97706',gd2:'#F59E0B',gdp:'#FFF7ED',gdb:'rgba(217,119,6,.2)'},
   'oceano-ciano':{sb:'#0C2233',gd:'#06B6D4',gd2:'#22D3EE',gdp:'#ECFEFF',gdb:'rgba(6,182,212,.2)'},
   'preto-laranja':{sb:'#1A1208',gd:'#F97316',gd2:'#FB923C',gdp:'#FFF7ED',gdb:'rgba(249,115,22,.2)'},
+  'branco-dourado':{sb:'#FFFFFF',sbb:'rgba(0,0,0,.07)',sbt:'rgba(13,19,33,.42)',sba:'#0D1321',sbhov:'rgba(0,0,0,.04)',sbact:'rgba(201,168,76,.14)',gd:'#B8922E',gd2:'#D4AD50',gdp:'#FFFBEB',gdb:'rgba(184,146,46,.18)'},
+  'cinza-azul-claro':{sb:'#EEF2F7',sbb:'rgba(0,0,0,.06)',sbt:'rgba(13,19,33,.42)',sba:'#0D1321',sbhov:'rgba(0,0,0,.04)',sbact:'rgba(37,99,235,.12)',gd:'#2563EB',gd2:'#3B82F6',gdp:'#EFF6FF',gdb:'rgba(37,99,235,.18)'},
+  'creme-marrom':{sb:'#FAF7F2',sbb:'rgba(0,0,0,.06)',sbt:'rgba(45,28,16,.48)',sba:'#2D1C10',sbhov:'rgba(0,0,0,.04)',sbact:'rgba(160,120,90,.14)',gd:'#92583A',gd2:'#B07050',gdp:'#FDF6EE',gdb:'rgba(146,88,58,.18)'},
+  'branco-verde':{sb:'#F0FDF4',sbb:'rgba(0,0,0,.06)',sbt:'rgba(13,19,33,.42)',sba:'#0D1321',sbhov:'rgba(0,0,0,.04)',sbact:'rgba(5,150,105,.12)',gd:'#059669',gd2:'#10B981',gdp:'#ECFDF5',gdb:'rgba(5,150,105,.18)'},
+  'lavanda-roxo':{sb:'#F5F3FF',sbb:'rgba(0,0,0,.06)',sbt:'rgba(45,20,80,.45)',sba:'#2D1450',sbhov:'rgba(0,0,0,.04)',sbact:'rgba(124,58,237,.12)',gd:'#7C3AED',gd2:'#8B5CF6',gdp:'#F5F3FF',gdb:'rgba(124,58,237,.18)'},
 };
 let obAtual=1,obTemaSel='preto-dourado',obMembros=[],obLogoFile=null;
 
 function obAplicarTema(tema){
   const t=OB_TEMAS[tema]||OB_TEMAS['preto-dourado'];
   const r=document.documentElement.style;
-  r.setProperty('--sb',t.sb);r.setProperty('--gd',t.gd);r.setProperty('--gd2',t.gd2);
+  r.setProperty('--sb',t.sb);
+  r.setProperty('--sb-b',t.sbb||'rgba(255,255,255,.06)');
+  r.setProperty('--sb-t',t.sbt||'rgba(255,255,255,.38)');
+  r.setProperty('--sb-a',t.sba||'#FFFFFF');
+  r.setProperty('--sb-hov',t.sbhov||'rgba(255,255,255,.05)');
+  r.setProperty('--sb-act',t.sbact||'rgba(255,255,255,.1)');
+  r.setProperty('--gd',t.gd);r.setProperty('--gd2',t.gd2);
   r.setProperty('--gdp',t.gdp);r.setProperty('--gdb',t.gdb);
 }
 function obSelecionarTema(tema){
