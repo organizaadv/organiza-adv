@@ -918,7 +918,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
             <input class="si" id="si-fin" placeholder="Buscar cliente ou serviço..." oninput="renderFin()"/>
           </div>
         </div>
-        <button class="btn btn-p" onclick="openM('m-fin-novo')">
+        <button class="btn btn-p" onclick="abrirModalContrato()">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg>
           Registrar contrato
         </button>
@@ -1573,14 +1573,18 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         <label class="flabel">Cliente <span class="req">*</span></label>
         <input type="text" class="finp" id="fn-cli" placeholder="Digite para buscar cliente cadastrado..." autocomplete="off" oninput="autocompleteFinCli(this.value)"/>
         <input type="hidden" id="fn-cli-id"/>
-        <div id="fn-cli-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1.5px solid var(--bd);border-radius:var(--rmd);box-shadow:var(--s3s);z-index:300;max-height:200px;overflow-y:auto;"></div>
+        <div id="fn-cli-drop" style="display:none;position:fixed;background:var(--surface);border:1.5px solid var(--bd);border-radius:var(--rmd);box-shadow:var(--s3s);z-index:9999;max-height:200px;overflow-y:auto;"></div>
         <div id="fn-cli-selecionado" style="display:none;margin-top:5px;font-size:12px;color:var(--gr);align-items:center;gap:6px;">
           <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2,8 6,12 14,4"/></svg>
           <span id="fn-cli-selecionado-nome"></span>
           <span style="cursor:pointer;color:var(--tx3);margin-left:4px;" onclick="limparFinCli()">✕</span>
         </div>
       </div>
-      <div class="field"><label class="flabel">Serviço <span class="req">*</span></label><input type="text" class="finp" id="fn-serv" placeholder="Ex: Ação Trabalhista, Inventário..."/></div>
+      <input type="hidden" id="fn-cli-cpf"/>
+      <input type="hidden" id="fn-cli-end"/>
+      <input type="hidden" id="fn-cli-cidade"/>
+      <div class="field"><label class="flabel">Nome da Ação <span class="req">*</span></label><input type="text" class="finp" id="fn-serv" placeholder="Ex: Ação Trabalhista, Inventário..."/></div>
+      <div class="field"><label class="flabel">Advogado responsável <span class="req">*</span></label><select class="fsel" id="fn-resp"><option value="">Selecione...</option></select></div>
       <div class="fg2">
         <div class="field"><label class="flabel">Valor total (R$) <span class="req">*</span></label><input type="number" class="finp" id="fn-val" placeholder="0,00" step="0.01" oninput="calcParc()"/></div>
         <div class="field"><label class="flabel">Data de fechamento <span class="req">*</span></label><input type="date" class="finp" id="fn-data"/></div>
@@ -4096,11 +4100,16 @@ function abrirCadastroRapidoCliente(){
   openM('m-novo-cliente');
 }
 function autocompleteFinCli(q){
+  const inp=document.getElementById('fn-cli');
   const drop=document.getElementById('fn-cli-drop');
   if(!q||q.trim().length<2){drop.style.display='none';return;}
   const termo=q.toLowerCase();
   const matches=clientes.filter(c=>(c.nome||'').toLowerCase().includes(termo)).slice(0,6);
   if(!matches.length){drop.style.display='none';return;}
+  const r=inp.getBoundingClientRect();
+  drop.style.top=(r.bottom+2)+'px';
+  drop.style.left=r.left+'px';
+  drop.style.width=r.width+'px';
   drop.innerHTML=matches.map(c=>`
     <div data-id="${c.id}"
       style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--div);font-size:13.5px;transition:background .1s;"
@@ -4119,6 +4128,11 @@ function selecionarFinCli(cliId){
   document.getElementById('fn-cli').readOnly=true;
   document.getElementById('fn-cli-id').value=c.id;
   document.getElementById('fn-cli-drop').style.display='none';
+  // qualificação para PDF
+  document.getElementById('fn-cli-cpf').value=c.cpf_cnpj||'';
+  const end=[c.endereco,c.complemento,c.bairro].filter(Boolean).join(', ');
+  document.getElementById('fn-cli-end').value=end;
+  document.getElementById('fn-cli-cidade').value=[c.cidade,c.estado].filter(Boolean).join(' — ');
   const sel=document.getElementById('fn-cli-selecionado');
   document.getElementById('fn-cli-selecionado-nome').textContent=c.nome;
   sel.style.display='flex';
@@ -4127,6 +4141,9 @@ function limparFinCli(){
   document.getElementById('fn-cli').value='';
   document.getElementById('fn-cli').readOnly=false;
   document.getElementById('fn-cli-id').value='';
+  document.getElementById('fn-cli-cpf').value='';
+  document.getElementById('fn-cli-end').value='';
+  document.getElementById('fn-cli-cidade').value='';
   document.getElementById('fn-cli-selecionado').style.display='none';
   document.getElementById('fn-cli').focus();
 }
@@ -4715,6 +4732,12 @@ async function migrarLocalStorageParaSupabase(){
     console.error('Migração financeiro:',e);
   }
 }
+function abrirModalContrato(){
+  const perfisJur=['titular','advogado','socio','estagiario'];
+  const advs=colabs.filter(c=>perfisJur.includes(c.perfil));
+  document.getElementById('fn-resp').innerHTML='<option value="">Selecione...</option>'+advs.map(c=>`<option value="${c.nome}">${c.nome} (${c.perfil})</option>`).join('');
+  openM('m-fin-novo');
+}
 function toggleParc(){document.getElementById('fn-parc-wrap').style.display=document.getElementById('fn-pag').value==='parcelado'?'block':'none';calcParc();}
 function calcParc(){
   const v=parseFloat(document.getElementById('fn-val').value)||0;
@@ -4727,11 +4750,14 @@ async function salvarContrato(){
   const cli=document.getElementById('fn-cli').value.trim();
   const cliId=document.getElementById('fn-cli-id').value||null;
   const serv=document.getElementById('fn-serv').value.trim();
+  const resp=document.getElementById('fn-resp').value;
   const val=parseFloat(document.getElementById('fn-val').value)||0;
   const data=document.getElementById('fn-data').value;
   if(!cli){toast('Selecione um cliente cadastrado.','te');return;}
   if(!cliId){toast('Selecione um cliente da lista.','te');return;}
-  if(!serv||!val||!data){toast('Preencha todos os campos obrigatórios.','te');return;}
+  if(!serv){toast('Informe o nome da ação.','te');return;}
+  if(!resp){toast('Selecione o advogado responsável.','te');return;}
+  if(!val||!data){toast('Preencha todos os campos obrigatórios.','te');return;}
   const pag=document.getElementById('fn-pag').value;
   const ent=parseFloat(document.getElementById('fn-ent')?.value)||0;
   const np=parseInt(document.getElementById('fn-np')?.value)||1;
@@ -4740,6 +4766,7 @@ async function salvarContrato(){
   if(btnS){btnS.disabled=true;btnS.textContent='Salvando...';}
   const{data:ctr,error}=await db.from('contratos').insert([{
     escritorio_id:escData.id,cliente_nome:cli,cliente_id:cliId,servico:serv,
+    responsavel:resp,
     valor_total:val,forma_pagamento:pag,entrada:ent,num_parcelas:np,
     data_contrato:data,obs:obs||null
   }]).select().single();
@@ -4757,10 +4784,11 @@ async function salvarContrato(){
     parcs:(parcsIns||[]).sort((a,b)=>a.numero-b.numero).map(p=>({id:p.id,n:p.numero,label:p.label,valor:parseFloat(p.valor)||0,pago:p.pago}))});
   if(btnS){btnS.disabled=false;btnS.textContent='Registrar contrato';}
   closeM('m-fin-novo');
-  ['fn-cli','fn-serv','fn-val','fn-ent','fn-np','fn-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['fn-cli','fn-serv','fn-val','fn-ent','fn-np','fn-obs','fn-cli-cpf','fn-cli-end','fn-cli-cidade'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('fn-cli').readOnly=false;
   document.getElementById('fn-cli-id').value='';
   document.getElementById('fn-cli-selecionado').style.display='none';
+  document.getElementById('fn-resp').value='';
   document.getElementById('fn-pag').value='avista';document.getElementById('fn-parc-wrap').style.display='none';
   renderFin();toast('Contrato registrado!');
 }
