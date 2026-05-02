@@ -5327,7 +5327,7 @@ async function salvarCfg(){
     const{error:upErr}=await db.storage.from('logos').upload(path,cfgLogoFile,{upsert:true});
     if(upErr){toast('Erro ao enviar logo: '+upErr.message,'te');return;}
     const{data:pub}=db.storage.from('logos').getPublicUrl(path);
-    upd.logo_url=pub.publicUrl;
+    upd.logo_url=pub.publicUrl+'?t='+Date.now();
   }
   const{error}=await db.from('escritorios').update(upd).eq('id',escId);
   if(error){toast('Erro: '+error.message,'te');return;}
