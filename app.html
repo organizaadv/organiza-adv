@@ -4202,7 +4202,7 @@ async function salvarDemanda(){
 // ── DETALHE ──
 let _iaArquivoPDF=null;
 function abrirDet(id){
-  detId=id;const d=demandas.find(x=>x.id===id);if(!d)return;
+  const idNum=Number(id);detId=idNum;const d=demandas.find(x=>x.id===idNum);if(!d)return;
   document.getElementById('det-nome').textContent=d.nome;
   document.getElementById('det-tipo').innerHTML='<span class="spin" style="border-color:rgba(0,0,0,.15);border-top-color:var(--tx3);"></span>';
   switchDetTab('atos');
