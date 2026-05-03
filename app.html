@@ -1246,24 +1246,42 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
 
 <!-- MODAL PROTOCOLAR -->
 <div class="mov" id="m-protocolar">
-  <div class="mbox" style="max-width:460px;">
+  <div class="mbox" style="max-width:480px;">
     <div class="mhead">
-      <div><div class="mtitle">Protocolar processo</div><div class="msubt">Registre o número para avançar esta etapa</div></div>
+      <div><div class="mtitle">Protocolar processo</div><div class="msubt">Registre os dados para concluir esta etapa</div></div>
       <button class="mx" onclick="closeM('m-protocolar')">✕</button>
     </div>
     <div class="mbody" style="display:flex;flex-direction:column;gap:16px;">
-      <div style="background:var(--blb);border:1px solid var(--blbd);border-radius:var(--rmd);padding:12px 14px;font-size:13px;color:var(--bl);">
-        Após informar o número do processo e a vara/tribunal, a demanda avançará para a próxima etapa automaticamente.
+      <div class="field">
+        <label class="flabel">Tribunal <span class="req">*</span></label>
+        <select class="fsel" id="prot-tribunal">
+          <option value="">Selecione o tribunal...</option>
+          <optgroup label="Tribunais Superiores">
+            <option>STF</option><option>STJ</option><option>TST</option><option>TSE</option><option>STM</option>
+          </optgroup>
+          <optgroup label="Tribunais Regionais Federais">
+            <option>TRF1</option><option>TRF2</option><option>TRF3</option><option>TRF4</option><option>TRF5</option><option>TRF6</option>
+          </optgroup>
+          <optgroup label="Tribunais Regionais do Trabalho">
+            <option>TRT1</option><option>TRT2</option><option>TRT3</option><option>TRT4</option><option>TRT5</option><option>TRT6</option><option>TRT7</option><option>TRT8</option><option>TRT9</option><option>TRT10</option><option>TRT11</option><option>TRT12</option><option>TRT13</option><option>TRT14</option><option>TRT15</option><option>TRT16</option><option>TRT17</option><option>TRT18</option><option>TRT19</option><option>TRT20</option><option>TRT21</option><option>TRT22</option><option>TRT23</option><option>TRT24</option>
+          </optgroup>
+          <optgroup label="Tribunais de Justiça">
+            <option>TJAC</option><option>TJAL</option><option>TJAM</option><option>TJAP</option><option>TJBA</option><option>TJCE</option><option>TJDF</option><option>TJDFT</option><option>TJES</option><option>TJGO</option><option>TJMA</option><option>TJMG</option><option>TJMS</option><option>TJMT</option><option>TJPA</option><option>TJPB</option><option>TJPE</option><option>TJPI</option><option>TJPR</option><option>TJRJ</option><option>TJRN</option><option>TJRO</option><option>TJRR</option><option>TJRS</option><option>TJSC</option><option>TJSE</option><option>TJSP</option><option>TJTO</option>
+          </optgroup>
+          <optgroup label="Justiça Federal — 1ª Instância">
+            <option>JFAC</option><option>JFAL</option><option>JFAM</option><option>JFAP</option><option>JFBA</option><option>JFCE</option><option>JFDF</option><option>JFES</option><option>JFGO</option><option>JFMA</option><option>JFMG</option><option>JFMS</option><option>JFMT</option><option>JFPA</option><option>JFPB</option><option>JFPE</option><option>JFPI</option><option>JFPR</option><option>JFRJ</option><option>JFRN</option><option>JFRO</option><option>JFRR</option><option>JFRS</option><option>JFSC</option><option>JFSE</option><option>JFSP</option><option>JFTO</option>
+          </optgroup>
+        </select>
       </div>
-      <div class="field"><label class="flabel">Número do processo <span class="req">*</span></label>
-        <input type="text" class="finp" id="prot-num" placeholder="Ex: 0001234-56.2026.5.15.0001"/></div>
-      <div class="field"><label class="flabel">Vara / Tribunal <span class="req">*</span></label>
-        <input type="text" class="finp" id="prot-vara" placeholder="Ex: 3ª Vara do Trabalho de Campinas"/></div>
+      <div class="field">
+        <label class="flabel">Número do processo <span class="req">*</span></label>
+        <input type="text" class="finp" id="prot-num" placeholder="0000000-00.0000.0.00.0000" oninput="mascaraCNJ(this)" maxlength="25"/>
+      </div>
     </div>
     <div class="mfoot">
       <button class="btn btn-gh" onclick="closeM('m-protocolar')">Cancelar</button>
       <div class="mfoot-r">
-        <button class="btn btn-p" id="prot-btn" onclick="confirmarProtocolo()">Protocolar e Avançar →</button>
+        <button class="btn btn-p" id="prot-btn" onclick="confirmarProtocolo()">Protocolar e Concluir</button>
       </div>
     </div>
   </div>
@@ -2424,6 +2442,18 @@ function toast(msg,tipo='ts'){
 }
 function hoje(){const d=new Date();return`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
 function iniciais(n){return(n||'').trim().split(' ').filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase();}
+function mascaraCNJ(el){
+  let v=el.value.replace(/\D/g,'');
+  if(v.length>20)v=v.slice(0,20);
+  let r='';
+  if(v.length>0)r+=v.slice(0,Math.min(7,v.length));
+  if(v.length>7)r+='-'+v.slice(7,Math.min(9,v.length));
+  if(v.length>9)r+='.'+v.slice(9,Math.min(13,v.length));
+  if(v.length>13)r+='.'+v.slice(13,Math.min(14,v.length));
+  if(v.length>14)r+='.'+v.slice(14,Math.min(16,v.length));
+  if(v.length>16)r+='.'+v.slice(16,20);
+  el.value=r;
+}
 function fmtMoeda(v){return'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function validarCpfCnpj(v){
   const n=v.replace(/\D/g,'');
@@ -2805,6 +2835,15 @@ function abrirQuickAv(id,evt){
   if(!d||statusD(d)!=='Em andamento')return;
   quickAvId=id;
   const et=ETAPAS[d.etapa_atual]?.nome||'';
+  if(et==='Protocolo'){
+    detId=id;
+    _protQuem=usuarioAtual?.nome||userAtual||'';
+    _protObs='';
+    document.getElementById('prot-num').value=d.processo||'';
+    document.getElementById('prot-tribunal').value='';
+    openM('m-protocolar');
+    return;
+  }
   const atosPend=getA(d).filter(a=>a.etapa===et&&!a.feito);
   if(!atosPend.length){
     const proxIdx=d.etapa_atual+1;
@@ -4547,7 +4586,7 @@ async function avancar(){
   if(etAtual==='Protocolo'){
     _protQuem=quem;_protObs=obs;
     document.getElementById('prot-num').value=d.processo||'';
-    document.getElementById('prot-vara').value='';
+    document.getElementById('prot-tribunal').value='';
     openM('m-protocolar');
     return;
   }
@@ -4563,21 +4602,21 @@ async function avancar(){
 
 async function confirmarProtocolo(){
   const num=document.getElementById('prot-num').value.trim();
-  const vara=document.getElementById('prot-vara').value.trim();
+  const tribunal=document.getElementById('prot-tribunal').value;
+  if(!tribunal){toast('Selecione o tribunal.','te');return;}
   if(!num){toast('Informe o número do processo.','te');return;}
-  if(!vara){toast('Informe a vara/tribunal.','te');return;}
   const d=demandas.find(x=>x.id===detId);if(!d)return;
   const btn=document.getElementById('prot-btn');
   btn.disabled=true;btn.textContent='Salvando...';
   // 1. Salvar número do processo na demanda
   const{error:e1}=await db.from('demandas_escritorio').update({processo:num}).eq('id',detId);
-  if(e1){toast('Erro: '+e1.message,'te');btn.disabled=false;btn.textContent='Protocolar e Avançar →';return;}
+  if(e1){toast('Erro: '+e1.message,'te');btn.disabled=false;btn.textContent='Protocolar e Concluir';return;}
   d.processo=num;
   // 2. Criar registro na tabela processos
   const{data:novProc,error:e2}=await db.from('processos').insert([{
     escritorio_id:escData.id,demanda_id:detId,
     numero_processo:num,cliente_nome:d.nome,
-    cliente_tel:d.tel||null,area:d.tipo||null,vara_tribunal:vara
+    cliente_tel:d.tel||null,area:d.tipo||null,vara_tribunal:tribunal
   }]).select().single();
   if(e2)toast('Número salvo, mas erro ao criar registro de processo: '+e2.message,'te');
   else{processos.unshift(novProc);}
@@ -4586,13 +4625,13 @@ async function confirmarProtocolo(){
   const nova=d.etapa_atual+1;const conc=nova>=ETAPAS.length;
   const hist=getH(d);hist.push({etapa:etFeita,quem:_protQuem,obs:_protObs,data:hoje()});
   const{error:e3}=await db.from('demandas_escritorio').update({etapa_atual:nova,status:conc?'Concluído':'Em andamento',hist_fases:JSON.stringify(hist)}).eq('id',detId);
-  if(e3){toast('Erro ao avançar: '+e3.message,'te');btn.disabled=false;btn.textContent='Protocolar e Avançar →';return;}
+  if(e3){toast('Erro ao avançar: '+e3.message,'te');btn.disabled=false;btn.textContent='Protocolar e Concluir';return;}
   d.etapa_atual=nova;d.hist_fases=JSON.stringify(hist);
   if(conc){d.status='Concluído';notifConc(d,_protQuem);}
   closeM('m-protocolar');
-  abrirDet(detId);renderKanban();renderProcessos();
-  toast(conc?'Processo protocolado e demanda concluída!':'Processo protocolado e etapa avançada!');
-  btn.disabled=false;btn.textContent='Protocolar e Avançar →';
+  if(detId)abrirDet(detId);renderKanban();renderProcessos();
+  toast('Processo protocolado e demanda concluída!');
+  btn.disabled=false;btn.textContent='Protocolar e Concluir';
 }
 
 async function voltar(){
@@ -4615,7 +4654,7 @@ function abrirConverterProcesso(){
   _protQuem=usuarioAtual?.nome||userAtual||'';
   _protObs='';
   document.getElementById('prot-num').value=d.processo||'';
-  document.getElementById('prot-vara').value='';
+  document.getElementById('prot-tribunal').value='';
   openM('m-protocolar');
 }
 
@@ -6017,7 +6056,7 @@ async function confirmarAvEtapa(){
       detId=ctx.demandaId;
       _protQuem=resp;_protObs='';
       document.getElementById('prot-num').value=d.processo||'';
-      document.getElementById('prot-vara').value='';
+      document.getElementById('prot-tribunal').value='';
       openM('m-protocolar');
       return;
     }
