@@ -296,6 +296,22 @@ tbody td{padding:14px 18px;font-size:13.5px;color:var(--tx);vertical-align:middl
 .hist-dt{font-size:12px;color:var(--tx3)}
 .hist-qm{font-size:13px;color:var(--tx2)}
 
+/* ── IA MOVIMENTAÇÕES ── */
+.ia-res-box{border:1.5px solid var(--bd);border-radius:var(--rmd);padding:16px;margin:0 0 12px;background:var(--s2)}
+.ia-res-box.urgente{border-color:#fca5a5;background:#fef2f2}
+.ia-urgente-badge{font-size:12px;font-weight:700;color:#dc2626;margin-bottom:10px;padding:4px 10px;background:#fee2e2;border-radius:20px;display:inline-block}
+.ia-res-sec{margin-bottom:12px}
+.ia-res-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--tx3);margin-bottom:4px}
+.ia-res-sec p{font-size:13.5px;color:var(--tx2);line-height:1.6;margin:0}
+.ia-checklist{margin:4px 0 0 16px;padding:0;font-size:13.5px;color:var(--tx2);line-height:1.9}
+.ia-prazo-urgente{color:#dc2626;font-weight:600}
+.ia-mov-item{padding:12px 0;border-bottom:1px solid var(--div)}
+.ia-mov-item:last-child{border-bottom:none}
+.ia-mov-item.urgente{padding:12px;margin:0 -4px;border-radius:var(--rsm);background:#fef2f2;border-bottom:1px solid #fca5a5;margin-bottom:6px}
+.ia-mov-top{display:flex;gap:8px;align-items:center;margin-bottom:4px;flex-wrap:wrap}
+.ia-mov-data{font-size:11px;color:var(--tx3)}
+.ia-mov-resumo{font-size:13px;color:var(--tx2);line-height:1.6}
+
 /* ── MSG CLIENTE ── */
 .msg-prev{background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:16px;font-size:13.5px;color:var(--tx);line-height:1.75;white-space:pre-wrap;margin-bottom:12px}
 .btn-wpp{display:inline-flex;align-items:center;gap:9px;padding:10px 18px;background:#DCFCE7;border:1px solid #A7F3D0;border-radius:8px;color:#065F46;font-size:13.5px;font-weight:600;font-family:'Inter',sans-serif;text-decoration:none;cursor:pointer;transition:all .15s}
@@ -1107,6 +1123,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <button class="det-tab on" data-tab="atos" onclick="switchDetTab('atos')">Atos</button>
       <button class="det-tab" data-tab="hist" onclick="switchDetTab('hist')">Histórico & Avanço</button>
       <button class="det-tab" data-tab="cli" onclick="switchDetTab('cli')">Cliente & Mensagem</button>
+      <button class="det-tab" data-tab="ia" onclick="switchDetTab('ia')">🤖 IA</button>
     </div>
 
     <div class="mbody">
@@ -1153,6 +1170,29 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         <div class="detsec" style="border-bottom:none;margin-bottom:0;padding-bottom:0;">
           <div class="detsec-title">Histórico de fases</div>
           <div id="det-hist"></div>
+        </div>
+      </div>
+
+      <!-- ABA: IA & MOVIMENTAÇÕES -->
+      <div id="det-tab-ia" style="display:none;">
+        <div class="detsec">
+          <div class="detsec-title">Nova movimentação</div>
+          <div class="field">
+            <label class="flabel">Cole o texto da movimentação <span style="font-size:11px;color:var(--tx3);">ou envie um PDF</span></label>
+            <textarea class="finp" id="ia-texto" rows="5" style="resize:vertical;" placeholder="Cole aqui o texto da movimentação processual (publicação, decisão, despacho...)"></textarea>
+          </div>
+          <div class="field">
+            <label class="flabel">Enviar PDF da movimentação (opcional)</label>
+            <input type="file" id="ia-pdf" accept=".pdf" class="finp" style="padding:6px;cursor:pointer;"
+              onchange="if(this.files[0]){_iaArquivoPDF=this.files[0];document.getElementById('ia-pdf-nome').textContent='📎 '+this.files[0].name;}else{_iaArquivoPDF=null;document.getElementById('ia-pdf-nome').textContent='';}">
+            <span id="ia-pdf-nome" style="font-size:12px;color:var(--bl);margin-top:4px;display:block;"></span>
+          </div>
+          <button class="btn btn-p" id="ia-btn-analisar" onclick="analisarMovimentacao()">🤖 Analisar com IA</button>
+        </div>
+        <div id="ia-resultado" style="display:none;padding:0 0 4px;"></div>
+        <div class="detsec" style="border-bottom:none;margin-bottom:0;padding-bottom:0;">
+          <div class="detsec-title">Histórico de análises</div>
+          <div id="ia-historico"><div style="font-size:13px;color:var(--tx3);padding:8px 0;">Nenhuma movimentação analisada ainda.</div></div>
         </div>
       </div>
 
@@ -2422,7 +2462,7 @@ function toggleSidebar(){
   document.getElementById('sb-overlay').classList.toggle('on');
 }
 function switchDetTab(tab){
-  ['atos','hist','cli'].forEach(t=>{
+  ['atos','hist','cli','ia'].forEach(t=>{
     document.getElementById('det-tab-'+t).style.display=t===tab?'block':'none';
     document.querySelector(`.det-tab[data-tab="${t}"]`).classList.toggle('on',t===tab);
   });
@@ -4207,8 +4247,100 @@ function abrirDet(id){
     const oa=document.getElementById('det-obs-av');if(oa)oa.value='';
     document.getElementById('msg-wrap').style.display='none';
     initRespSel();
+    renderMovimentacoesIA(d);
+    // reset IA input fields
+    const iaT=document.getElementById('ia-texto');if(iaT)iaT.value='';
+    const iaP=document.getElementById('ia-pdf');if(iaP)iaP.value='';
+    const iaN=document.getElementById('ia-pdf-nome');if(iaN)iaN.textContent='';
+    const iaR=document.getElementById('ia-resultado');if(iaR)iaR.style.display='none';
+    _iaArquivoPDF=null;
   });
 }
+
+// ── IA MOVIMENTAÇÕES ────────────────────────────────────────────────
+let _iaArquivoPDF=null;
+
+function lerPDFBase64(file){
+  return new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=e=>resolve(e.target.result.split(',')[1]);
+    r.onerror=reject;
+    r.readAsDataURL(file);
+  });
+}
+
+async function analisarMovimentacao(){
+  const d=demandas.find(x=>x.id===detId);if(!d)return;
+  const texto=document.getElementById('ia-texto').value.trim();
+  if(!texto&&!_iaArquivoPDF){toast('Cole o texto da movimentação ou envie um PDF','te');return;}
+  const btn=document.getElementById('ia-btn-analisar');
+  btn.disabled=true;btn.textContent='Analisando...';
+  document.getElementById('ia-resultado').style.display='none';
+  try{
+    let pdfBase64=null;
+    if(_iaArquivoPDF)pdfBase64=await lerPDFBase64(_iaArquivoPDF);
+    const hist=getH(d);
+    const etapaAtual=ETAPAS[d.etapa_atual]?.nome||'';
+    const resp=await fetch(`${SB_URL}/functions/v1/resumir-ia`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${SB_KEY}`},
+      body:JSON.stringify({texto,pdfBase64,demandaNome:d.nome,demandaTipo:d.tipo,etapaAtual,histFases:hist})
+    });
+    const res=await resp.json();
+    if(res.erro){toast('Erro na análise: '+res.erro,'te');return;}
+    _renderResultadoIA(res);
+    await _salvarMovimentacaoIA(d,texto,_iaArquivoPDF?.name||null,res);
+    if(res.urgente)toast('⚠️ Movimentação urgente detectada! Verifique o prazo.','te',6000);
+  }catch(e){
+    toast('Erro ao analisar: '+e.message,'te');
+  }finally{
+    btn.disabled=false;btn.textContent='🤖 Analisar com IA';
+  }
+}
+
+function _renderResultadoIA(res){
+  const el=document.getElementById('ia-resultado');
+  el.style.display='block';
+  const passos=Array.isArray(res.proximos_passos)&&res.proximos_passos.length
+    ?`<div class="ia-res-sec"><div class="ia-res-lbl">Próximos passos</div><ul class="ia-checklist">${res.proximos_passos.map(p=>`<li>${p}</li>`).join('')}</ul></div>`:''
+  const prazoHtml=res.prazo
+    ?`<div class="ia-res-sec"><div class="ia-res-lbl">Prazo identificado</div><p class="${res.urgente?'ia-prazo-urgente':''}">${res.alerta_prazo||res.prazo}</p></div>`:''
+  el.innerHTML=`<div class="ia-res-box${res.urgente?' urgente':''}">
+    ${res.urgente?'<div class="ia-urgente-badge">⚠️ URGENTE — verifique o prazo</div>':''}
+    <div class="ia-res-sec"><div class="ia-res-lbl">Resumo</div><p>${res.resumo||'—'}</p></div>
+    <div class="ia-res-sec"><div class="ia-res-lbl">Situação estratégica</div><p>${res.situacao||'—'}</p></div>
+    ${passos}${prazoHtml}
+  </div>`;
+}
+
+async function _salvarMovimentacaoIA(d,texto,nomeArquivo,resultado){
+  const movs=Array.isArray(d.movimentacoes)?[...d.movimentacoes]:[];
+  const nova={
+    id:crypto.randomUUID(),
+    data:new Date().toLocaleDateString('pt-BR'),
+    texto:texto||(nomeArquivo?`[PDF: ${nomeArquivo}]`:''),
+    ...resultado
+  };
+  movs.unshift(nova);
+  const{error}=await db.from('demandas_escritorio').update({movimentacoes:JSON.stringify(movs)}).eq('id',detId);
+  if(!error){d.movimentacoes=movs;renderMovimentacoesIA(d);}
+  else toast('Análise exibida mas não salva: '+error.message,'te');
+}
+
+function renderMovimentacoesIA(d){
+  const el=document.getElementById('ia-historico');if(!el)return;
+  const movs=Array.isArray(d.movimentacoes)?d.movimentacoes:[];
+  if(!movs.length){el.innerHTML='<div style="font-size:13px;color:var(--tx3);padding:8px 0;">Nenhuma movimentação analisada ainda.</div>';return;}
+  el.innerHTML=movs.map(m=>`<div class="ia-mov-item${m.urgente?' urgente':''}">
+    <div class="ia-mov-top">
+      <span class="ia-mov-data">${m.data}</span>
+      ${m.urgente?'<span class="bdg" style="background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;font-size:11px;">⚠️ Urgente</span>':''}
+      ${m.prazo?`<span class="bdg b-bl" style="font-size:11px;">${m.prazo}</span>`:''}
+    </div>
+    <div class="ia-mov-resumo">${m.resumo||m.texto?.substring(0,120)||'—'}</div>
+  </div>`).join('');
+}
+// ────────────────────────────────────────────────────────────────────
 
 function renderAtosDetalhe(d){
   const atos=getA(d);
