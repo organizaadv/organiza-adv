@@ -4200,6 +4200,7 @@ async function salvarDemanda(){
 }
 
 // ── DETALHE ──
+let _iaArquivoPDF=null;
 function abrirDet(id){
   detId=id;const d=demandas.find(x=>x.id===id);if(!d)return;
   document.getElementById('det-nome').textContent=d.nome;
@@ -4260,8 +4261,6 @@ function abrirDet(id){
 }
 
 // ── IA MOVIMENTAÇÕES ────────────────────────────────────────────────
-let _iaArquivoPDF=null;
-
 function lerPDFBase64(file){
   return new Promise((resolve,reject)=>{
     const r=new FileReader();
@@ -4303,16 +4302,23 @@ async function analisarMovimentacao(){
 function _renderResultadoIA(res){
   const el=document.getElementById('ia-resultado');
   el.style.display='block';
-  const passos=Array.isArray(res.proximos_passos)&&res.proximos_passos.length
-    ?`<div class="ia-res-sec"><div class="ia-res-lbl">Próximos passos</div><ul class="ia-checklist">${res.proximos_passos.map(p=>`<li>${p}</li>`).join('')}</ul></div>`:''
-  const prazoHtml=res.prazo
-    ?`<div class="ia-res-sec"><div class="ia-res-lbl">Prazo identificado</div><p class="${res.urgente?'ia-prazo-urgente':''}">${res.alerta_prazo||res.prazo}</p></div>`:''
-  el.innerHTML=`<div class="ia-res-box${res.urgente?' urgente':''}">
-    ${res.urgente?'<div class="ia-urgente-badge">⚠️ URGENTE — verifique o prazo</div>':''}
-    <div class="ia-res-sec"><div class="ia-res-lbl">Resumo</div><p>${res.resumo||'—'}</p></div>
-    <div class="ia-res-sec"><div class="ia-res-lbl">Situação estratégica</div><p>${res.situacao||'—'}</p></div>
-    ${passos}${prazoHtml}
-  </div>`;
+  let passos='';
+  if(Array.isArray(res.proximos_passos)&&res.proximos_passos.length){
+    passos='<div class="ia-res-sec"><div class="ia-res-lbl">Próximos passos</div><ul class="ia-checklist">';
+    res.proximos_passos.forEach(function(p){passos+='<li>'+p+'</li>';});
+    passos+='</ul></div>';
+  }
+  let prazoHtml='';
+  if(res.prazo){
+    const cls=res.urgente?'ia-prazo-urgente':'';
+    prazoHtml='<div class="ia-res-sec"><div class="ia-res-lbl">Prazo identificado</div><p class="'+cls+'">'+(res.alerta_prazo||res.prazo)+'</p></div>';
+  }
+  const urgBadge=res.urgente?'<div class="ia-urgente-badge">URGENTE - verifique o prazo</div>':'';
+  const boxCls=res.urgente?'ia-res-box urgente':'ia-res-box';
+  el.innerHTML='<div class="'+boxCls+'">'+urgBadge+
+    '<div class="ia-res-sec"><div class="ia-res-lbl">Resumo</div><p>'+(res.resumo||'—')+'</p></div>'+
+    '<div class="ia-res-sec"><div class="ia-res-lbl">Situacao estrategica</div><p>'+(res.situacao||'—')+'</p></div>'+
+    passos+prazoHtml+'</div>';
 }
 
 async function _salvarMovimentacaoIA(d,texto,nomeArquivo,resultado){
@@ -4332,15 +4338,16 @@ async function _salvarMovimentacaoIA(d,texto,nomeArquivo,resultado){
 function renderMovimentacoesIA(d){
   const el=document.getElementById('ia-historico');if(!el)return;
   const movs=Array.isArray(d.movimentacoes)?d.movimentacoes:[];
-  if(!movs.length){el.innerHTML='<div style="font-size:13px;color:var(--tx3);padding:8px 0;">Nenhuma movimentação analisada ainda.</div>';return;}
-  el.innerHTML=movs.map(m=>`<div class="ia-mov-item${m.urgente?' urgente':''}">
-    <div class="ia-mov-top">
-      <span class="ia-mov-data">${m.data}</span>
-      ${m.urgente?'<span class="bdg" style="background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;font-size:11px;">⚠️ Urgente</span>':''}
-      ${m.prazo?`<span class="bdg b-bl" style="font-size:11px;">${m.prazo}</span>`:''}
-    </div>
-    <div class="ia-mov-resumo">${m.resumo||m.texto?.substring(0,120)||'—'}</div>
-  </div>`).join('');
+  if(!movs.length){el.innerHTML='<div style="font-size:13px;color:var(--tx3);padding:8px 0;">Nenhuma movimentacao analisada ainda.</div>';return;}
+  let html='';
+  movs.forEach(function(m){
+    const cls=m.urgente?'ia-mov-item urgente':'ia-mov-item';
+    const urg=m.urgente?'<span class="bdg" style="background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;font-size:11px;">Urgente</span>':'';
+    const prazo=m.prazo?'<span class="bdg b-bl" style="font-size:11px;">'+m.prazo+'</span>':'';
+    const resumo=m.resumo||(m.texto?(m.texto+'').substring(0,120):'—');
+    html+='<div class="'+cls+'"><div class="ia-mov-top"><span class="ia-mov-data">'+m.data+'</span>'+urg+prazo+'</div><div class="ia-mov-resumo">'+resumo+'</div></div>';
+  });
+  el.innerHTML=html;
 }
 // ────────────────────────────────────────────────────────────────────
 
