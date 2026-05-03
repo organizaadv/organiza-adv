@@ -651,10 +651,11 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <div class="tbl-wrap">
         <table>
           <thead><tr>
-            <th class="sortable">Cliente</th>
             <th>Nº do Processo</th>
+            <th>Cliente</th>
             <th>Área</th>
-            <th>Status</th>
+            <th>Vara / Tribunal</th>
+            <th>Demanda</th>
             <th></th>
           </tr></thead>
           <tbody id="tb-proc"></tbody>
@@ -1238,6 +1239,31 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         <button class="btn btn-gh" onclick="exportPDF()">📄 Exportar PDF</button>
         <button class="btn btn-gh" onclick="abrirEdicao()">✏️ Editar dados</button>
         <button class="btn btn-gh" onclick="closeM('m-det')">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PROTOCOLAR -->
+<div class="mov" id="m-protocolar">
+  <div class="mbox" style="max-width:460px;">
+    <div class="mhead">
+      <div><div class="mtitle">Protocolar processo</div><div class="msubt">Registre o número para avançar esta etapa</div></div>
+      <button class="mx" onclick="closeM('m-protocolar')">✕</button>
+    </div>
+    <div class="mbody" style="display:flex;flex-direction:column;gap:16px;">
+      <div style="background:var(--blb);border:1px solid var(--blbd);border-radius:var(--rmd);padding:12px 14px;font-size:13px;color:var(--bl);">
+        Após informar o número do processo e a vara/tribunal, a demanda avançará para a próxima etapa automaticamente.
+      </div>
+      <div class="field"><label class="flabel">Número do processo <span class="req">*</span></label>
+        <input type="text" class="finp" id="prot-num" placeholder="Ex: 0001234-56.2026.5.15.0001"/></div>
+      <div class="field"><label class="flabel">Vara / Tribunal <span class="req">*</span></label>
+        <input type="text" class="finp" id="prot-vara" placeholder="Ex: 3ª Vara do Trabalho de Campinas"/></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-gh" onclick="closeM('m-protocolar')">Cancelar</button>
+      <div class="mfoot-r">
+        <button class="btn btn-p" id="prot-btn" onclick="confirmarProtocolo()">Protocolar e Avançar →</button>
       </div>
     </div>
   </div>
@@ -2082,18 +2108,23 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
           <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px;">
             <div style="background:var(--surface);border:1px solid var(--gdb);border-radius:8px;padding:12px 14px;">
               <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gd);margin-bottom:4px;">Obrigatório</div>
+              <div style="font-size:13.5px;font-weight:600;color:var(--tx)">Número do processo</div>
+              <div style="font-size:12px;color:var(--tx3)">Ex.: "processo", "número", "cnj"</div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--gdb);border-radius:8px;padding:12px 14px;">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gd);margin-bottom:4px;">Obrigatório</div>
               <div style="font-size:13.5px;font-weight:600;color:var(--tx)">Nome do cliente</div>
               <div style="font-size:12px;color:var(--tx3)">Ex.: "cliente", "nome", "parte"</div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--gdb);border-radius:8px;padding:12px 14px;grid-column:span 2">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gd);margin-bottom:4px;">Obrigatório</div>
+              <div style="font-size:13.5px;font-weight:600;color:var(--tx)">Vara / Tribunal</div>
+              <div style="font-size:12px;color:var(--tx3)">Ex.: "vara", "tribunal", "comarca", "foro", "órgão"</div>
             </div>
             <div style="background:var(--surface);border:1px solid var(--bd);border-radius:8px;padding:12px 14px;">
               <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--tx3);margin-bottom:4px;">Opcional</div>
               <div style="font-size:13.5px;font-weight:600;color:var(--tx)">Telefone / WhatsApp</div>
               <div style="font-size:12px;color:var(--tx3)">Ex.: "telefone", "whatsapp", "celular"</div>
-            </div>
-            <div style="background:var(--surface);border:1px solid var(--bd);border-radius:8px;padding:12px 14px;">
-              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--tx3);margin-bottom:4px;">Opcional</div>
-              <div style="font-size:13.5px;font-weight:600;color:var(--tx)">Número do processo</div>
-              <div style="font-size:12px;color:var(--tx3)">Ex.: "processo", "número", "nro"</div>
             </div>
             <div style="background:var(--surface);border:1px solid var(--bd);border-radius:8px;padding:12px 14px;">
               <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--tx3);margin-bottom:4px;">Opcional</div>
@@ -2381,6 +2412,7 @@ function getAtosTemplate(tipo,etapa){
 
 // ── ESTADO ──
 let demandas=[],colabs=[],convitesPendentes=[],escData={},userAtual=null,usuarioAtual=null,filtroAtivo='todos',filtroFinAtivo='todos',detId=null,quickAvId=null,cliDetId=null;
+let processos=[],_protQuem='',_protObs='';
 let sortDem={col:null,asc:true},sortCli={col:null,asc:true};
 let finLanc=[],finDetId=null;
 
@@ -4511,6 +4543,14 @@ async function avancar(){
   }
   const obs=document.getElementById('det-obs-av').value.trim();
   const etFeita=ETAPAS[d.etapa_atual]?.nome||'';
+  // Protocolo obrigatório antes de avançar a partir desta etapa
+  if(etAtual==='Protocolo'){
+    _protQuem=quem;_protObs=obs;
+    document.getElementById('prot-num').value=d.processo||'';
+    document.getElementById('prot-vara').value='';
+    openM('m-protocolar');
+    return;
+  }
   const nova=d.etapa_atual+1;const conc=nova>=ETAPAS.length;
   const hist=getH(d);hist.push({etapa:etFeita,quem,obs,data:hoje()});
   const{error}=await db.from('demandas_escritorio').update({etapa_atual:nova,status:conc?'Concluído':'Em andamento',hist_fases:JSON.stringify(hist)}).eq('id',detId);
@@ -4519,6 +4559,40 @@ async function avancar(){
   if(conc){d.status='Concluído';notifConc(d,quem);}
   abrirDet(detId);renderKanban();
   toast(conc?'Demanda concluída! 🎉':`Avançou para: ${ETAPAS[nova]?.nome||'Concluída'}`);
+}
+
+async function confirmarProtocolo(){
+  const num=document.getElementById('prot-num').value.trim();
+  const vara=document.getElementById('prot-vara').value.trim();
+  if(!num){toast('Informe o número do processo.','te');return;}
+  if(!vara){toast('Informe a vara/tribunal.','te');return;}
+  const d=demandas.find(x=>x.id===detId);if(!d)return;
+  const btn=document.getElementById('prot-btn');
+  btn.disabled=true;btn.textContent='Salvando...';
+  // 1. Salvar número do processo na demanda
+  const{error:e1}=await db.from('demandas_escritorio').update({processo:num}).eq('id',detId);
+  if(e1){toast('Erro: '+e1.message,'te');btn.disabled=false;btn.textContent='Protocolar e Avançar →';return;}
+  d.processo=num;
+  // 2. Criar registro na tabela processos
+  const{data:novProc,error:e2}=await db.from('processos').insert([{
+    escritorio_id:escData.id,demanda_id:detId,
+    numero_processo:num,cliente_nome:d.nome,
+    cliente_tel:d.tel||null,area:d.tipo||null,vara_tribunal:vara
+  }]).select().single();
+  if(e2)toast('Número salvo, mas erro ao criar registro de processo: '+e2.message,'te');
+  else{processos.unshift(novProc);}
+  // 3. Avançar etapa
+  const etFeita=ETAPAS[d.etapa_atual]?.nome||'';
+  const nova=d.etapa_atual+1;const conc=nova>=ETAPAS.length;
+  const hist=getH(d);hist.push({etapa:etFeita,quem:_protQuem,obs:_protObs,data:hoje()});
+  const{error:e3}=await db.from('demandas_escritorio').update({etapa_atual:nova,status:conc?'Concluído':'Em andamento',hist_fases:JSON.stringify(hist)}).eq('id',detId);
+  if(e3){toast('Erro ao avançar: '+e3.message,'te');btn.disabled=false;btn.textContent='Protocolar e Avançar →';return;}
+  d.etapa_atual=nova;d.hist_fases=JSON.stringify(hist);
+  if(conc){d.status='Concluído';notifConc(d,_protQuem);}
+  closeM('m-protocolar');
+  abrirDet(detId);renderKanban();renderProcessos();
+  toast(conc?'Processo protocolado e demanda concluída!':'Processo protocolado e etapa avançada!');
+  btn.disabled=false;btn.textContent='Protocolar e Avançar →';
 }
 
 async function voltar(){
@@ -4538,18 +4612,11 @@ function toggleEditTipoOutro(){
 
 function abrirConverterProcesso(){
   const d=demandas.find(x=>x.id===detId);if(!d)return;
-  const num=prompt('Informe o número do processo (ex: 0001234-56.2026.1.00.0001):');
-  if(num===null)return;
-  const numLimpo=num.trim();
-  if(!numLimpo){toast('Número do processo não informado.','te');return;}
-  db.from('demandas_escritorio').update({processo:numLimpo}).eq('id',detId).then(({error})=>{
-    if(error){toast('Erro: '+error.message,'te');return;}
-    const d2=demandas.find(x=>x.id===detId);if(d2)d2.processo=numLimpo;
-    document.getElementById('det-proc').textContent=numLimpo;
-    const banner=document.getElementById('det-prot-banner');if(banner)banner.style.display='none';
-    renderKanban();
-    toast('Número do processo registrado! ✓');
-  });
+  _protQuem=usuarioAtual?.nome||userAtual||'';
+  _protObs='';
+  document.getElementById('prot-num').value=d.processo||'';
+  document.getElementById('prot-vara').value='';
+  openM('m-protocolar');
 }
 
 function abrirEdicao(){
@@ -5182,29 +5249,43 @@ function renderProcessos(){
   const tbody=document.getElementById('tb-proc');
   if(!tbody)return;
   const q=(filtroProc||'').toLowerCase();
-  let lista=[...demandas];
-  if(q)lista=lista.filter(d=>
-    (d.nome||'').toLowerCase().includes(q)||
-    (d.processo||'').toLowerCase().includes(q)||
-    (d.tipo||'').toLowerCase().includes(q)
+  let lista=[...processos];
+  if(q)lista=lista.filter(p=>
+    (p.numero_processo||'').toLowerCase().includes(q)||
+    (p.cliente_nome||'').toLowerCase().includes(q)||
+    (p.area||'').toLowerCase().includes(q)||
+    (p.vara_tribunal||'').toLowerCase().includes(q)
   );
-  lista.sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR'));
   if(!lista.length){
-    tbody.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="empty-ico">📁</div><div class="empty-title">${q?'Nenhum processo encontrado':'Nenhum processo cadastrado'}</div><div class="empty-sub">${q?'Ajuste a busca ou limpe o campo.':'Importe uma planilha ou clique em "Novo processo".'}</div></div></td></tr>`;
+    const msg=q?'Nenhum processo encontrado':'Nenhum processo cadastrado';
+    const sub=q?'Ajuste a busca ou limpe o campo.':'Importe uma planilha ou protocole uma demanda no Kanban.';
+    tbody.innerHTML='<tr><td colspan="6"><div class="empty"><div class="empty-ico">⚖️</div><div class="empty-title">'+msg+'</div><div class="empty-sub">'+sub+'</div></div></td></tr>';
     return;
   }
-  const statusLabel={pendente:'Pendente','Em andamento':'Em andamento','Concluído':'Concluído','Cancelado':'Cancelado'};
-  tbody.innerHTML=lista.map(d=>{
-    const st=statusD(d);
-    const stCls=st==='Concluído'?'b-conc':st==='Cancelado'?'b-can':st==='Em andamento'?'b-bl':'b-av';
-    return`<tr onclick="abrirDet('${d.id}')" style="cursor:pointer">
-      <td><div class="td-av"><div class="av" style="flex-shrink:0">${iniciais(d.nome)}</div><div style="font-weight:500;font-size:13.5px">${d.nome}</div></div></td>
-      <td style="font-size:12px;color:var(--tx2);font-family:monospace;white-space:nowrap">${d.processo||'<span style="color:var(--tx3);font-family:\'DM Sans\',sans-serif">Sem número</span>'}</td>
-      <td style="font-size:13px">${d.tipo||'—'}</td>
-      <td><span class="bdg ${stCls}" style="font-size:10px">${st}</span></td>
-      <td style="text-align:right"><button class="btn btn-sm btn-gh" onclick="event.stopPropagation();abrirDet('${d.id}')">Abrir</button></td>
-    </tr>`;
-  }).join('');
+  let html='';
+  lista.forEach(function(p){
+    const dem=demandas.find(x=>Number(x.id)===Number(p.demanda_id));
+    const demLink=dem?'<span class="bdg b-bl" style="cursor:pointer;font-size:11px;" onclick="abrirDet('+dem.id+')">'+dem.nome+'</span>':'<span style="color:var(--tx3);font-size:12px">—</span>';
+    html+='<tr>';
+    html+='<td style="font-size:12px;font-family:monospace;color:var(--tx2);white-space:nowrap">'+p.numero_processo+'</td>';
+    html+='<td><div class="td-av"><div class="av" style="flex-shrink:0">'+iniciais(p.cliente_nome)+'</div><div style="font-weight:500;font-size:13.5px">'+p.cliente_nome+'</div></div></td>';
+    html+='<td style="font-size:13px">'+(p.area||'—')+'</td>';
+    html+='<td style="font-size:12px;color:var(--tx2)">'+(p.vara_tribunal||'—')+'</td>';
+    html+='<td>'+demLink+'</td>';
+    const abrirBtn=dem?'<button class="btn btn-sm btn-p" style="margin-right:6px" onclick="showView(\'kanban\');abrirDet('+dem.id+')">Abrir</button>':'';
+    html+='<td style="text-align:right;white-space:nowrap">'+abrirBtn+'<button class="btn btn-sm btn-gh" style="color:var(--rd);border-color:var(--rd)" onclick="excluirProcesso(\''+p.id+'\')">Excluir</button></td>';
+    html+='</tr>';
+  });
+  tbody.innerHTML=html;
+}
+
+async function excluirProcesso(id){
+  if(!confirm('Excluir este processo? Esta acao nao pode ser desfeita.'))return;
+  const{error}=await db.from('processos').delete().eq('id',id);
+  if(error){toast('Erro: '+error.message,'te');return;}
+  processos=processos.filter(p=>p.id!==id);
+  renderProcessos();
+  toast('Processo excluido.');
 }
 
 function abrirImportacao(){
@@ -5264,19 +5345,23 @@ async function processarArquivoImport(file){
 
   const headers=Object.keys(linhas[0]);
   const find=(tests)=>headers.find(h=>tests.some(t=>h.includes(t)))||'';
+  const colProc=find(['processo','proc','número','numero','nro','cnj','autos']);
   const colNome=find(['nome','cliente','parte','name']);
   const colTel =find(['tel','fone','wpp','whats','celular','phone']);
-  const colProc=find(['processo','proc','número','numero','nro','cnj','autos']);
   const colArea=find(['área','area','tipo','direito','matéria','materia','assunto']);
+  const colVara=find(['vara','tribunal','juiz','comarca','foro','orgao','órgão']);
 
+  if(!colProc){toast('Não foi possível identificar a coluna de número do processo. Verifique o cabeçalho da planilha.','te');return;}
   if(!colNome){toast('Não foi possível identificar a coluna de nome do cliente. Verifique o cabeçalho da planilha.','te');return;}
+  if(!colVara){toast('Não foi possível identificar a coluna de vara/tribunal. Verifique o cabeçalho da planilha.','te');return;}
 
   impDados=linhas.map(r=>({
+    processo:(r[colProc]||'').trim(),
     nome:(r[colNome]||'').trim(),
     tel:colTel?(r[colTel]||'').replace(/\D/g,''):'',
-    processo:colProc?(r[colProc]||'').trim():'',
     tipo:colArea?(r[colArea]||'').trim()||'Cível':'Cível',
-  })).filter(r=>r.nome);
+    vara:colVara?(r[colVara]||'').trim():'',
+  })).filter(r=>r.nome&&r.processo);
 
   if(!impDados.length){toast('Nenhuma linha com nome de cliente válido encontrada.','te');return;}
 
@@ -5302,14 +5387,15 @@ function renderPreviewImport(){
     </div>
     <div class="tbl-wrap" style="max-height:360px;overflow-y:auto">
       <table>
-        <thead><tr><th>#</th><th>Cliente</th><th>Telefone</th><th>Nº Processo</th><th>Área</th><th></th></tr></thead>
+        <thead><tr><th>#</th><th>Nº Processo</th><th>Cliente</th><th>Telefone</th><th>Área</th><th>Vara/Tribunal</th><th></th></tr></thead>
         <tbody>${impDados.map((r,i)=>`
           <tr>
             <td style="color:var(--tx3);font-size:12px">${i+1}</td>
+            <td style="font-size:12px;font-family:monospace;color:var(--tx2)">${r.processo||'—'}</td>
             <td style="font-weight:500">${r.nome}</td>
             <td style="font-size:12px;color:var(--tx2)">${r.tel||'—'}</td>
-            <td style="font-size:12px;color:var(--tx2);font-family:monospace">${r.processo||'—'}</td>
             <td><span class="bdg b-bl" style="font-size:10px">${r.tipo}</span></td>
+            <td style="font-size:12px;color:var(--tx2)">${r.vara||'—'}</td>
             <td><button onclick="removerLinhaImport(${i})" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:15px;padding:2px 6px;line-height:1" title="Remover linha">✕</button></td>
           </tr>`).join('')}
         </tbody>
@@ -5329,18 +5415,22 @@ async function confirmarImportacao(){
   const btn=document.getElementById('imp-btn-confirmar');
   if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> Importando...';}
   let criados=0;const erros=[];
-  const escId=escData.id;const dataHj=hoje();
+  const escId=escData.id;
   for(let i=0;i<impDados.length;i++){
     const r=impDados[i];
+    if(!r.processo){erros.push({linha:i+1,motivo:'Número do processo em branco'});continue;}
     if(!r.nome){erros.push({linha:i+1,motivo:'Nome do cliente em branco'});continue;}
     try{
-      const{data,error}=await db.from('demandas_escritorio').insert([{
-        escritorio_id:escId,nome:r.nome,tipo:r.tipo||'Cível',
-        tel:r.tel||null,processo:r.processo||null,
-        status:'Em andamento',etapa_atual:0,data:dataHj,criado_por:userAtual||null,
+      const{data,error}=await db.from('processos').insert([{
+        escritorio_id:escId,
+        numero_processo:r.processo,
+        cliente_nome:r.nome,
+        cliente_tel:r.tel||null,
+        area:r.tipo||null,
+        vara_tribunal:r.vara||null,
       }]).select().single();
       if(error){erros.push({linha:i+1,motivo:error.message});continue;}
-      demandas.unshift(data);criados++;
+      processos.unshift(data);criados++;
     }catch(e){erros.push({linha:i+1,motivo:e.message});}
   }
   if(btn){btn.disabled=false;btn.textContent='Confirmar importação';}
@@ -6247,13 +6337,14 @@ window.addEventListener('load',async()=>{
   if(escData.tema)obAplicarTema(escData.tema);
   renderSBInfo();verificarTrial();await migrarLocalStorageParaSupabase();await loadFin();
 
-  const[{data:d},{data:c},{data:cv},{data:cl}]=await Promise.all([
+  const[{data:d},{data:c},{data:cv},{data:cl},{data:pr}]=await Promise.all([
     db.from('demandas_escritorio').select('*').eq('escritorio_id',escData.id).order('created_at',{ascending:false}),
     db.from('colab_escritorio').select('*').eq('escritorio_id',escData.id).order('created_at',{ascending:true}),
     db.rpc('buscar_convites_pendentes',{p_escritorio_id:escData.id}),
-    db.from('clientes').select('*').eq('escritorio_id',escData.id).order('nome',{ascending:true})
+    db.from('clientes').select('*').eq('escritorio_id',escData.id).order('nome',{ascending:true}),
+    db.from('processos').select('*').eq('escritorio_id',escData.id).order('created_at',{ascending:false})
   ]);
-  demandas=d||[];colabs=c||[];convitesPendentes=cv||[];clientes=cl||[];
+  demandas=d||[];colabs=c||[];convitesPendentes=cv||[];clientes=cl||[];processos=pr||[];
 
   // Garante que o titular aparece na equipe — insere se ainda não existir
   if(usuarioAtual&&!colabs.some(m=>m.perfil==='titular')){
