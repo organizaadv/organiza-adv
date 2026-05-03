@@ -4,83 +4,83 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>OrganizaADV — Entrar</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+html,body{height:100%;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;background:#0A0F1E}
 .pg{display:grid;grid-template-columns:420px 1fr;min-height:100vh}
 @media(max-width:860px){.pg{grid-template-columns:1fr}}
-.left{background:#1C1F2E;display:flex;flex-direction:column;padding:40px;position:relative;overflow:hidden}
-.left::before{content:'';position:absolute;top:-120px;right:-80px;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.12) 0%,transparent 70%);pointer-events:none}
-.left::after{content:'';position:absolute;bottom:-100px;left:-60px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.07) 0%,transparent 70%);pointer-events:none}
+.left{background:#0D1424;display:flex;flex-direction:column;padding:40px;position:relative;overflow:hidden;border-right:1px solid #1F2937}
+.left::before{content:'';position:absolute;top:-120px;right:-80px;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.1) 0%,transparent 70%);pointer-events:none}
+.left::after{content:'';position:absolute;bottom:-100px;left:-60px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.06) 0%,transparent 70%);pointer-events:none}
 .l-logo{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:#C9A84C;letter-spacing:-.4px;margin-bottom:4px}
-.l-logo span{color:rgba(255,255,255,.5)}
-.l-tag{font-size:11px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:auto}
+.l-logo span{color:rgba(255,255,255,.4)}
+.l-tag{font-size:11px;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:auto}
 .l-body{padding:40px 0 0}
-.l-title{font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:#fff;line-height:1.2;margin-bottom:12px;letter-spacing:-.5px}
+.l-title{font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:#F9FAFB;line-height:1.2;margin-bottom:12px;letter-spacing:-.5px}
 .l-title em{font-style:italic;color:#C9A84C}
-.l-sub{font-size:14px;color:rgba(255,255,255,.45);line-height:1.7;margin-bottom:36px}
+.l-sub{font-size:14px;color:rgba(255,255,255,.38);line-height:1.7;margin-bottom:36px}
 .l-points{display:flex;flex-direction:column;gap:14px;margin-bottom:36px}
-.l-pt{display:flex;align-items:flex-start;gap:12px;font-size:13.5px;color:rgba(255,255,255,.7);line-height:1.5}
-.l-pt-icon{width:24px;height:24px;border-radius:6px;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.25);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:1px}
-.l-trial{background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:14px}
+.l-pt{display:flex;align-items:flex-start;gap:12px;font-size:13.5px;color:rgba(255,255,255,.6);line-height:1.5}
+.l-pt-icon{width:24px;height:24px;border-radius:6px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.22);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:1px}
+.l-trial{background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.18);border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:14px}
 .l-trial-num{font-family:'Fraunces',serif;font-size:36px;font-weight:700;color:#C9A84C;line-height:1}
-.l-trial-txt{font-size:12px;color:rgba(255,255,255,.5);line-height:1.5}
-.l-trial-txt strong{display:block;font-size:14px;color:rgba(255,255,255,.8);font-weight:600;margin-bottom:2px}
+.l-trial-txt{font-size:12px;color:rgba(255,255,255,.4);line-height:1.5}
+.l-trial-txt strong{display:block;font-size:14px;color:rgba(255,255,255,.75);font-weight:600;margin-bottom:2px}
 @media(max-width:860px){.left{display:none}}
-.right{background:#F4F6FB;display:flex;align-items:center;justify-content:center;padding:40px 24px}
-.form-card{background:#fff;border-radius:20px;width:100%;max-width:420px;box-shadow:0 4px 24px rgba(13,19,33,.07),0 1px 4px rgba(13,19,33,.04);border:1px solid #DDE2EE;overflow:hidden}
+.right{background:#0A0F1E;display:flex;align-items:center;justify-content:center;padding:40px 24px}
+.form-card{background:#111827;border-radius:20px;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(0,0,0,.6),0 4px 16px rgba(0,0,0,.4);border:1px solid #1F2937;overflow:hidden}
 .mob-logo{display:none;padding:24px 28px 0;font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:#C9A84C}
-.mob-logo span{color:#48556A}
+.mob-logo span{color:#6B7280}
 @media(max-width:860px){.mob-logo{display:block}}
-.tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #DDE2EE}
-.tab{padding:16px 12px;text-align:center;font-size:13.5px;font-weight:500;color:#96A3B5;cursor:pointer;border:none;background:none;font-family:'DM Sans',sans-serif;transition:all .15s;position:relative}
-.tab::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;background:#C9A84C;transform:scaleX(0);transition:transform .2s}
-.tab.on{color:#0D1321;font-weight:600}
+.tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #1F2937;background:#0D1424}
+.tab{padding:16px 12px;text-align:center;font-size:13.5px;font-weight:500;color:#6B7280;cursor:pointer;border:none;background:none;font-family:'Inter',sans-serif;transition:all .15s;position:relative}
+.tab::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;background:#C9A84C;transform:scaleX(0);transition:transform .22s}
+.tab.on{color:#F9FAFB;font-weight:600}
 .tab.on::after{transform:scaleX(1)}
-.tab-badge{display:inline-block;background:#FFFBEB;border:1px solid rgba(201,168,76,.3);color:#92701A;font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px;margin-left:6px;vertical-align:middle}
+.tab-badge{display:inline-block;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);color:#C9A84C;font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px;margin-left:6px;vertical-align:middle}
 .fbody{padding:28px}
 .field{margin-bottom:14px}
-.flabel{display:block;font-size:12px;font-weight:600;color:#48556A;margin-bottom:5px;letter-spacing:.1px}
-.finp{width:100%;padding:10px 13px;border:1px solid #DDE2EE;border-radius:8px;background:#fff;color:#0D1321;font-size:13.5px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s,box-shadow .15s}
-.finp:focus{border-color:#C9A84C;box-shadow:0 0 0 3px rgba(201,168,76,.1)}
-.finp.err{border-color:#DC2626;box-shadow:0 0 0 3px rgba(220,38,38,.08)}
-.finp::placeholder{color:#96A3B5}
+.flabel{display:block;font-size:12px;font-weight:500;color:#9CA3AF;margin-bottom:5px;letter-spacing:.1px}
+.finp{width:100%;padding:10px 13px;border:1px solid #374151;border-radius:8px;background:#0A0F1E;color:#F9FAFB;font-size:13.5px;font-family:'Inter',sans-serif;outline:none;transition:border-color .15s,box-shadow .15s}
+.finp:focus{border-color:#C9A84C;box-shadow:0 0 0 3px rgba(201,168,76,.15)}
+.finp.err{border-color:#F87171;box-shadow:0 0 0 3px rgba(248,113,113,.12)}
+.finp::placeholder{color:#4B5563}
 .pw-wrap{position:relative}
 .pw-wrap .finp{padding-right:42px}
-.pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#96A3B5;padding:2px;display:flex;transition:color .15s}
-.pw-eye:hover{color:#48556A}
-.btn-sub{width:100%;padding:12px;border-radius:9px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;border:none;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:8px}
-.btn-sub.primary{background:#1C1F2E;color:#fff}
-.btn-sub.primary:hover:not(:disabled){background:#C9A84C}
-.btn-sub.trial{background:#C9A84C;color:#fff}
-.btn-sub.trial:hover:not(:disabled){background:#B8974A;transform:translateY(-1px);box-shadow:0 4px 14px rgba(201,168,76,.35)}
-.btn-sub:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
-.spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:rot .6s linear infinite;flex-shrink:0}
+.pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#4B5563;padding:2px;display:flex;transition:color .15s}
+.pw-eye:hover{color:#9CA3AF}
+.btn-sub{width:100%;padding:12px;border-radius:9px;font-size:14px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;border:none;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-sub.primary{background:#1E293B;color:#F9FAFB;border:1px solid #334155}
+.btn-sub.primary:hover:not(:disabled){background:#C9A84C;color:#111827;border-color:#C9A84C;box-shadow:0 4px 14px rgba(201,168,76,.35)}
+.btn-sub.trial{background:linear-gradient(135deg,#C9A84C,#E2C470);color:#111827}
+.btn-sub.trial:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 20px rgba(201,168,76,.4)}
+.btn-sub:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
+.spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:rot .6s linear infinite;flex-shrink:0}
 @keyframes rot{to{transform:rotate(360deg)}}
-.form-link{font-size:12.5px;color:#96A3B5;text-align:center;margin-top:16px}
-.form-link a,.form-link button{color:#0D1321;font-weight:600;text-decoration:none;background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12.5px}
-.form-link a:hover,.form-link button:hover{color:#C9A84C}
+.form-link{font-size:12.5px;color:#6B7280;text-align:center;margin-top:16px}
+.form-link a,.form-link button{color:#C9A84C;font-weight:600;text-decoration:none;background:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-size:12.5px;transition:color .15s}
+.form-link a:hover,.form-link button:hover{color:#E2C470}
 .alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none}
 .alert.show{display:block}
-.alert.err{background:#FEF2F2;color:#991B1B;border:1px solid #FECACA}
-.alert.ok{background:#ECFDF5;color:#065F46;border:1px solid #A7F3D0}
-.divider{display:flex;align-items:center;gap:12px;margin:18px 0;font-size:12px;color:#96A3B5}
-.divider::before,.divider::after{content:'';flex:1;height:1px;background:#DDE2EE}
-.hint{font-size:12px;color:#96A3B5;margin-top:4px}
-.hint.ok{color:#059669}
-.pw-strength{height:3px;border-radius:99px;margin-top:6px;background:#EEF1F8;overflow:hidden}
+.alert.err{background:rgba(248,113,113,.1);color:#FCA5A5;border:1px solid rgba(248,113,113,.25)}
+.alert.ok{background:rgba(16,185,129,.1);color:#6EE7B7;border:1px solid rgba(16,185,129,.25)}
+.divider{display:flex;align-items:center;gap:12px;margin:18px 0;font-size:12px;color:#4B5563}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:#1F2937}
+.hint{font-size:12px;color:#6B7280;margin-top:4px}
+.hint.ok{color:#10B981}
+.pw-strength{height:3px;border-radius:99px;margin-top:6px;background:#1F2937;overflow:hidden}
 .pw-bar{height:100%;width:0;transition:width .3s,background .3s;border-radius:99px}
 
 /* OTP */
 .otp-wrap{display:flex;gap:8px;margin-bottom:4px;justify-content:center}
-.otp-digit{width:48px;height:56px;flex:none;border:2px solid #DDE2EE;border-radius:10px;background:#fff;color:#0D1321;font-size:22px;font-weight:700;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s,box-shadow .15s;text-align:center;caret-color:transparent}
-.otp-digit:focus{border-color:#C9A84C;box-shadow:0 0 0 3px rgba(201,168,76,.1)}
-.otp-digit.err{border-color:#DC2626;box-shadow:0 0 0 3px rgba(220,38,38,.08)}
-.resend-btn{background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12.5px;color:#C9A84C;font-weight:600;padding:0;transition:color .15s}
-.resend-btn:hover:not(:disabled){color:#B8974A}
-.resend-btn:disabled{color:#96A3B5;cursor:default}
+.otp-digit{width:48px;height:56px;flex:none;border:2px solid #374151;border-radius:10px;background:#0A0F1E;color:#F9FAFB;font-size:22px;font-weight:700;font-family:'Inter',sans-serif;outline:none;transition:border-color .15s,box-shadow .15s;text-align:center;caret-color:transparent}
+.otp-digit:focus{border-color:#C9A84C;box-shadow:0 0 0 3px rgba(201,168,76,.15)}
+.otp-digit.err{border-color:#F87171;box-shadow:0 0 0 3px rgba(248,113,113,.12)}
+.resend-btn{background:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-size:12.5px;color:#C9A84C;font-weight:600;padding:0;transition:color .15s}
+.resend-btn:hover:not(:disabled){color:#E2C470}
+.resend-btn:disabled{color:#4B5563;cursor:default}
 </style>
 </head>
 <body>
@@ -126,7 +126,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-sm
         <div class="field">
           <label class="flabel" style="display:flex;justify-content:space-between">
             Senha
-            <button type="button" onclick="showForgot()" style="background:none;border:none;font-size:12px;color:#96A3B5;cursor:pointer;font-family:'DM Sans',sans-serif;padding:0;transition:color .15s" onmouseover="this.style.color='#C9A84C'" onmouseout="this.style.color='#96A3B5'">Esqueci a senha</button>
+            <button type="button" onclick="showForgot()" style="background:none;border:none;font-size:12px;color:#96A3B5;cursor:pointer;font-family:'Inter',sans-serif;padding:0;transition:color .15s" onmouseover="this.style.color='#C9A84C'" onmouseout="this.style.color='#96A3B5'">Esqueci a senha</button>
           </label>
           <div class="pw-wrap">
             <input class="finp" id="l-senha" type="password" placeholder="••••••••" autocomplete="current-password"/>
@@ -162,7 +162,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-sm
       <!-- PASSO 2: código OTP -->
       <div id="panel-verify" class="fbody" style="display:none">
         <div style="margin-bottom:20px">
-          <button onclick="voltarStep1()" style="background:none;border:none;cursor:pointer;font-size:12.5px;color:#96A3B5;font-family:'DM Sans',sans-serif;padding:0;margin-bottom:14px;display:flex;align-items:center;gap:4px" onmouseover="this.style.color='#0D1321'" onmouseout="this.style.color='#96A3B5'">
+          <button onclick="voltarStep1()" style="background:none;border:none;cursor:pointer;font-size:12.5px;color:#96A3B5;font-family:'Inter',sans-serif;padding:0;margin-bottom:14px;display:flex;align-items:center;gap:4px" onmouseover="this.style.color='#0D1321'" onmouseout="this.style.color='#96A3B5'">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Trocar e-mail
           </button>
           <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#0D1321;margin-bottom:6px">Verifique seu e-mail</div>
@@ -237,7 +237,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-sm
         <button class="btn-sub primary" id="btn-fotp" onclick="verificarRecupero()" style="margin-top:8px">Confirmar código →</button>
         <div style="text-align:center;margin-top:14px;font-size:13px;color:#96A3B5">
           <span id="fotp-timer"></span>
-          <button id="btn-resend-fotp" onclick="reenviarCodigoRecupero()" style="display:none;background:none;border:none;color:#C9A84C;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;padding:0">Reenviar código</button>
+          <button id="btn-resend-fotp" onclick="reenviarCodigoRecupero()" style="display:none;background:none;border:none;color:#C9A84C;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;padding:0">Reenviar código</button>
         </div>
         <div class="form-link" style="margin-top:12px"><button onclick="showForgot()">← Voltar</button></div>
       </div>
