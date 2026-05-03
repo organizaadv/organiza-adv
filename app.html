@@ -2463,8 +2463,10 @@ function toggleSidebar(){
 }
 function switchDetTab(tab){
   ['atos','hist','cli','ia'].forEach(t=>{
-    document.getElementById('det-tab-'+t).style.display=t===tab?'block':'none';
-    document.querySelector(`.det-tab[data-tab="${t}"]`).classList.toggle('on',t===tab);
+    const div=document.getElementById('det-tab-'+t);
+    const btn=document.querySelector(`.det-tab[data-tab="${t}"]`);
+    if(div)div.style.display=t===tab?'block':'none';
+    if(btn)btn.classList.toggle('on',t===tab);
   });
 }
 
