@@ -6013,6 +6013,14 @@ async function confirmarAvEtapa(){
   } else {
     const d=demandas.find(x=>x.id===ctx.demandaId);
     if(!d)return;
+    if(ETAPAS[d.etapa_atual]?.nome==='Protocolo'){
+      detId=ctx.demandaId;
+      _protQuem=resp;_protObs='';
+      document.getElementById('prot-num').value=d.processo||'';
+      document.getElementById('prot-vara').value='';
+      openM('m-protocolar');
+      return;
+    }
     const nova=d.etapa_atual+1;const conc=nova>=ETAPAS.length;
     const hist=getH(d);hist.push({etapa:ETAPAS[d.etapa_atual]?.nome||'',quem:resp,obs:'',data:hoje()});
     const{error}=await db.from('demandas_escritorio').update({
