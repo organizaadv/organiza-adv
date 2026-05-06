@@ -78,7 +78,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .sb-monogram{width:34px;height:34px;border-radius:8px;background:var(--ink);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:.4px;flex-shrink:0}
 .sb-mark{font-family:'Fraunces',serif;font-size:14px;font-weight:700;color:var(--ink);letter-spacing:-.3px}
 .sb-mark span{color:var(--gold)}
-.sb-esc{font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.sb-esc{font-size:11px;font-weight:500;color:var(--ink);line-height:1.3;word-break:break-word}
 .sb-badge{display:inline-flex;align-items:center;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;padding:2px 7px;border-radius:4px;margin-top:3px}
 .sb-badge.ess{background:var(--ink);color:var(--gold)}
 .sb-badge.adv{background:var(--ink);color:var(--gold)}
@@ -508,14 +508,14 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
     <rect width="100%" height="100%" fill="url(#sb-grid-pat)"/>
   </svg>
   <div class="sb-head">
-    <div class="sb-logo-row">
-      <div class="sb-monogram">MB</div>
-      <div>
+    <div class="sb-logo-row" id="sb-logo-row">
+      <div class="sb-monogram" id="sb-monogram">MB</div>
+      <div style="min-width:0;flex:1">
         <div id="sb-esc" class="sb-esc">Carregando...</div>
         <div class="sb-badge ess" id="sb-badge">Essencial</div>
       </div>
     </div>
-    <div id="sb-logo-wrap" style="display:none;"></div>
+    <div id="sb-logo-wrap" style="display:none;margin-bottom:6px;"></div>
     <div id="sb-powered" style="display:none;"></div>
   </div>
   <nav class="sb-nav">
@@ -865,97 +865,6 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
             <input type="file" id="cfg-logo-inp" accept="image/jpeg,image/jpg" style="display:none" onchange="cfgPreviewLogo(this)"/>
           </div>
           <button class="btn btn-p" onclick="salvarCfg()" style="margin-top:12px">Salvar alterações</button>
-        </div>
-        <div class="cfg-sec">
-          <div class="cfg-title">Cor do tema</div>
-          <div class="cfg-sub">Escolha a aparência da barra lateral e cor de destaque</div>
-          <div class="ob-temas" id="cfg-temas">
-            <div class="ob-tema-card" data-tema="preto-dourado" onclick="cfgSelecionarTema('preto-dourado')">
-              <div class="ob-tema-sb" style="background:#1C1F2E"></div>
-              <div class="ob-tema-acc" style="background:#C9A84C"></div>
-              <div class="ob-tema-nome">Preto &amp; Dourado</div>
-            </div>
-            <div class="ob-tema-card" data-tema="azul-marinho" onclick="cfgSelecionarTema('azul-marinho')">
-              <div class="ob-tema-sb" style="background:#0E2240"></div>
-              <div class="ob-tema-acc" style="background:#E2E8F0"></div>
-              <div class="ob-tema-nome">Azul Marinho</div>
-            </div>
-            <div class="ob-tema-card" data-tema="vermelho-dourado" onclick="cfgSelecionarTema('vermelho-dourado')">
-              <div class="ob-tema-sb" style="background:#3D0B0B"></div>
-              <div class="ob-tema-acc" style="background:#C9A84C"></div>
-              <div class="ob-tema-nome">Vermelho &amp; Dourado</div>
-            </div>
-            <div class="ob-tema-card" data-tema="bege-marrom" onclick="cfgSelecionarTema('bege-marrom')">
-              <div class="ob-tema-sb" style="background:#2D1C10"></div>
-              <div class="ob-tema-acc" style="background:#A0785A"></div>
-              <div class="ob-tema-nome">Bege &amp; Marrom</div>
-            </div>
-            <div class="ob-tema-card" data-tema="verde-bege" onclick="cfgSelecionarTema('verde-bege')">
-              <div class="ob-tema-sb" style="background:#0D2B1A"></div>
-              <div class="ob-tema-acc" style="background:#C8B560"></div>
-              <div class="ob-tema-nome">Verde &amp; Bege</div>
-            </div>
-            <div class="ob-tema-card" data-tema="cinza-azul" onclick="cfgSelecionarTema('cinza-azul')">
-              <div class="ob-tema-sb" style="background:#1E2A38"></div>
-              <div class="ob-tema-acc" style="background:#4A90D9"></div>
-              <div class="ob-tema-nome">Cinza &amp; Azul</div>
-            </div>
-            <div class="ob-tema-card" data-tema="roxo-lavanda" onclick="cfgSelecionarTema('roxo-lavanda')">
-              <div class="ob-tema-sb" style="background:#2D1B4E"></div>
-              <div class="ob-tema-acc" style="background:#C084FC"></div>
-              <div class="ob-tema-nome">Roxo &amp; Lavanda</div>
-            </div>
-            <div class="ob-tema-card" data-tema="preto-verde" onclick="cfgSelecionarTema('preto-verde')">
-              <div class="ob-tema-sb" style="background:#0F1C15"></div>
-              <div class="ob-tema-acc" style="background:#22C55E"></div>
-              <div class="ob-tema-nome">Preto &amp; Verde</div>
-            </div>
-            <div class="ob-tema-card" data-tema="azul-dourado" onclick="cfgSelecionarTema('azul-dourado')">
-              <div class="ob-tema-sb" style="background:#0F1F3D"></div>
-              <div class="ob-tema-acc" style="background:#F59E0B"></div>
-              <div class="ob-tema-nome">Azul &amp; Dourado</div>
-            </div>
-            <div class="ob-tema-card" data-tema="cafe-cobre" onclick="cfgSelecionarTema('cafe-cobre')">
-              <div class="ob-tema-sb" style="background:#1C0D06"></div>
-              <div class="ob-tema-acc" style="background:#D97706"></div>
-              <div class="ob-tema-nome">Café &amp; Cobre</div>
-            </div>
-            <div class="ob-tema-card" data-tema="oceano-ciano" onclick="cfgSelecionarTema('oceano-ciano')">
-              <div class="ob-tema-sb" style="background:#0C2233"></div>
-              <div class="ob-tema-acc" style="background:#06B6D4"></div>
-              <div class="ob-tema-nome">Oceano &amp; Ciano</div>
-            </div>
-            <div class="ob-tema-card" data-tema="preto-laranja" onclick="cfgSelecionarTema('preto-laranja')">
-              <div class="ob-tema-sb" style="background:#1A1208"></div>
-              <div class="ob-tema-acc" style="background:#F97316"></div>
-              <div class="ob-tema-nome">Preto &amp; Laranja</div>
-            </div>
-            <div class="ob-tema-card" data-tema="branco-dourado" onclick="cfgSelecionarTema('branco-dourado')">
-              <div class="ob-tema-sb" style="background:#FFFFFF;border:1px solid #E5E7EB"></div>
-              <div class="ob-tema-acc" style="background:#B8922E"></div>
-              <div class="ob-tema-nome">Branco &amp; Dourado</div>
-            </div>
-            <div class="ob-tema-card" data-tema="cinza-azul-claro" onclick="cfgSelecionarTema('cinza-azul-claro')">
-              <div class="ob-tema-sb" style="background:#EEF2F7;border:1px solid #E5E7EB"></div>
-              <div class="ob-tema-acc" style="background:#2563EB"></div>
-              <div class="ob-tema-nome">Cinza &amp; Azul</div>
-            </div>
-            <div class="ob-tema-card" data-tema="creme-marrom" onclick="cfgSelecionarTema('creme-marrom')">
-              <div class="ob-tema-sb" style="background:#FAF7F2;border:1px solid #E5E7EB"></div>
-              <div class="ob-tema-acc" style="background:#92583A"></div>
-              <div class="ob-tema-nome">Creme &amp; Marrom</div>
-            </div>
-            <div class="ob-tema-card" data-tema="branco-verde" onclick="cfgSelecionarTema('branco-verde')">
-              <div class="ob-tema-sb" style="background:#F0FDF4;border:1px solid #E5E7EB"></div>
-              <div class="ob-tema-acc" style="background:#059669"></div>
-              <div class="ob-tema-nome">Branco &amp; Verde</div>
-            </div>
-            <div class="ob-tema-card" data-tema="lavanda-roxo" onclick="cfgSelecionarTema('lavanda-roxo')">
-              <div class="ob-tema-sb" style="background:#F5F3FF;border:1px solid #E5E7EB"></div>
-              <div class="ob-tema-acc" style="background:#7C3AED"></div>
-              <div class="ob-tema-nome">Lavanda &amp; Roxo</div>
-            </div>
-          </div>
         </div>
         <div class="cfg-sec">
           <div class="cfg-title">Fluxo de etapas</div>
@@ -2531,16 +2440,21 @@ async function sair(){await db.auth.signOut();window.location.href='auth.html';}
 function renderSBInfo(){
   document.getElementById('sb-esc').textContent=escData.nome||'Escritório';
   document.getElementById('ls-esc').textContent=escData.nome||'OrganizaADV';
-  // Logo no cabeçalho da sidebar
-  const sbMark=document.getElementById('sb-logo-wrap');
-  const sbPowered=document.getElementById('sb-powered');
-  if(sbMark){
-    if(escData.logo_url){
-      sbMark.innerHTML=`<img src="${escData.logo_url}" style="max-height:80px;max-width:100%;width:100%;object-fit:contain;object-position:left;display:block;margin-bottom:6px;" alt="${escData.nome||''}"/>`;
-      if(sbPowered)sbPowered.style.display='block';
-    }else{
-      sbMark.innerHTML=`<div class="sb-mark">Organiza<span>ADV</span></div>`;
-      if(sbPowered)sbPowered.style.display='none';
+  const sbLogoRow=document.getElementById('sb-logo-row');
+  const sbMonogram=document.getElementById('sb-monogram');
+  const sbLogoWrap=document.getElementById('sb-logo-wrap');
+  if(escData.logo_url){
+    sbLogoWrap.innerHTML=`<img src="${escData.logo_url}" style="max-height:36px;max-width:100%;object-fit:contain;object-position:left;display:block;" alt="${escData.nome||''}"/>`;
+    sbLogoWrap.style.display='block';
+    if(sbLogoRow)sbLogoRow.style.display='none';
+  }else{
+    sbLogoWrap.style.display='none';
+    sbLogoWrap.innerHTML='';
+    if(sbLogoRow)sbLogoRow.style.display='flex';
+    if(sbMonogram){
+      const words=(escData.nome||'').trim().split(/\s+/);
+      const ini=words.length>=2?words[0][0]+words[1][0]:(words[0]||'').slice(0,2);
+      sbMonogram.textContent=ini.toUpperCase()||'MB';
     }
   }
   const b=document.getElementById('sb-badge');
@@ -4951,7 +4865,6 @@ function renderCfg(){
   document.getElementById('meu-pw1').value='';
   document.getElementById('meu-pw2').value='';
   renderCfgEtapas();
-  renderCfgTema();
 }
 
 async function salvarMeuPerfil(){
@@ -5960,18 +5873,6 @@ function obAplicarTema(tema){
 function obSelecionarTema(tema){
   obAplicarTema(tema);obTemaSel=tema;
   document.querySelectorAll('.ob-tema-card').forEach(c=>c.classList.toggle('ativo',c.dataset.tema===tema));
-}
-async function cfgSelecionarTema(tema){
-  obAplicarTema(tema);
-  document.querySelectorAll('#cfg-temas .ob-tema-card').forEach(c=>c.classList.toggle('ativo',c.dataset.tema===tema));
-  const{error}=await db.from('escritorios').update({tema}).eq('id',usuarioAtual.escritorio_id);
-  if(error){toast('Erro ao salvar tema','te');return;}
-  escData.tema=tema;
-  toast('Tema atualizado!');
-}
-function renderCfgTema(){
-  const atual=escData.tema||'preto-dourado';
-  document.querySelectorAll('#cfg-temas .ob-tema-card').forEach(c=>c.classList.toggle('ativo',c.dataset.tema===atual));
 }
 function obPreviewLogo(inp){
   if(!inp.files[0])return;
