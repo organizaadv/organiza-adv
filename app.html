@@ -2721,7 +2721,7 @@ function renderKanban(){
           const delegadoPara=atoPend?.delegado_para||'';
           const isDemo=d.obs?.startsWith('[FICTÍCIO]');
           const mostraAvbtn=!conc;
-          return`<div class="kcard ${cls}" onclick="abrirDet(${d.id})">
+          return`<div class="kcard ${cls}" onclick="abrirDet('${d.id}')">
             <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:3px;">
               <div class="kcard-nome" style="flex:1;min-width:0;">${d.nome}</div>
               ${isDemo?`<span style="font-size:9px;font-weight:700;letter-spacing:.5px;background:var(--pub);color:var(--pu);border:1px solid var(--pubd);border-radius:4px;padding:1px 5px;flex-shrink:0;">Fictício</span>`:''}
@@ -3012,8 +3012,8 @@ function renderPainelAvisos(){
           <div class="aviso-detalhe">${d.tipo||'—'} · ${d.responsavel?'Responsável: '+d.responsavel:''} · Prazo: ${fmtDt(d.prazo)} <strong style="color:var(--rd);">${calcPrazo(d.prazo)<=0?'('+Math.abs(calcPrazo(d.prazo))+' dia'+(Math.abs(calcPrazo(d.prazo))>1?'s':'')+' atraso)':calcPrazo(d.prazo)===1?'(amanhã)':'(hoje!)'}</strong></div>
         </div>
         <div class="aviso-acoes">
-          <button class="btn btn-sm btn-gh" onclick="abrirDet(${d.id})">Ver demanda</button>
-          ${d.responsavel?`<button class="btn btn-sm" style="background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0;" onclick="alertarPrazoWPP(${d.id})">📱 Alertar</button>`:''}
+          <button class="btn btn-sm btn-gh" onclick="abrirDet('${d.id}')">Ver demanda</button>
+          ${d.responsavel?`<button class="btn btn-sm" style="background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0;" onclick="alertarPrazoWPP('${d.id}')">📱 Alertar</button>`:''}
         </div>
       </div>`).join('')}
     </div>`;
@@ -3032,8 +3032,8 @@ function renderPainelAvisos(){
           <div class="aviso-detalhe">${d.tipo||'—'} · ${d.responsavel?'Responsável: '+d.responsavel:''} · Vence em <strong style="color:var(--am);">${calcPrazo(d.prazo)===1?'amanhã':calcPrazo(d.prazo)+' dias'}</strong> (${fmtDt(d.prazo)})</div>
         </div>
         <div class="aviso-acoes">
-          <button class="btn btn-sm btn-gh" onclick="abrirDet(${d.id})">Ver demanda</button>
-          ${d.responsavel?`<button class="btn btn-sm" style="background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0;" onclick="alertarPrazoWPP(${d.id})">📱 Alertar</button>`:''}
+          <button class="btn btn-sm btn-gh" onclick="abrirDet('${d.id}')">Ver demanda</button>
+          ${d.responsavel?`<button class="btn btn-sm" style="background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0;" onclick="alertarPrazoWPP('${d.id}')">📱 Alertar</button>`:''}
         </div>
       </div>`).join('')}
     </div>`;
@@ -3299,7 +3299,7 @@ function abrirPerfilCliente(cliId){
 
   // Lista de demandas
   document.getElementById('cli-demandas-lista').innerHTML=demandasCli.map(d=>`
-    <div onclick="abrirDetDoCliente(${d.id})" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid var(--bd);border-radius:var(--rmd);margin-bottom:8px;cursor:pointer;transition:all .15s;background:var(--surface);"
+    <div onclick="abrirDetDoCliente('${d.id}')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid var(--bd);border-radius:var(--rmd);margin-bottom:8px;cursor:pointer;transition:all .15s;background:var(--surface);"
       onmouseover="this.style.borderColor='var(--gd)';this.style.boxShadow='var(--s2s)'"
       onmouseout="this.style.borderColor='var(--bd)';this.style.boxShadow='none'">
       <div>
@@ -3948,7 +3948,7 @@ function renderRel(){
     <td>${doMes.filter(d=>d.responsavel===c.nome).length}</td>
     <td>${doMes.filter(d=>statusD(d)==='Concluído'&&d.responsavel===c.nome).length}</td></tr>`;
   }).filter(Boolean).join('')||`<tr><td colspan="4"><div class="empty"><div class="empty-ico">📊</div><div class="empty-title">Sem dados neste mês</div></div></td></tr>`;
-  document.getElementById('tb-rel-det').innerHTML=doMes.map(d=>`<tr onclick="abrirDet(${d.id})" style="cursor:pointer;">
+  document.getElementById('tb-rel-det').innerHTML=doMes.map(d=>`<tr onclick="abrirDet('${d.id}')" style="cursor:pointer;">
     <td><div class="td-av"><div class="av">${iniciais(d.nome)}</div><div style="font-weight:500;">${d.nome}</div></div></td>
     <td style="font-size:13px;color:var(--tx2);">${d.tipo||'—'}</td>
     <td style="font-size:13px;">${d.responsavel||'—'}</td>
