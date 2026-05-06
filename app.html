@@ -73,8 +73,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 
 /* ── SIDEBAR ── */
 .sb{position:fixed;top:0;left:0;width:var(--sbw);height:100vh;background:var(--bg);border-right:0.5px solid var(--bd);display:flex;flex-direction:column;z-index:100;overflow:hidden}
-.sb-head{padding:20px 18px 14px;border-bottom:0.5px solid var(--bd);position:relative;z-index:1}
-.sb-logo-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sb-head{padding:16px 18px 14px;border-bottom:0.5px solid var(--bd);position:relative;z-index:1}
+#sb-logo-area{min-height:70px;display:flex;flex-direction:column;justify-content:flex-end}
+.sb-logo-row{display:flex;align-items:center;gap:9px}
 .sb-monogram{width:34px;height:34px;border-radius:8px;background:var(--ink);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:.4px;flex-shrink:0}
 .sb-mark{font-family:'Fraunces',serif;font-size:14px;font-weight:700;color:var(--ink);letter-spacing:-.3px}
 .sb-mark span{color:var(--gold)}
@@ -508,14 +509,14 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
     <rect width="100%" height="100%" fill="url(#sb-grid-pat)"/>
   </svg>
   <div class="sb-head">
-    <div class="sb-logo-row" id="sb-logo-row">
-      <div class="sb-monogram" id="sb-monogram">MB</div>
-      <div style="min-width:0;flex:1">
-        <div id="sb-esc" class="sb-esc">Carregando...</div>
-        <div class="sb-badge ess" id="sb-badge">Essencial</div>
+    <div id="sb-logo-area">
+      <div id="sb-logo-wrap" style="display:none;margin-bottom:6px;"></div>
+      <div class="sb-logo-row" id="sb-logo-row">
+        <div class="sb-monogram" id="sb-monogram">MB</div>
+        <div id="sb-esc" class="sb-esc" style="min-width:0;flex:1">Carregando...</div>
       </div>
+      <div class="sb-badge ess" id="sb-badge" style="margin-top:5px;align-self:flex-start">Essencial</div>
     </div>
-    <div id="sb-logo-wrap" style="display:none;margin-bottom:6px;"></div>
     <div id="sb-powered" style="display:none;"></div>
   </div>
   <nav class="sb-nav">
@@ -2440,22 +2441,22 @@ async function sair(){await db.auth.signOut();window.location.href='auth.html';}
 function renderSBInfo(){
   document.getElementById('sb-esc').textContent=escData.nome||'Escritório';
   document.getElementById('ls-esc').textContent=escData.nome||'OrganizaADV';
-  const sbLogoRow=document.getElementById('sb-logo-row');
   const sbMonogram=document.getElementById('sb-monogram');
   const sbLogoWrap=document.getElementById('sb-logo-wrap');
+  // Compute initials from escritório name (always needed as fallback)
+  const words=(escData.nome||'').trim().split(/\s+/);
+  const ini=(words.length>=2?words[0][0]+words[1][0]:(words[0]||'').slice(0,2)).toUpperCase()||'MB';
   if(escData.logo_url){
-    sbLogoWrap.innerHTML=`<img src="${escData.logo_url}" style="max-height:36px;max-width:100%;object-fit:contain;object-position:left;display:block;" alt="${escData.nome||''}"/>`;
+    // Logo on top, name below, monogram hidden
+    sbLogoWrap.innerHTML=`<img src="${escData.logo_url}" style="max-height:48px;max-width:120px;object-fit:contain;object-position:left;display:block;" alt="${escData.nome||''}"/>`;
     sbLogoWrap.style.display='block';
-    if(sbLogoRow)sbLogoRow.style.display='none';
+    sbMonogram.style.display='none';
   }else{
+    // Initials beside name
     sbLogoWrap.style.display='none';
     sbLogoWrap.innerHTML='';
-    if(sbLogoRow)sbLogoRow.style.display='flex';
-    if(sbMonogram){
-      const words=(escData.nome||'').trim().split(/\s+/);
-      const ini=words.length>=2?words[0][0]+words[1][0]:(words[0]||'').slice(0,2);
-      sbMonogram.textContent=ini.toUpperCase()||'MB';
-    }
+    sbMonogram.style.display='';
+    sbMonogram.textContent=ini;
   }
   const b=document.getElementById('sb-badge');
   if(escData.plano==='pro'||escData.plano==='avancado'){b.textContent='Pro';b.className='sb-badge adv';}
