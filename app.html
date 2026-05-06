@@ -660,7 +660,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <div class="tbl-wrap">
         <table>
           <thead><tr>
-            <th class="sortable">Cliente</th>
+            <th>Cliente</th>
             <th>Nº do Processo</th>
             <th>Área</th>
             <th>Status</th>
@@ -4098,7 +4098,7 @@ async function salvarDemanda(){
 
 // ── DETALHE ──
 function abrirDet(id){
-  detId=id;const d=demandas.find(x=>x.id===id);if(!d)return;
+  detId=id;const d=demandas.find(x=>String(x.id)===String(id));if(!d)return;
   document.getElementById('det-nome').textContent=d.nome;
   document.getElementById('det-tipo').innerHTML='<span class="spin" style="border-color:rgba(0,0,0,.15);border-top-color:var(--tx3);"></span>';
   switchDetTab('atos');
