@@ -12,10 +12,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&display=swap');
 
 :root{
-  --bg:#F7F7F8;
+  --bg:#F4F6FB;
   --surface:#FFFFFF;
-  --s2:#F1F1F3;
-  --s3:#E8E8EC;
+  --s2:#EEF1F8;
+  --s3:#E4E8F2;
   --sb:#1C1F2E;
   --sb-b:rgba(255,255,255,.06);
   --sb-t:rgba(255,255,255,.38);
@@ -26,21 +26,21 @@
   --tx2:#48556A;
   --tx3:#96A3B5;
   --txw:#FFFFFF;
-  --bd:#E4E4E7;
-  --bd2:#D4D4D8;
-  --div:#EBEBEF;
+  --bd:#DDE2EE;
+  --bd2:#C8D0E0;
+  --div:#E8ECF5;
   --gd:#C9A84C;--gd2:#E2C470;--gdp:#FFFBEB;--gdb:rgba(201,168,76,.18);
   --gr:#059669;--grb:#ECFDF5;--grbd:#A7F3D0;
   --am:#D97706;--amb:#FFFBEB;--ambd:#FDE68A;
   --rd:#DC2626;--rdb:#FEF2F2;--rdbd:#FECACA;
   --bl:#2563EB;--blb:#EFF6FF;--blbd:#BFDBFE;
   --pu:#7C3AED;--pub:#F5F3FF;--pubd:#DDD6FE;
-  --s1:0 1px 3px rgba(16,24,48,.04),0 1px 2px rgba(16,24,48,.02);
-  --s2s:0 4px 16px rgba(16,24,48,.06),0 2px 6px rgba(16,24,48,.03);
-  --s3s:0 10px 30px rgba(16,24,48,.08),0 4px 10px rgba(16,24,48,.04);
-  --s4:0 24px 64px rgba(16,24,48,.11),0 8px 20px rgba(16,24,48,.06);
-  --sbw:240px;--tbh:58px;
-  --rsm:7px;--rmd:10px;--rlg:16px;--rxl:20px;
+  --s1:0 1px 3px rgba(16,24,48,.05),0 1px 2px rgba(16,24,48,.03);
+  --s2s:0 4px 16px rgba(16,24,48,.07),0 2px 6px rgba(16,24,48,.04);
+  --s3s:0 10px 30px rgba(16,24,48,.09),0 4px 10px rgba(16,24,48,.05);
+  --s4:0 24px 64px rgba(16,24,48,.13),0 8px 20px rgba(16,24,48,.07);
+  --sbw:260px;--tbh:62px;
+  --rsm:7px;--rmd:10px;--rlg:14px;--rxl:18px;
 }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -78,10 +78,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .sb-nav::-webkit-scrollbar{width:0}
 .nav-sec{font-size:9px;font-weight:700;letter-spacing:2.2px;text-transform:uppercase;color:rgba(255,255,255,.15);padding:0 20px;margin:26px 0 10px}
 .nav-sec:first-child{margin-top:8px}
-.ni{display:flex;align-items:center;gap:10px;padding:8px 14px;margin:1px 8px;font-size:13px;color:var(--sb-t);cursor:pointer;transition:color .2s cubic-bezier(.2,0,0,1),background .2s cubic-bezier(.2,0,0,1);border-radius:8px;text-decoration:none;font-weight:400}
+.ni{display:flex;align-items:center;gap:10px;padding:8px 14px;margin:1px 8px;font-size:13px;color:var(--sb-t);cursor:pointer;transition:color .15s,background .15s;border-radius:8px;text-decoration:none;font-weight:400}
 .ni:hover{color:rgba(255,255,255,.85);background:var(--sb-hov)}
 .ni.on{color:var(--txw);background:var(--sb-act);font-weight:500}
-.ni svg{width:15px;height:15px;flex-shrink:0;opacity:.5;transition:opacity .2s cubic-bezier(.2,0,0,1)}
+.ni svg{width:15px;height:15px;flex-shrink:0;opacity:.5;transition:opacity .15s}
 .ni.on svg,.ni:hover svg{opacity:.9}
 .ni-badge{margin-left:auto;background:var(--rd);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px}
 .sb-foot{padding:14px 12px;border-top:1px solid var(--sb-b)}
@@ -89,19 +89,19 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .sb-uav{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,rgba(201,168,76,.25),rgba(201,168,76,.08));border:1.5px solid rgba(201,168,76,.35);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:10px;font-weight:700;color:var(--gd);flex-shrink:0}
 .sb-unm{font-size:12.5px;font-weight:500;color:var(--sb-a);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sb-uacts{display:flex;gap:10px;padding:0 8px}
-.sb-uact{font-size:11.5px;color:var(--sb-t);cursor:pointer;background:none;border:none;font-family:'Inter',sans-serif;padding:0;transition:color .2s cubic-bezier(.2,0,0,1)}
+.sb-uact{font-size:11.5px;color:var(--sb-t);cursor:pointer;background:none;border:none;font-family:'Inter',sans-serif;padding:0;transition:color .15s}
 .sb-uact:hover{color:rgba(255,255,255,.75)}
 
 /* ── MAIN ── */
 .main{margin-left:var(--sbw);min-height:100vh;display:flex;flex-direction:column}
-.topbar{height:var(--tbh);background:rgba(255,255,255,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(228,228,231,.7);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:var(--trial-offset,0px);z-index:50}
+.topbar{height:var(--tbh);background:var(--surface);border-bottom:1px solid var(--bd);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:var(--trial-offset,0px);z-index:50;box-shadow:0 1px 0 var(--bd)}
 .tb-title{font-family:'Fraunces',serif;font-size:19px;font-weight:700;color:var(--tx);letter-spacing:-.3px}
 .tb-right{display:flex;align-items:center;gap:8px}
 .tb-date{font-size:12px;color:var(--tx3);font-weight:400}
 .content{padding:36px 28px 24px;flex:1}
 
 /* ── BUTTONS ── */
-.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px;font-size:13.5px;font-weight:500;font-family:'Inter',sans-serif;cursor:pointer;transition:all .2s cubic-bezier(.2,0,0,1);border:none;text-decoration:none;white-space:nowrap;line-height:1.4;letter-spacing:-.01em}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px;font-size:13.5px;font-weight:500;font-family:'Inter',sans-serif;cursor:pointer;transition:all .15s;border:none;text-decoration:none;white-space:nowrap;line-height:1.4;letter-spacing:-.01em}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .btn-p{background:var(--tx);color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.14),0 1px 2px rgba(0,0,0,.08)}
 .btn-p:hover:not(:disabled){background:#1D2A3E;box-shadow:var(--s2s)}
@@ -114,7 +114,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .btn-danger{background:transparent;color:var(--rd);border:1px solid var(--rdbd)}
 .btn-danger:hover{background:var(--rdb);border-color:var(--rd)}
 .btn-sm{padding:5px 12px;font-size:12px;border-radius:6px}
-.btn-icon{width:34px;height:34px;padding:0;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--bd);color:var(--tx2);cursor:pointer;transition:all .2s cubic-bezier(.2,0,0,1);position:relative}
+.btn-icon{width:34px;height:34px;padding:0;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--bd);color:var(--tx2);cursor:pointer;transition:all .15s;position:relative}
 .btn-icon:hover{border-color:var(--bd2);background:var(--s2);color:var(--tx)}
 .btn-icon svg{width:15px;height:15px}
 
@@ -141,13 +141,13 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 @media(max-width:550px){.kb{grid-template-columns:1fr}}
 .kc{min-width:0;display:flex;flex-direction:column}
 .kc-head{background:var(--surface);border:1px solid var(--bd);border-radius:var(--rlg) var(--rlg) 0 0;padding:11px 14px;display:flex;align-items:center;justify-content:space-between}
-.kc-name{font-size:11.5px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--tx2)}
+.kc-name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--tx3)}
 .kc-cnt{font-size:11px;font-weight:700;color:var(--tx2);background:var(--s3);padding:2px 9px;border-radius:99px;min-width:22px;text-align:center}
 .kc-body{background:var(--s2);border:1px solid var(--bd);border-top:none;border-radius:0 0 var(--rlg) var(--rlg);padding:8px;display:flex;flex-direction:column;gap:6px;flex:1;min-height:200px}
 
 /* ── CARDS KANBAN ── */
-.kcard{background:var(--surface);border:1px solid var(--bd);border-radius:14px;padding:13px 13px 11px;cursor:pointer;transition:box-shadow .2s cubic-bezier(.2,0,0,1),border-color .2s cubic-bezier(.2,0,0,1);position:relative;overflow:hidden}
-.kcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--bd2);border-radius:14px 0 0 14px}
+.kcard{background:var(--surface);border:1px solid var(--bd);border-radius:12px;padding:13px 13px 11px;cursor:pointer;transition:box-shadow .18s,border-color .18s;position:relative;overflow:hidden}
+.kcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--bd2);border-radius:12px 0 0 12px}
 .kcard:hover{border-color:rgba(201,168,76,.4);box-shadow:var(--s2s)}
 .kcard.k-ok::before{background:var(--gr)}
 .kcard.k-av::before{background:var(--am)}
@@ -165,7 +165,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .kavatar{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0;border:2px solid var(--surface);letter-spacing:0}
 .kavatar-stack{display:flex;align-items:center}
 .kavatar-stack .kavatar+.kavatar{margin-left:-7px}
-.kcard-avbtn{width:26px;height:26px;border-radius:50%;background:var(--gdp);border:1.5px solid var(--gdb);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s cubic-bezier(.2,0,0,1),transform .2s cubic-bezier(.2,0,0,1);flex-shrink:0;color:var(--am);padding:0}
+.kcard-avbtn{width:26px;height:26px;border-radius:50%;background:var(--gdp);border:1.5px solid var(--gdb);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,transform .12s;flex-shrink:0;color:var(--am);padding:0}
 .kcard-avbtn:hover{background:var(--gd);color:#fff;border-color:var(--gd);transform:scale(1.15)}
 .k-delg-banner{background:var(--amb);border:1px solid var(--ambd);border-radius:8px;padding:9px 14px;margin-bottom:10px;font-size:12.5px;color:#92600A;font-weight:500;display:flex;align-items:center;gap:8px}
 .k-empty{text-align:center;padding:32px 12px;color:var(--tx3);font-size:12.5px;line-height:1.6}
@@ -186,7 +186,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .tbl-wrap{background:var(--surface);border:1px solid var(--bd);border-radius:var(--rlg);overflow:hidden;box-shadow:var(--s1)}
 table{width:100%;border-collapse:collapse}
 thead tr{background:var(--s2);border-bottom:1px solid var(--bd)}
-thead th{padding:11px 18px;font-size:11.5px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--tx2);text-align:left;white-space:nowrap}
+thead th{padding:11px 18px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);text-align:left;white-space:nowrap}
 tbody tr{border-bottom:1px solid var(--div);cursor:pointer;transition:background .1s}
 tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:var(--s2)}
@@ -196,12 +196,12 @@ tbody td{padding:14px 18px;font-size:13.5px;color:var(--tx);vertical-align:middl
 
 /* ── FILTROS ── */
 .fbar{display:flex;align-items:center;gap:6px;margin-bottom:18px;flex-wrap:wrap}
-.fc{padding:6px 15px;border-radius:99px;font-size:13px;border:1px solid var(--bd);background:var(--surface);color:var(--tx2);cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s cubic-bezier(.2,0,0,1);font-weight:400}
+.fc{padding:6px 15px;border-radius:99px;font-size:13px;border:1px solid var(--bd);background:var(--surface);color:var(--tx2);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;font-weight:400}
 .fc:hover{border-color:var(--bd2);color:var(--tx);background:var(--s2)}
 .fc.on{background:var(--tx);color:#fff;border-color:var(--tx);font-weight:600;box-shadow:var(--s1)}
 .sw{margin-left:auto;position:relative}
 .sw svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--tx3)}
-.si{padding:8px 14px 8px 34px;border:1px solid var(--bd);border-radius:8px;background:var(--surface);color:var(--tx);font-size:13px;font-family:'Inter',sans-serif;outline:none;width:220px;transition:all .2s cubic-bezier(.2,0,0,1)}
+.si{padding:8px 14px 8px 34px;border:1px solid var(--bd);border-radius:8px;background:var(--surface);color:var(--tx);font-size:13px;font-family:'Inter',sans-serif;outline:none;width:220px;transition:all .15s}
 .si:focus{border-color:var(--gd);box-shadow:0 0 0 3px rgba(201,168,76,.1)}
 .si::placeholder{color:var(--tx3)}
 
@@ -214,7 +214,7 @@ tbody td{padding:14px 18px;font-size:13.5px;color:var(--tx);vertical-align:middl
 .mhead{padding:22px 26px 18px;border-bottom:1px solid var(--div);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .mtitle{font-family:'Fraunces',serif;font-size:19px;font-weight:700;color:var(--tx);letter-spacing:-.3px}
 .msubt{font-size:12.5px;color:var(--tx3);margin-top:3px}
-.mx{width:28px;height:28px;border-radius:7px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--tx3);font-size:14px;transition:all .2s cubic-bezier(.2,0,0,1);flex-shrink:0}
+.mx{width:28px;height:28px;border-radius:7px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--tx3);font-size:14px;transition:all .15s;flex-shrink:0}
 .mx:hover{background:var(--s3);color:var(--tx);border-color:var(--bd2)}
 .mbody{padding:22px 26px}
 .mfoot{padding:14px 26px;border-top:1px solid var(--div);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--s2);border-radius:0 0 var(--rxl) var(--rxl)}
@@ -226,7 +226,7 @@ tbody td{padding:14px 18px;font-size:13.5px;color:var(--tx);vertical-align:middl
 .field:last-child{margin-bottom:0}
 .flabel{display:block;font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:5px;letter-spacing:.1px}
 .flabel .req{color:var(--rd);margin-left:2px}
-.finp,.fsel,.fta{width:100%;padding:9px 13px;border:1px solid var(--bd);border-radius:7px;background:var(--surface);color:var(--tx);font-size:13.5px;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s cubic-bezier(.2,0,0,1),box-shadow .2s cubic-bezier(.2,0,0,1)}
+.finp,.fsel,.fta{width:100%;padding:9px 13px;border:1px solid var(--bd);border-radius:7px;background:var(--surface);color:var(--tx);font-size:13.5px;font-family:'Inter',sans-serif;outline:none;transition:border-color .15s,box-shadow .15s}
 .finp:focus,.fsel:focus,.fta:focus{border-color:var(--gd);box-shadow:0 0 0 3px rgba(201,168,76,.1);background:#FFFEF8}
 .fta{resize:vertical;min-height:80px}
 .fsel option{background:var(--surface)}
@@ -236,7 +236,7 @@ tbody td{padding:14px 18px;font-size:13.5px;color:var(--tx);vertical-align:middl
 /* ── SEÇÃO DETALHE ── */
 .detsec{margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--div)}
 .detsec:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0}
-.detsec-title{font-size:11.5px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--tx2);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.detsec-title{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
 .detrow{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;font-size:13.5px;gap:12px}
 .det-lbl{color:var(--tx3);flex-shrink:0}
 .det-val{font-weight:500;color:var(--tx);text-align:right}
@@ -256,13 +256,13 @@ tbody td{padding:14px 18px;font-size:13.5px;color:var(--tx);vertical-align:middl
 /* ── ATOS ── */
 .atos-wrap{background:var(--surface);border:1px solid var(--bd);border-radius:10px;overflow:hidden;box-shadow:var(--s1)}
 .atos-head{padding:11px 16px;background:var(--s2);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
-.atos-title{font-size:11.5px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--tx2)}
+.atos-title{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tx3)}
 .ato-item{padding:12px 16px;border-bottom:1px solid var(--div);display:flex;align-items:flex-start;gap:12px;transition:background .1s}
 .ato-item:last-child{border-bottom:none}
 .ato-item:hover{background:var(--s2)}
 .ato-item.k-alta{border-left:3px solid var(--rd)}
 .ato-item.k-baixa{opacity:.72}
-.ato-chk{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--bd2);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .2s cubic-bezier(.2,0,0,1);margin-top:2px;font-size:10px}
+.ato-chk{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--bd2);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .15s;margin-top:2px;font-size:10px}
 .ato-chk:hover{border-color:var(--gr);background:var(--grb)}
 .ato-chk.done{background:var(--gr);border-color:var(--gr);color:#fff}
 .ato-chk.curr{border-color:var(--gd);background:var(--gdp);color:var(--gd)}
@@ -285,7 +285,7 @@ tbody td{padding:14px 18px;font-size:13.5px;color:var(--tx);vertical-align:middl
 .sg-wrap{margin-bottom:14px}
 .sg-lbl{font-size:11px;font-weight:600;color:var(--tx3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.6px}
 .sg-list{display:flex;flex-wrap:wrap;gap:6px}
-.sg-chip{padding:5px 13px;border:1px solid var(--bd);border-radius:99px;font-size:12.5px;color:var(--tx2);cursor:pointer;background:var(--surface);font-family:'Inter',sans-serif;transition:all .2s cubic-bezier(.2,0,0,1)}
+.sg-chip{padding:5px 13px;border:1px solid var(--bd);border-radius:99px;font-size:12.5px;color:var(--tx2);cursor:pointer;background:var(--surface);font-family:'Inter',sans-serif;transition:all .15s}
 .sg-chip:hover{border-color:var(--gd);color:var(--am);background:var(--gdp)}
 
 /* ── HISTÓRICO ── */
@@ -296,25 +296,9 @@ tbody td{padding:14px 18px;font-size:13.5px;color:var(--tx);vertical-align:middl
 .hist-dt{font-size:12px;color:var(--tx3)}
 .hist-qm{font-size:13px;color:var(--tx2)}
 
-/* ── IA MOVIMENTAÇÕES ── */
-.ia-res-box{border:1.5px solid var(--bd);border-radius:var(--rmd);padding:16px;margin:0 0 12px;background:var(--s2)}
-.ia-res-box.urgente{border-color:#fca5a5;background:#fef2f2}
-.ia-urgente-badge{font-size:12px;font-weight:700;color:#dc2626;margin-bottom:10px;padding:4px 10px;background:#fee2e2;border-radius:20px;display:inline-block}
-.ia-res-sec{margin-bottom:12px}
-.ia-res-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--tx3);margin-bottom:4px}
-.ia-res-sec p{font-size:13.5px;color:var(--tx2);line-height:1.6;margin:0}
-.ia-checklist{margin:4px 0 0 16px;padding:0;font-size:13.5px;color:var(--tx2);line-height:1.9}
-.ia-prazo-urgente{color:#dc2626;font-weight:600}
-.ia-mov-item{padding:12px 0;border-bottom:1px solid var(--div)}
-.ia-mov-item:last-child{border-bottom:none}
-.ia-mov-item.urgente{padding:12px;margin:0 -4px;border-radius:var(--rsm);background:#fef2f2;border-bottom:1px solid #fca5a5;margin-bottom:6px}
-.ia-mov-top{display:flex;gap:8px;align-items:center;margin-bottom:4px;flex-wrap:wrap}
-.ia-mov-data{font-size:11px;color:var(--tx3)}
-.ia-mov-resumo{font-size:13px;color:var(--tx2);line-height:1.6}
-
 /* ── MSG CLIENTE ── */
 .msg-prev{background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:16px;font-size:13.5px;color:var(--tx);line-height:1.75;white-space:pre-wrap;margin-bottom:12px}
-.btn-wpp{display:inline-flex;align-items:center;gap:9px;padding:10px 18px;background:#DCFCE7;border:1px solid #A7F3D0;border-radius:8px;color:#065F46;font-size:13.5px;font-weight:600;font-family:'Inter',sans-serif;text-decoration:none;cursor:pointer;transition:all .2s cubic-bezier(.2,0,0,1)}
+.btn-wpp{display:inline-flex;align-items:center;gap:9px;padding:10px 18px;background:#DCFCE7;border:1px solid #A7F3D0;border-radius:8px;color:#065F46;font-size:13.5px;font-weight:600;font-family:'Inter',sans-serif;text-decoration:none;cursor:pointer;transition:all .15s}
 .btn-wpp:hover{background:#A7F3D0;box-shadow:var(--s1)}
 
 /* ── FINANCEIRO ── */
@@ -333,7 +317,7 @@ tbody td{padding:14px 18px;font-size:13.5px;color:var(--tx);vertical-align:middl
 .parc-nome.paga{text-decoration:line-through;color:var(--tx3)}
 
 /* ── GRUPOS DE DEMANDAS (por cliente) ── */
-.dem-grupo{background:var(--surface);border:1px solid var(--bd);border-radius:10px;margin-bottom:8px;overflow:hidden;transition:box-shadow .2s cubic-bezier(.2,0,0,1);}
+.dem-grupo{background:var(--surface);border:1px solid var(--bd);border-radius:10px;margin-bottom:8px;overflow:hidden;transition:box-shadow .15s;}
 .dem-grupo:hover{box-shadow:var(--s1);}
 .dem-grupo-header{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;transition:background .12s;user-select:none;}
 .dem-grupo-header:hover{background:var(--s2);}
@@ -346,7 +330,7 @@ tbody td{padding:14px 18px;font-size:13.5px;color:var(--tx);vertical-align:middl
 .dem-grupo.open .dem-g-arrow{transform:rotate(180deg);}
 
 /* ── CARTÕES DE RELATÓRIO ── */
-.rel-tipo-card{background:var(--surface);border:2px solid var(--bd);border-radius:14px;padding:20px 18px;cursor:pointer;transition:all .2s cubic-bezier(.2,0,0,1);user-select:none;}
+.rel-tipo-card{background:var(--surface);border:2px solid var(--bd);border-radius:12px;padding:20px 18px;cursor:pointer;transition:all .18s;user-select:none;}
 .rel-tipo-card:hover{border-color:var(--gdb);box-shadow:var(--s2s);transform:translateY(-1px);}
 .rel-tipo-card.on{border-color:var(--gd);background:var(--gdp);box-shadow:0 0 0 3px var(--gdb);}
 .rel-tipo-ico{font-size:26px;margin-bottom:10px;line-height:1;}
@@ -373,9 +357,9 @@ tbody td{padding:14px 18px;font-size:13.5px;color:var(--tx);vertical-align:middl
 /* ── OBS ETAPA ── */
 .obet-item{margin-bottom:14px}
 .obet-lbl{font-size:12.5px;font-weight:600;color:var(--tx2);margin-bottom:6px;display:flex;align-items:center;gap:7px}
-.obet-ta{width:100%;padding:9px 12px;border:1px solid var(--bd);border-radius:7px;background:var(--surface);color:var(--tx);font-size:13px;font-family:'Inter',sans-serif;outline:none;resize:vertical;min-height:54px;transition:all .2s cubic-bezier(.2,0,0,1)}
+.obet-ta{width:100%;padding:9px 12px;border:1px solid var(--bd);border-radius:7px;background:var(--surface);color:var(--tx);font-size:13px;font-family:'Inter',sans-serif;outline:none;resize:vertical;min-height:54px;transition:all .15s}
 .obet-ta:focus{border-color:var(--gd);box-shadow:0 0 0 3px rgba(201,168,76,.1)}
-.obet-btn{margin-top:5px;padding:5px 14px;font-size:12px;font-family:'Inter',sans-serif;border:1px solid var(--gdb);border-radius:7px;background:transparent;color:var(--am);cursor:pointer;font-weight:600;transition:all .2s cubic-bezier(.2,0,0,1)}
+.obet-btn{margin-top:5px;padding:5px 14px;font-size:12px;font-family:'Inter',sans-serif;border:1px solid var(--gdb);border-radius:7px;background:transparent;color:var(--am);cursor:pointer;font-weight:600;transition:all .15s}
 .obet-btn:hover{background:var(--gdp)}
 
 /* ── ORDENAÇÃO DE TABELA ── */
@@ -385,7 +369,7 @@ thead th.sort-asc::after{content:' ▲';font-size:9px;color:var(--gd)}
 thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
 
 /* ── ABAS DO DETALHE ── */
-.det-tab{background:none;border:none;border-bottom:2px solid transparent;padding:8px 14px;font-size:13px;font-weight:500;color:var(--tx3);cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s cubic-bezier(.2,0,0,1);margin-bottom:-1px}
+.det-tab{background:none;border:none;border-bottom:2px solid transparent;padding:8px 14px;font-size:13px;font-weight:500;color:var(--tx3);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;margin-bottom:-1px}
 .det-tab:hover{color:var(--tx)}
 .det-tab.on{color:var(--tx);border-bottom-color:var(--gd);font-weight:600}
 
@@ -651,11 +635,10 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <div class="tbl-wrap">
         <table>
           <thead><tr>
+            <th class="sortable">Cliente</th>
             <th>Nº do Processo</th>
-            <th>Cliente</th>
             <th>Área</th>
-            <th>Vara / Tribunal</th>
-            <th>Demanda</th>
+            <th>Status</th>
             <th></th>
           </tr></thead>
           <tbody id="tb-proc"></tbody>
@@ -1124,7 +1107,6 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <button class="det-tab on" data-tab="atos" onclick="switchDetTab('atos')">Atos</button>
       <button class="det-tab" data-tab="hist" onclick="switchDetTab('hist')">Histórico & Avanço</button>
       <button class="det-tab" data-tab="cli" onclick="switchDetTab('cli')">Cliente & Mensagem</button>
-      <button class="det-tab" data-tab="ia" onclick="switchDetTab('ia')">🤖 IA</button>
     </div>
 
     <div class="mbody">
@@ -1174,29 +1156,6 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         </div>
       </div>
 
-      <!-- ABA: IA & MOVIMENTAÇÕES -->
-      <div id="det-tab-ia" style="display:none;">
-        <div class="detsec">
-          <div class="detsec-title">Nova movimentação</div>
-          <div class="field">
-            <label class="flabel">Cole o texto da movimentação <span style="font-size:11px;color:var(--tx3);">ou envie um PDF</span></label>
-            <textarea class="finp" id="ia-texto" rows="5" style="resize:vertical;" placeholder="Cole aqui o texto da movimentação processual (publicação, decisão, despacho...)"></textarea>
-          </div>
-          <div class="field">
-            <label class="flabel">Enviar PDF da movimentação (opcional)</label>
-            <input type="file" id="ia-pdf" accept=".pdf" class="finp" style="padding:6px;cursor:pointer;"
-              onchange="if(this.files[0]){_iaArquivoPDF=this.files[0];document.getElementById('ia-pdf-nome').textContent='📎 '+this.files[0].name;}else{_iaArquivoPDF=null;document.getElementById('ia-pdf-nome').textContent='';}">
-            <span id="ia-pdf-nome" style="font-size:12px;color:var(--bl);margin-top:4px;display:block;"></span>
-          </div>
-          <button class="btn btn-p" id="ia-btn-analisar" onclick="analisarMovimentacao()">🤖 Analisar com IA</button>
-        </div>
-        <div id="ia-resultado" style="display:none;padding:0 0 4px;"></div>
-        <div class="detsec" style="border-bottom:none;margin-bottom:0;padding-bottom:0;">
-          <div class="detsec-title">Histórico de análises</div>
-          <div id="ia-historico"><div style="font-size:13px;color:var(--tx3);padding:8px 0;">Nenhuma movimentação analisada ainda.</div></div>
-        </div>
-      </div>
-
       <!-- ABA: CLIENTE & MENSAGEM -->
       <div id="det-tab-cli" style="display:none;">
         <div class="detsec">
@@ -1239,49 +1198,6 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         <button class="btn btn-gh" onclick="exportPDF()">📄 Exportar PDF</button>
         <button class="btn btn-gh" onclick="abrirEdicao()">✏️ Editar dados</button>
         <button class="btn btn-gh" onclick="closeM('m-det')">Fechar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL PROTOCOLAR -->
-<div class="mov" id="m-protocolar">
-  <div class="mbox" style="max-width:480px;">
-    <div class="mhead">
-      <div><div class="mtitle">Protocolar processo</div><div class="msubt">Registre os dados para concluir esta etapa</div></div>
-      <button class="mx" onclick="closeM('m-protocolar')">✕</button>
-    </div>
-    <div class="mbody" style="display:flex;flex-direction:column;gap:16px;">
-      <div class="field">
-        <label class="flabel">Tribunal <span class="req">*</span></label>
-        <select class="fsel" id="prot-tribunal">
-          <option value="">Selecione o tribunal...</option>
-          <optgroup label="Tribunais Superiores">
-            <option>STF</option><option>STJ</option><option>TST</option><option>TSE</option><option>STM</option>
-          </optgroup>
-          <optgroup label="Tribunais Regionais Federais">
-            <option>TRF1</option><option>TRF2</option><option>TRF3</option><option>TRF4</option><option>TRF5</option><option>TRF6</option>
-          </optgroup>
-          <optgroup label="Tribunais Regionais do Trabalho">
-            <option>TRT1</option><option>TRT2</option><option>TRT3</option><option>TRT4</option><option>TRT5</option><option>TRT6</option><option>TRT7</option><option>TRT8</option><option>TRT9</option><option>TRT10</option><option>TRT11</option><option>TRT12</option><option>TRT13</option><option>TRT14</option><option>TRT15</option><option>TRT16</option><option>TRT17</option><option>TRT18</option><option>TRT19</option><option>TRT20</option><option>TRT21</option><option>TRT22</option><option>TRT23</option><option>TRT24</option>
-          </optgroup>
-          <optgroup label="Tribunais de Justiça">
-            <option>TJAC</option><option>TJAL</option><option>TJAM</option><option>TJAP</option><option>TJBA</option><option>TJCE</option><option>TJDF</option><option>TJDFT</option><option>TJES</option><option>TJGO</option><option>TJMA</option><option>TJMG</option><option>TJMS</option><option>TJMT</option><option>TJPA</option><option>TJPB</option><option>TJPE</option><option>TJPI</option><option>TJPR</option><option>TJRJ</option><option>TJRN</option><option>TJRO</option><option>TJRR</option><option>TJRS</option><option>TJSC</option><option>TJSE</option><option>TJSP</option><option>TJTO</option>
-          </optgroup>
-          <optgroup label="Justiça Federal — 1ª Instância">
-            <option>JFAC</option><option>JFAL</option><option>JFAM</option><option>JFAP</option><option>JFBA</option><option>JFCE</option><option>JFDF</option><option>JFES</option><option>JFGO</option><option>JFMA</option><option>JFMG</option><option>JFMS</option><option>JFMT</option><option>JFPA</option><option>JFPB</option><option>JFPE</option><option>JFPI</option><option>JFPR</option><option>JFRJ</option><option>JFRN</option><option>JFRO</option><option>JFRR</option><option>JFRS</option><option>JFSC</option><option>JFSE</option><option>JFSP</option><option>JFTO</option>
-          </optgroup>
-        </select>
-      </div>
-      <div class="field">
-        <label class="flabel">Número do processo <span class="req">*</span></label>
-        <input type="text" class="finp" id="prot-num" placeholder="0000000-00.0000.0.00.0000" oninput="mascaraCNJ(this)" maxlength="25"/>
-      </div>
-    </div>
-    <div class="mfoot">
-      <button class="btn btn-gh" onclick="closeM('m-protocolar')">Cancelar</button>
-      <div class="mfoot-r">
-        <button class="btn btn-p" id="prot-btn" onclick="confirmarProtocolo()">Protocolar e Concluir</button>
       </div>
     </div>
   </div>
@@ -1557,7 +1473,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <div id="eq-perfil-info" style="border-radius:var(--rmd);padding:10px 14px;margin-bottom:14px;font-size:13px;background:var(--blb);border:1px solid var(--blbd);color:var(--bl);"></div>
 
       <!-- Permissões granulares -->
-      <div style="font-size:11.5px;font-weight:600;color:var(--tx2);margin-bottom:10px">Módulos com acesso</div>
+      <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);margin-bottom:10px">Módulos com acesso</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px" id="eq-perms">
         <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--s2);border-radius:8px;border:1px solid var(--bd);cursor:pointer;font-size:13px">
           <input type="checkbox" id="ep-demandas" checked style="accent-color:var(--gd)"/> Demandas e kanban
@@ -2126,23 +2042,18 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
           <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px;">
             <div style="background:var(--surface);border:1px solid var(--gdb);border-radius:8px;padding:12px 14px;">
               <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gd);margin-bottom:4px;">Obrigatório</div>
-              <div style="font-size:13.5px;font-weight:600;color:var(--tx)">Número do processo</div>
-              <div style="font-size:12px;color:var(--tx3)">Ex.: "processo", "número", "cnj"</div>
-            </div>
-            <div style="background:var(--surface);border:1px solid var(--gdb);border-radius:8px;padding:12px 14px;">
-              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gd);margin-bottom:4px;">Obrigatório</div>
               <div style="font-size:13.5px;font-weight:600;color:var(--tx)">Nome do cliente</div>
               <div style="font-size:12px;color:var(--tx3)">Ex.: "cliente", "nome", "parte"</div>
-            </div>
-            <div style="background:var(--surface);border:1px solid var(--gdb);border-radius:8px;padding:12px 14px;grid-column:span 2">
-              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gd);margin-bottom:4px;">Obrigatório</div>
-              <div style="font-size:13.5px;font-weight:600;color:var(--tx)">Vara / Tribunal</div>
-              <div style="font-size:12px;color:var(--tx3)">Ex.: "vara", "tribunal", "comarca", "foro", "órgão"</div>
             </div>
             <div style="background:var(--surface);border:1px solid var(--bd);border-radius:8px;padding:12px 14px;">
               <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--tx3);margin-bottom:4px;">Opcional</div>
               <div style="font-size:13.5px;font-weight:600;color:var(--tx)">Telefone / WhatsApp</div>
               <div style="font-size:12px;color:var(--tx3)">Ex.: "telefone", "whatsapp", "celular"</div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--bd);border-radius:8px;padding:12px 14px;">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--tx3);margin-bottom:4px;">Opcional</div>
+              <div style="font-size:13.5px;font-weight:600;color:var(--tx)">Número do processo</div>
+              <div style="font-size:12px;color:var(--tx3)">Ex.: "processo", "número", "nro"</div>
             </div>
             <div style="background:var(--surface);border:1px solid var(--bd);border-radius:8px;padding:12px 14px;">
               <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--tx3);margin-bottom:4px;">Opcional</div>
@@ -2430,7 +2341,6 @@ function getAtosTemplate(tipo,etapa){
 
 // ── ESTADO ──
 let demandas=[],colabs=[],convitesPendentes=[],escData={},userAtual=null,usuarioAtual=null,filtroAtivo='todos',filtroFinAtivo='todos',detId=null,quickAvId=null,cliDetId=null;
-let processos=[],_protQuem='',_protObs='';
 let sortDem={col:null,asc:true},sortCli={col:null,asc:true};
 let finLanc=[],finDetId=null;
 
@@ -2442,18 +2352,6 @@ function toast(msg,tipo='ts'){
 }
 function hoje(){const d=new Date();return`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
 function iniciais(n){return(n||'').trim().split(' ').filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase();}
-function mascaraCNJ(el){
-  let v=el.value.replace(/\D/g,'');
-  if(v.length>20)v=v.slice(0,20);
-  let r='';
-  if(v.length>0)r+=v.slice(0,Math.min(7,v.length));
-  if(v.length>7)r+='-'+v.slice(7,Math.min(9,v.length));
-  if(v.length>9)r+='.'+v.slice(9,Math.min(13,v.length));
-  if(v.length>13)r+='.'+v.slice(13,Math.min(14,v.length));
-  if(v.length>14)r+='.'+v.slice(14,Math.min(16,v.length));
-  if(v.length>16)r+='.'+v.slice(16,20);
-  el.value=r;
-}
 function fmtMoeda(v){return'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function validarCpfCnpj(v){
   const n=v.replace(/\D/g,'');
@@ -2524,11 +2422,9 @@ function toggleSidebar(){
   document.getElementById('sb-overlay').classList.toggle('on');
 }
 function switchDetTab(tab){
-  ['atos','hist','cli','ia'].forEach(t=>{
-    const div=document.getElementById('det-tab-'+t);
-    const btn=document.querySelector(`.det-tab[data-tab="${t}"]`);
-    if(div)div.style.display=t===tab?'block':'none';
-    if(btn)btn.classList.toggle('on',t===tab);
+  ['atos','hist','cli'].forEach(t=>{
+    document.getElementById('det-tab-'+t).style.display=t===tab?'block':'none';
+    document.querySelector(`.det-tab[data-tab="${t}"]`).classList.toggle('on',t===tab);
   });
 }
 
@@ -2674,7 +2570,7 @@ function bloqueioTrial(){
           <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px">5 advogados · 25 colaboradores</div>
         </div>
       </div>
-      <a href="contratar.html" style="background:#C9A84C;color:#1A1A1F;padding:14px 36px;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;display:inline-block;transition:opacity .2s cubic-bezier(.2,0,0,1)" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Assinar agora →</a>
+      <a href="contratar.html" style="background:#C9A84C;color:#1A1A1F;padding:14px 36px;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;display:inline-block;transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Assinar agora →</a>
       <div style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.25)">Seus dados ficam preservados. Cancele quando quiser.</div>
     </div>`;
   document.body.appendChild(o);
@@ -2835,15 +2731,6 @@ function abrirQuickAv(id,evt){
   if(!d||statusD(d)!=='Em andamento')return;
   quickAvId=id;
   const et=ETAPAS[d.etapa_atual]?.nome||'';
-  if(et==='Protocolo'){
-    detId=id;
-    _protQuem=usuarioAtual?.nome||userAtual||'';
-    _protObs='';
-    document.getElementById('prot-num').value=d.processo||'';
-    document.getElementById('prot-tribunal').value='';
-    openM('m-protocolar');
-    return;
-  }
   const atosPend=getA(d).filter(a=>a.etapa===et&&!a.feito);
   if(!atosPend.length){
     const proxIdx=d.etapa_atual+1;
@@ -3388,7 +3275,7 @@ function abrirPerfilCliente(cliId){
 
   // Lista de demandas
   document.getElementById('cli-demandas-lista').innerHTML=demandasCli.map(d=>`
-    <div onclick="abrirDetDoCliente(${d.id})" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid var(--bd);border-radius:var(--rmd);margin-bottom:8px;cursor:pointer;transition:all .2s cubic-bezier(.2,0,0,1);background:var(--surface);"
+    <div onclick="abrirDetDoCliente(${d.id})" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid var(--bd);border-radius:var(--rmd);margin-bottom:8px;cursor:pointer;transition:all .15s;background:var(--surface);"
       onmouseover="this.style.borderColor='var(--gd)';this.style.boxShadow='var(--s2s)'"
       onmouseout="this.style.borderColor='var(--bd)';this.style.boxShadow='none'">
       <div>
@@ -3513,7 +3400,7 @@ function renderEqCfg(){
       <div style="display:flex;align-items:center;gap:6px;">
         ${podeReenviar?`<button class="btn btn-gh btn-sm" onclick="reenviarConvite('${c.id}')">Reenviar</button>`:''}
         <button class="btn btn-gh btn-sm" onclick="abrirEditMembro('${c.id}')">Editar</button>
-        <button onclick="rmMembro('${c.id}')" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:18px;padding:4px;border-radius:var(--rsm);transition:color .2s cubic-bezier(.2,0,0,1);" onmouseover="this.style.color='var(--rd)'" onmouseout="this.style.color='var(--tx3)'">×</button>
+        <button onclick="rmMembro('${c.id}')" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:18px;padding:4px;border-radius:var(--rsm);transition:color .15s;" onmouseover="this.style.color='var(--rd)'" onmouseout="this.style.color='var(--tx3)'">×</button>
       </div>
     </div>`;
   }).join('');
@@ -4271,9 +4158,8 @@ async function salvarDemanda(){
 }
 
 // ── DETALHE ──
-let _iaArquivoPDF=null;
 function abrirDet(id){
-  const idNum=Number(id);detId=idNum;const d=demandas.find(x=>x.id===idNum);if(!d)return;
+  detId=id;const d=demandas.find(x=>x.id===id);if(!d)return;
   document.getElementById('det-nome').textContent=d.nome;
   document.getElementById('det-tipo').innerHTML='<span class="spin" style="border-color:rgba(0,0,0,.15);border-top-color:var(--tx3);"></span>';
   switchDetTab('atos');
@@ -4321,106 +4207,8 @@ function abrirDet(id){
     const oa=document.getElementById('det-obs-av');if(oa)oa.value='';
     document.getElementById('msg-wrap').style.display='none';
     initRespSel();
-    renderMovimentacoesIA(d);
-    // reset IA input fields
-    const iaT=document.getElementById('ia-texto');if(iaT)iaT.value='';
-    const iaP=document.getElementById('ia-pdf');if(iaP)iaP.value='';
-    const iaN=document.getElementById('ia-pdf-nome');if(iaN)iaN.textContent='';
-    const iaR=document.getElementById('ia-resultado');if(iaR)iaR.style.display='none';
-    _iaArquivoPDF=null;
   });
 }
-
-// ── IA MOVIMENTAÇÕES ────────────────────────────────────────────────
-function lerPDFBase64(file){
-  return new Promise((resolve,reject)=>{
-    const r=new FileReader();
-    r.onload=e=>resolve(e.target.result.split(',')[1]);
-    r.onerror=reject;
-    r.readAsDataURL(file);
-  });
-}
-
-async function analisarMovimentacao(){
-  const d=demandas.find(x=>x.id===detId);if(!d)return;
-  const texto=document.getElementById('ia-texto').value.trim();
-  if(!texto&&!_iaArquivoPDF){toast('Cole o texto da movimentação ou envie um PDF','te');return;}
-  const btn=document.getElementById('ia-btn-analisar');
-  btn.disabled=true;btn.textContent='Analisando...';
-  document.getElementById('ia-resultado').style.display='none';
-  try{
-    let pdfBase64=null;
-    if(_iaArquivoPDF)pdfBase64=await lerPDFBase64(_iaArquivoPDF);
-    const hist=getH(d);
-    const etapaAtual=ETAPAS[d.etapa_atual]?.nome||'';
-    const resp=await fetch(`${SB_URL}/functions/v1/resumir-ia`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':`Bearer ${SB_KEY}`},
-      body:JSON.stringify({texto,pdfBase64,demandaNome:d.nome,demandaTipo:d.tipo,etapaAtual,histFases:hist})
-    });
-    const res=await resp.json();
-    if(res.erro){toast('Erro na análise: '+res.erro,'te');return;}
-    _renderResultadoIA(res);
-    await _salvarMovimentacaoIA(d,texto,_iaArquivoPDF?.name||null,res);
-    if(res.urgente)toast('⚠️ Movimentação urgente detectada! Verifique o prazo.','te',6000);
-  }catch(e){
-    toast('Erro ao analisar: '+e.message,'te');
-  }finally{
-    btn.disabled=false;btn.textContent='🤖 Analisar com IA';
-  }
-}
-
-function _renderResultadoIA(res){
-  const el=document.getElementById('ia-resultado');
-  el.style.display='block';
-  let passos='';
-  if(Array.isArray(res.proximos_passos)&&res.proximos_passos.length){
-    passos='<div class="ia-res-sec"><div class="ia-res-lbl">Próximos passos</div><ul class="ia-checklist">';
-    res.proximos_passos.forEach(function(p){passos+='<li>'+p+'</li>';});
-    passos+='</ul></div>';
-  }
-  let prazoHtml='';
-  if(res.prazo){
-    const cls=res.urgente?'ia-prazo-urgente':'';
-    prazoHtml='<div class="ia-res-sec"><div class="ia-res-lbl">Prazo identificado</div><p class="'+cls+'">'+(res.alerta_prazo||res.prazo)+'</p></div>';
-  }
-  const urgBadge=res.urgente?'<div class="ia-urgente-badge">URGENTE - verifique o prazo</div>':'';
-  const boxCls=res.urgente?'ia-res-box urgente':'ia-res-box';
-  el.innerHTML='<div class="'+boxCls+'">'+urgBadge+
-    '<div class="ia-res-sec"><div class="ia-res-lbl">Resumo</div><p>'+(res.resumo||'—')+'</p></div>'+
-    '<div class="ia-res-sec"><div class="ia-res-lbl">Situacao estrategica</div><p>'+(res.situacao||'—')+'</p></div>'+
-    passos+prazoHtml+'</div>';
-}
-
-async function _salvarMovimentacaoIA(d,texto,nomeArquivo,resultado){
-  const movs=Array.isArray(d.movimentacoes)?[...d.movimentacoes]:[];
-  const nova={
-    id:crypto.randomUUID(),
-    data:new Date().toLocaleDateString('pt-BR'),
-    texto:texto||(nomeArquivo?`[PDF: ${nomeArquivo}]`:''),
-    ...resultado
-  };
-  movs.unshift(nova);
-  const{error}=await db.from('demandas_escritorio').update({movimentacoes:JSON.stringify(movs)}).eq('id',detId);
-  if(!error){d.movimentacoes=movs;renderMovimentacoesIA(d);}
-  else toast('Análise exibida mas não salva: '+error.message,'te');
-}
-
-function renderMovimentacoesIA(d){
-  const el=document.getElementById('ia-historico');if(!el)return;
-  const movs=Array.isArray(d.movimentacoes)?d.movimentacoes:[];
-  if(!movs.length){el.innerHTML='<div style="font-size:13px;color:var(--tx3);padding:8px 0;">Nenhuma movimentacao analisada ainda.</div>';return;}
-  let html='';
-  movs.forEach(function(m){
-    const cls=m.urgente?'ia-mov-item urgente':'ia-mov-item';
-    const urg=m.urgente?'<span class="bdg" style="background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;font-size:11px;">Urgente</span>':'';
-    const prazo=m.prazo?'<span class="bdg b-bl" style="font-size:11px;">'+m.prazo+'</span>':'';
-    const resumo=m.resumo||(m.texto?(m.texto+'').substring(0,120):'—');
-    html+='<div class="'+cls+'"><div class="ia-mov-top"><span class="ia-mov-data">'+m.data+'</span>'+urg+prazo+'</div><div class="ia-mov-resumo">'+resumo+'</div></div>';
-  });
-  el.innerHTML=html;
-}
-// ────────────────────────────────────────────────────────────────────
 
 function renderAtosDetalhe(d){
   const atos=getA(d);
@@ -4582,14 +4370,6 @@ async function avancar(){
   }
   const obs=document.getElementById('det-obs-av').value.trim();
   const etFeita=ETAPAS[d.etapa_atual]?.nome||'';
-  // Protocolo obrigatório antes de avançar a partir desta etapa
-  if(etAtual==='Protocolo'){
-    _protQuem=quem;_protObs=obs;
-    document.getElementById('prot-num').value=d.processo||'';
-    document.getElementById('prot-tribunal').value='';
-    openM('m-protocolar');
-    return;
-  }
   const nova=d.etapa_atual+1;const conc=nova>=ETAPAS.length;
   const hist=getH(d);hist.push({etapa:etFeita,quem,obs,data:hoje()});
   const{error}=await db.from('demandas_escritorio').update({etapa_atual:nova,status:conc?'Concluído':'Em andamento',hist_fases:JSON.stringify(hist)}).eq('id',detId);
@@ -4598,40 +4378,6 @@ async function avancar(){
   if(conc){d.status='Concluído';notifConc(d,quem);}
   abrirDet(detId);renderKanban();
   toast(conc?'Demanda concluída! 🎉':`Avançou para: ${ETAPAS[nova]?.nome||'Concluída'}`);
-}
-
-async function confirmarProtocolo(){
-  const num=document.getElementById('prot-num').value.trim();
-  const tribunal=document.getElementById('prot-tribunal').value;
-  if(!tribunal){toast('Selecione o tribunal.','te');return;}
-  if(!num){toast('Informe o número do processo.','te');return;}
-  const d=demandas.find(x=>x.id===detId);if(!d)return;
-  const btn=document.getElementById('prot-btn');
-  btn.disabled=true;btn.textContent='Salvando...';
-  // 1. Salvar número do processo na demanda
-  const{error:e1}=await db.from('demandas_escritorio').update({processo:num}).eq('id',detId);
-  if(e1){toast('Erro: '+e1.message,'te');btn.disabled=false;btn.textContent='Protocolar e Concluir';return;}
-  d.processo=num;
-  // 2. Criar registro na tabela processos
-  const{data:novProc,error:e2}=await db.from('processos').insert([{
-    escritorio_id:escData.id,demanda_id:detId,
-    numero_processo:num,cliente_nome:d.nome,
-    cliente_tel:d.tel||null,area:d.tipo||null,vara_tribunal:tribunal
-  }]).select().single();
-  if(e2)toast('Número salvo, mas erro ao criar registro de processo: '+e2.message,'te');
-  else{processos.unshift(novProc);}
-  // 3. Avançar etapa
-  const etFeita=ETAPAS[d.etapa_atual]?.nome||'';
-  const nova=d.etapa_atual+1;const conc=nova>=ETAPAS.length;
-  const hist=getH(d);hist.push({etapa:etFeita,quem:_protQuem,obs:_protObs,data:hoje()});
-  const{error:e3}=await db.from('demandas_escritorio').update({etapa_atual:nova,status:conc?'Concluído':'Em andamento',hist_fases:JSON.stringify(hist)}).eq('id',detId);
-  if(e3){toast('Erro ao avançar: '+e3.message,'te');btn.disabled=false;btn.textContent='Protocolar e Concluir';return;}
-  d.etapa_atual=nova;d.hist_fases=JSON.stringify(hist);
-  if(conc){d.status='Concluído';notifConc(d,_protQuem);}
-  closeM('m-protocolar');
-  if(detId)abrirDet(detId);renderKanban();renderProcessos();
-  toast('Processo protocolado e demanda concluída!');
-  btn.disabled=false;btn.textContent='Protocolar e Concluir';
 }
 
 async function voltar(){
@@ -4651,11 +4397,18 @@ function toggleEditTipoOutro(){
 
 function abrirConverterProcesso(){
   const d=demandas.find(x=>x.id===detId);if(!d)return;
-  _protQuem=usuarioAtual?.nome||userAtual||'';
-  _protObs='';
-  document.getElementById('prot-num').value=d.processo||'';
-  document.getElementById('prot-tribunal').value='';
-  openM('m-protocolar');
+  const num=prompt('Informe o número do processo (ex: 0001234-56.2026.1.00.0001):');
+  if(num===null)return;
+  const numLimpo=num.trim();
+  if(!numLimpo){toast('Número do processo não informado.','te');return;}
+  db.from('demandas_escritorio').update({processo:numLimpo}).eq('id',detId).then(({error})=>{
+    if(error){toast('Erro: '+error.message,'te');return;}
+    const d2=demandas.find(x=>x.id===detId);if(d2)d2.processo=numLimpo;
+    document.getElementById('det-proc').textContent=numLimpo;
+    const banner=document.getElementById('det-prot-banner');if(banner)banner.style.display='none';
+    renderKanban();
+    toast('Número do processo registrado! ✓');
+  });
 }
 
 function abrirEdicao(){
@@ -5212,7 +4965,7 @@ function renderCfgEtapas(){
       <span style="flex:1;font-size:13.5px;font-weight:500;">${e.nome}</span>
       <button onclick="moverEtapa(${i},-1)" ${i===0?'disabled':''} style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:14px;padding:2px 6px;" title="Subir">↑</button>
       <button onclick="moverEtapa(${i},1)" ${i===ETAPAS.length-1?'disabled':''} style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:14px;padding:2px 6px;" title="Descer">↓</button>
-      <button onclick="removeEtapa(${i})" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:16px;padding:2px 6px;transition:color .2s cubic-bezier(.2,0,0,1);" onmouseover="this.style.color='var(--rd)'" onmouseout="this.style.color='var(--tx3)'" title="Remover">×</button>
+      <button onclick="removeEtapa(${i})" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:16px;padding:2px 6px;transition:color .15s;" onmouseover="this.style.color='var(--rd)'" onmouseout="this.style.color='var(--tx3)'" title="Remover">×</button>
     </div>`).join('');
 }
 
@@ -5288,43 +5041,29 @@ function renderProcessos(){
   const tbody=document.getElementById('tb-proc');
   if(!tbody)return;
   const q=(filtroProc||'').toLowerCase();
-  let lista=[...processos];
-  if(q)lista=lista.filter(p=>
-    (p.numero_processo||'').toLowerCase().includes(q)||
-    (p.cliente_nome||'').toLowerCase().includes(q)||
-    (p.area||'').toLowerCase().includes(q)||
-    (p.vara_tribunal||'').toLowerCase().includes(q)
+  let lista=[...demandas];
+  if(q)lista=lista.filter(d=>
+    (d.nome||'').toLowerCase().includes(q)||
+    (d.processo||'').toLowerCase().includes(q)||
+    (d.tipo||'').toLowerCase().includes(q)
   );
+  lista.sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR'));
   if(!lista.length){
-    const msg=q?'Nenhum processo encontrado':'Nenhum processo cadastrado';
-    const sub=q?'Ajuste a busca ou limpe o campo.':'Importe uma planilha ou protocole uma demanda no Kanban.';
-    tbody.innerHTML='<tr><td colspan="6"><div class="empty"><div class="empty-ico">⚖️</div><div class="empty-title">'+msg+'</div><div class="empty-sub">'+sub+'</div></div></td></tr>';
+    tbody.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="empty-ico">📁</div><div class="empty-title">${q?'Nenhum processo encontrado':'Nenhum processo cadastrado'}</div><div class="empty-sub">${q?'Ajuste a busca ou limpe o campo.':'Importe uma planilha ou clique em "Novo processo".'}</div></div></td></tr>`;
     return;
   }
-  let html='';
-  lista.forEach(function(p){
-    const dem=demandas.find(x=>Number(x.id)===Number(p.demanda_id));
-    const demLink=dem?'<span class="bdg b-bl" style="cursor:pointer;font-size:11px;" onclick="abrirDet('+dem.id+')">'+dem.nome+'</span>':'<span style="color:var(--tx3);font-size:12px">—</span>';
-    html+='<tr>';
-    html+='<td style="font-size:12px;font-family:monospace;color:var(--tx2);white-space:nowrap">'+p.numero_processo+'</td>';
-    html+='<td><div class="td-av"><div class="av" style="flex-shrink:0">'+iniciais(p.cliente_nome)+'</div><div style="font-weight:500;font-size:13.5px">'+p.cliente_nome+'</div></div></td>';
-    html+='<td style="font-size:13px">'+(p.area||'—')+'</td>';
-    html+='<td style="font-size:12px;color:var(--tx2)">'+(p.vara_tribunal||'—')+'</td>';
-    html+='<td>'+demLink+'</td>';
-    const abrirBtn=dem?'<button class="btn btn-sm btn-p" style="margin-right:6px" onclick="showView(\'kanban\');abrirDet('+dem.id+')">Abrir</button>':'';
-    html+='<td style="text-align:right;white-space:nowrap">'+abrirBtn+'<button class="btn btn-sm btn-gh" style="color:var(--rd);border-color:var(--rd)" onclick="excluirProcesso(\''+p.id+'\')">Excluir</button></td>';
-    html+='</tr>';
-  });
-  tbody.innerHTML=html;
-}
-
-async function excluirProcesso(id){
-  if(!confirm('Excluir este processo? Esta acao nao pode ser desfeita.'))return;
-  const{error}=await db.from('processos').delete().eq('id',id);
-  if(error){toast('Erro: '+error.message,'te');return;}
-  processos=processos.filter(p=>p.id!==id);
-  renderProcessos();
-  toast('Processo excluido.');
+  const statusLabel={pendente:'Pendente','Em andamento':'Em andamento','Concluído':'Concluído','Cancelado':'Cancelado'};
+  tbody.innerHTML=lista.map(d=>{
+    const st=statusD(d);
+    const stCls=st==='Concluído'?'b-conc':st==='Cancelado'?'b-can':st==='Em andamento'?'b-bl':'b-av';
+    return`<tr onclick="abrirDet('${d.id}')" style="cursor:pointer">
+      <td><div class="td-av"><div class="av" style="flex-shrink:0">${iniciais(d.nome)}</div><div style="font-weight:500;font-size:13.5px">${d.nome}</div></div></td>
+      <td style="font-size:12px;color:var(--tx2);font-family:monospace;white-space:nowrap">${d.processo||'<span style="color:var(--tx3);font-family:\'DM Sans\',sans-serif">Sem número</span>'}</td>
+      <td style="font-size:13px">${d.tipo||'—'}</td>
+      <td><span class="bdg ${stCls}" style="font-size:10px">${st}</span></td>
+      <td style="text-align:right"><button class="btn btn-sm btn-gh" onclick="event.stopPropagation();abrirDet('${d.id}')">Abrir</button></td>
+    </tr>`;
+  }).join('');
 }
 
 function abrirImportacao(){
@@ -5384,23 +5123,19 @@ async function processarArquivoImport(file){
 
   const headers=Object.keys(linhas[0]);
   const find=(tests)=>headers.find(h=>tests.some(t=>h.includes(t)))||'';
-  const colProc=find(['processo','proc','número','numero','nro','cnj','autos']);
   const colNome=find(['nome','cliente','parte','name']);
   const colTel =find(['tel','fone','wpp','whats','celular','phone']);
+  const colProc=find(['processo','proc','número','numero','nro','cnj','autos']);
   const colArea=find(['área','area','tipo','direito','matéria','materia','assunto']);
-  const colVara=find(['vara','tribunal','juiz','comarca','foro','orgao','órgão']);
 
-  if(!colProc){toast('Não foi possível identificar a coluna de número do processo. Verifique o cabeçalho da planilha.','te');return;}
   if(!colNome){toast('Não foi possível identificar a coluna de nome do cliente. Verifique o cabeçalho da planilha.','te');return;}
-  if(!colVara){toast('Não foi possível identificar a coluna de vara/tribunal. Verifique o cabeçalho da planilha.','te');return;}
 
   impDados=linhas.map(r=>({
-    processo:(r[colProc]||'').trim(),
     nome:(r[colNome]||'').trim(),
     tel:colTel?(r[colTel]||'').replace(/\D/g,''):'',
+    processo:colProc?(r[colProc]||'').trim():'',
     tipo:colArea?(r[colArea]||'').trim()||'Cível':'Cível',
-    vara:colVara?(r[colVara]||'').trim():'',
-  })).filter(r=>r.nome&&r.processo);
+  })).filter(r=>r.nome);
 
   if(!impDados.length){toast('Nenhuma linha com nome de cliente válido encontrada.','te');return;}
 
@@ -5426,15 +5161,14 @@ function renderPreviewImport(){
     </div>
     <div class="tbl-wrap" style="max-height:360px;overflow-y:auto">
       <table>
-        <thead><tr><th>#</th><th>Nº Processo</th><th>Cliente</th><th>Telefone</th><th>Área</th><th>Vara/Tribunal</th><th></th></tr></thead>
+        <thead><tr><th>#</th><th>Cliente</th><th>Telefone</th><th>Nº Processo</th><th>Área</th><th></th></tr></thead>
         <tbody>${impDados.map((r,i)=>`
           <tr>
             <td style="color:var(--tx3);font-size:12px">${i+1}</td>
-            <td style="font-size:12px;font-family:monospace;color:var(--tx2)">${r.processo||'—'}</td>
             <td style="font-weight:500">${r.nome}</td>
             <td style="font-size:12px;color:var(--tx2)">${r.tel||'—'}</td>
+            <td style="font-size:12px;color:var(--tx2);font-family:monospace">${r.processo||'—'}</td>
             <td><span class="bdg b-bl" style="font-size:10px">${r.tipo}</span></td>
-            <td style="font-size:12px;color:var(--tx2)">${r.vara||'—'}</td>
             <td><button onclick="removerLinhaImport(${i})" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:15px;padding:2px 6px;line-height:1" title="Remover linha">✕</button></td>
           </tr>`).join('')}
         </tbody>
@@ -5454,22 +5188,18 @@ async function confirmarImportacao(){
   const btn=document.getElementById('imp-btn-confirmar');
   if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> Importando...';}
   let criados=0;const erros=[];
-  const escId=escData.id;
+  const escId=escData.id;const dataHj=hoje();
   for(let i=0;i<impDados.length;i++){
     const r=impDados[i];
-    if(!r.processo){erros.push({linha:i+1,motivo:'Número do processo em branco'});continue;}
     if(!r.nome){erros.push({linha:i+1,motivo:'Nome do cliente em branco'});continue;}
     try{
-      const{data,error}=await db.from('processos').insert([{
-        escritorio_id:escId,
-        numero_processo:r.processo,
-        cliente_nome:r.nome,
-        cliente_tel:r.tel||null,
-        area:r.tipo||null,
-        vara_tribunal:r.vara||null,
+      const{data,error}=await db.from('demandas_escritorio').insert([{
+        escritorio_id:escId,nome:r.nome,tipo:r.tipo||'Cível',
+        tel:r.tel||null,processo:r.processo||null,
+        status:'Em andamento',etapa_atual:0,data:dataHj,criado_por:userAtual||null,
       }]).select().single();
       if(error){erros.push({linha:i+1,motivo:error.message});continue;}
-      processos.unshift(data);criados++;
+      demandas.unshift(data);criados++;
     }catch(e){erros.push({linha:i+1,motivo:e.message});}
   }
   if(btn){btn.disabled=false;btn.textContent='Confirmar importação';}
@@ -5665,7 +5395,7 @@ function renderAgendaLista(){
       <div style="font-size:12px;font-weight:700;color:${hc};text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:8px">
         ${isHj?'<span style="background:var(--gd);color:#fff;padding:2px 8px;border-radius:99px;font-size:11px">HOJE</span>':''}${label}
       </div>
-      ${evs.map(e=>`<div style="background:var(--surface);border:1px solid var(--bd);border-left:3px solid ${TIPO_COR[e.tipo]||TIPO_COR.Outro};border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:flex-start;gap:14px;${e.origem==='agenda'?'cursor:pointer':''}transition:box-shadow .2s cubic-bezier(.2,0,0,1)" ${e.origem==='agenda'?`onclick="abrirEvento('${e.agId}')"`:''}  onmouseover="this.style.boxShadow='var(--s2s)'" onmouseout="this.style.boxShadow='none'">
+      ${evs.map(e=>`<div style="background:var(--surface);border:1px solid var(--bd);border-left:3px solid ${TIPO_COR[e.tipo]||TIPO_COR.Outro};border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:flex-start;gap:14px;${e.origem==='agenda'?'cursor:pointer':''}transition:box-shadow .15s" ${e.origem==='agenda'?`onclick="abrirEvento('${e.agId}')"`:''}  onmouseover="this.style.boxShadow='var(--s2s)'" onmouseout="this.style.boxShadow='none'">
           <div style="font-size:22px;flex-shrink:0;margin-top:1px">${TIPO_ICONE[e.tipo]||'📌'}</div>
           <div style="flex:1">
             <div style="font-weight:600;font-size:13.5px;color:var(--tx);margin-bottom:3px">${e.titulo}</div>
@@ -6052,14 +5782,6 @@ async function confirmarAvEtapa(){
   } else {
     const d=demandas.find(x=>x.id===ctx.demandaId);
     if(!d)return;
-    if(ETAPAS[d.etapa_atual]?.nome==='Protocolo'){
-      detId=ctx.demandaId;
-      _protQuem=resp;_protObs='';
-      document.getElementById('prot-num').value=d.processo||'';
-      document.getElementById('prot-tribunal').value='';
-      openM('m-protocolar');
-      return;
-    }
     const nova=d.etapa_atual+1;const conc=nova>=ETAPAS.length;
     const hist=getH(d);hist.push({etapa:ETAPAS[d.etapa_atual]?.nome||'',quem:resp,obs:'',data:hoje()});
     const{error}=await db.from('demandas_escritorio').update({
@@ -6384,14 +6106,13 @@ window.addEventListener('load',async()=>{
   if(escData.tema)obAplicarTema(escData.tema);
   renderSBInfo();verificarTrial();await migrarLocalStorageParaSupabase();await loadFin();
 
-  const[{data:d},{data:c},{data:cv},{data:cl},{data:pr}]=await Promise.all([
+  const[{data:d},{data:c},{data:cv},{data:cl}]=await Promise.all([
     db.from('demandas_escritorio').select('*').eq('escritorio_id',escData.id).order('created_at',{ascending:false}),
     db.from('colab_escritorio').select('*').eq('escritorio_id',escData.id).order('created_at',{ascending:true}),
     db.rpc('buscar_convites_pendentes',{p_escritorio_id:escData.id}),
-    db.from('clientes').select('*').eq('escritorio_id',escData.id).order('nome',{ascending:true}),
-    db.from('processos').select('*').eq('escritorio_id',escData.id).order('created_at',{ascending:false})
+    db.from('clientes').select('*').eq('escritorio_id',escData.id).order('nome',{ascending:true})
   ]);
-  demandas=d||[];colabs=c||[];convitesPendentes=cv||[];clientes=cl||[];processos=pr||[];
+  demandas=d||[];colabs=c||[];convitesPendentes=cv||[];clientes=cl||[];
 
   // Garante que o titular aparece na equipe — insere se ainda não existir
   if(usuarioAtual&&!colabs.some(m=>m.perfil==='titular')){
