@@ -1,7 +1,48 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
 serve(async (req) => {
-  const { movimentacao, demandaNome, demandaTipo } = await req.json()
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
+
+  const { movimentacao, demandaNome, demandaTipo, pdfBase64 } = await req.json()
+
+  const messages: { role: string; content: unknown[] }[] = []
+
+  const promptText = `Você é um assistente jurídico especializado em direito brasileiro. Analise a movimentação processual e responda APENAS com JSON válido, sem markdown, sem explicações fora do JSON:
+{
+  "resumo": "Resumo claro em 1-2 frases do que ocorreu",
+  "situacao": "Situação atual do processo em uma frase",
+  "proximos_passos": ["passo 1", "passo 2"],
+  "prazo": "DD/MM/AAAA ou null",
+  "urgente": true ou false,
+  "alerta_prazo": "Descrição breve do risco de prazo ou null"
+}
+
+Demanda: ${demandaNome} — ${demandaTipo}`
+
+  if (pdfBase64) {
+    messages.push({
+      role: 'user',
+      content: [
+        {
+          type: 'document',
+          source: { type: 'base64', media_type: 'application/pdf', data: pdfBase64 },
+        },
+        { type: 'text', text: promptText },
+      ],
+    })
+  } else {
+    messages.push({
+      role: 'user',
+      content: [
+        { type: 'text', text: `${promptText}\n\nMovimentação: ${JSON.stringify(movimentacao)}` },
+      ],
+    })
+  }
 
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -9,27 +50,25 @@ serve(async (req) => {
       'Content-Type': 'application/json',
       'x-api-key': Deno.env.get('ANTHROPIC_API_KEY') ?? '',
       'anthropic-version': '2023-06-01',
+      'anthropic-beta': 'pdfs-2024-09-25',
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-5',
-      max_tokens: 400,
-      messages: [{
-        role: 'user',
-        content: `Você é um assistente jurídico. Analise esta movimentação processual e responda APENAS com JSON válido:\n{"resumo":"Resumo claro em 1-2 frases","acao":"O que o advogado deve fazer agora","prazo":"DD/MM/AAAA ou null","urgente":true|false}\n\nMovimentação: ${JSON.stringify(movimentacao)}\nDemanda: ${demandaNome} — ${demandaTipo}`
-      }]
-    })
+      model: 'claude-sonnet-4-6',
+      max_tokens: 600,
+      messages,
+    }),
   })
 
-  if (!r.ok) return new Response(JSON.stringify(null), { status: 200 })
+  if (!r.ok) return new Response(JSON.stringify(null), { status: 200, headers: CORS })
 
   const dados = await r.json()
   const txt = dados.content?.[0]?.text ?? ''
   try {
     const resultado = JSON.parse(txt.replace(/```json|```/g, '').trim())
     return new Response(JSON.stringify(resultado), {
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json', ...CORS },
     })
   } catch {
-    return new Response(JSON.stringify(null), { status: 200 })
+    return new Response(JSON.stringify(null), { status: 200, headers: CORS })
   }
 })
