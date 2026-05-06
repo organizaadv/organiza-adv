@@ -50,7 +50,6 @@ Demanda: ${demandaNome} — ${demandaTipo}`
       'Content-Type': 'application/json',
       'x-api-key': Deno.env.get('ANTHROPIC_API_KEY') ?? '',
       'anthropic-version': '2023-06-01',
-      'anthropic-beta': 'pdfs-2024-09-25',
     },
     body: JSON.stringify({
       model: 'claude-sonnet-4-6',
@@ -59,7 +58,11 @@ Demanda: ${demandaNome} — ${demandaTipo}`
     }),
   })
 
-  if (!r.ok) return new Response(JSON.stringify(null), { status: 200, headers: CORS })
+  if (!r.ok) {
+    const errBody = await r.text()
+    console.error('Anthropic error', r.status, errBody)
+    return new Response(JSON.stringify({ _erro: errBody }), { status: 200, headers: CORS })
+  }
 
   const dados = await r.json()
   const txt = dados.content?.[0]?.text ?? ''
