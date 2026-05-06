@@ -19,19 +19,24 @@ CREATE TABLE IF NOT EXISTS public.pagamentos (
 CREATE INDEX IF NOT EXISTS pagamentos_escritorio_idx ON public.pagamentos(escritorio_id);
 CREATE INDEX IF NOT EXISTS pagamentos_data_idx ON public.pagamentos(data_pagamento DESC);
 
--- RLS: apenas service role (admin.html usa anon key mas validar admin no app)
+-- RLS: apenas o usuário admin pode acessar pagamentos
 ALTER TABLE public.pagamentos ENABLE ROW LEVEL SECURITY;
 
--- Permite leitura irrestrita para contas autenticadas
--- (o controle de acesso ao admin.html é feito na camada de aplicação)
-CREATE POLICY IF NOT EXISTS "pagamentos_leitura" ON public.pagamentos
-  FOR SELECT USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "pagamentos_leitura" ON public.pagamentos;
+DROP POLICY IF EXISTS "pagamentos_escrita" ON public.pagamentos;
+DROP POLICY IF EXISTS "pagamentos_atualizacao" ON public.pagamentos;
 
-CREATE POLICY IF NOT EXISTS "pagamentos_escrita" ON public.pagamentos
-  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "pagamentos_leitura" ON public.pagamentos
+  FOR SELECT USING (auth.email() = 'organizaadv81@gmail.com');
 
-CREATE POLICY IF NOT EXISTS "pagamentos_atualizacao" ON public.pagamentos
-  FOR UPDATE USING (auth.role() = 'authenticated');
+CREATE POLICY "pagamentos_escrita" ON public.pagamentos
+  FOR INSERT WITH CHECK (auth.email() = 'organizaadv81@gmail.com');
+
+CREATE POLICY "pagamentos_atualizacao" ON public.pagamentos
+  FOR UPDATE USING (auth.email() = 'organizaadv81@gmail.com');
+
+CREATE POLICY "pagamentos_exclusao" ON public.pagamentos
+  FOR DELETE USING (auth.email() = 'organizaadv81@gmail.com');
 
 -- Atualiza coluna plano em escritorios para suportar novos valores
 -- (essencial, avancado, trial, pro — mantém pro por compatibilidade)
