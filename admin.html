@@ -509,26 +509,36 @@ function abrirConverterPlano(id){
   converterPlano(id,novoPlano);
 }
 
+async function adminFetch(body){
+  const{data:{session}}=await db.auth.getSession();
+  const res=await fetch(`${SB_URL}/functions/v1/admin-escritorio`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
+    body:JSON.stringify(body)
+  });
+  const json=await res.json();
+  if(!res.ok)throw new Error(json.error||'Erro desconhecido');
+  return json;
+}
+
 async function converterPlano(id,novoPlano){
-  const{error}=await db.from('escritorios').update({plano:novoPlano,ativo:true}).eq('id',id);
-  if(error){toast('Erro: '+error.message);return;}
-  const e=escritorios.find(x=>x.id===id);if(e){e.plano=novoPlano;e.ativo=true;}
-  renderDash();renderEscritorios();renderTrial();
-  toast('Convertido para '+planoLabel(novoPlano)+'!');
+  try{
+    await adminFetch({acao:'converter_plano',escritorio_id:id,plano:novoPlano});
+    const e=escritorios.find(x=>x.id===id);if(e){e.plano=novoPlano;e.ativo=true;}
+    renderDash();renderEscritorios();renderTrial();
+    toast('Convertido para '+planoLabel(novoPlano)+'!');
+  }catch(err){toast('Erro: '+err.message);}
 }
 
 async function extenderTrial(id){
   const e=escritorios.find(x=>x.id===id);if(!e)return;
-  const atual=new Date();
-  atual.setDate(atual.getDate()+7);
-  const novoVal=atual.toISOString();
-  const updates={trial_fim:novoVal};
-  if(e.trial_expira)updates.trial_expira=novoVal;
-  const{error}=await db.from('escritorios').update(updates).eq('id',id);
-  if(error){toast('Erro: '+error.message);return;}
-  e.trial_fim=novoVal;
-  if(e.trial_expira)e.trial_expira=novoVal;
-  renderDash();renderTrial();toast('Trial estendido por 7 dias!');
+  try{
+    const{updates}=await adminFetch({acao:'estender_trial',escritorio_id:id});
+    const novoVal=new Date(Date.now()+7*24*60*60*1000).toISOString();
+    if(updates?.trial_fim!==undefined)e.trial_fim=novoVal;
+    if(updates?.trial_expira!==undefined)e.trial_expira=novoVal;
+    renderDash();renderTrial();toast('Trial estendido por 7 dias!');
+  }catch(err){toast('Erro: '+err.message);}
 }
 
 async function cancelarConta(escritorioId, userId, nome){
@@ -549,10 +559,11 @@ async function cancelarConta(escritorioId, userId, nome){
 
 async function suspender(id){
   if(!confirm('Suspender acesso deste escritorio?'))return;
-  const{error}=await db.from('escritorios').update({ativo:false}).eq('id',id);
-  if(error){toast('Erro: '+error.message);return;}
-  const e=escritorios.find(x=>x.id===id);if(e)e.ativo=false;
-  renderEscritorios();toast('Acesso suspenso.');
+  try{
+    await adminFetch({acao:'suspender',escritorio_id:id});
+    const e=escritorios.find(x=>x.id===id);if(e)e.ativo=false;
+    renderEscritorios();toast('Acesso suspenso.');
+  }catch(err){toast('Erro: '+err.message);}
 }
 
 function populatePagEsc(){
@@ -584,7 +595,7 @@ async function salvarPagamento(){
 async function init(){
   document.getElementById('topbar-date').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
   const[{data:e},{data:p}]=await Promise.all([
-    db.from('escritorios').select('*').order('created_at',{ascending:false}),
+    db.rpc('admin_listar_escritorios'),
     db.from('pagamentos').select('*').order('created_at',{ascending:false})
   ]);
   escritorios=e||[];
