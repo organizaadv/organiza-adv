@@ -384,6 +384,23 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
 .det-tab:hover{color:var(--tx)}
 .det-tab.on{color:var(--tx);border-bottom-color:var(--gd);font-weight:600}
 
+/* ── IA / MOVIMENTAÇÕES ── */
+.mov-item{background:var(--surface);border:1px solid var(--bd);border-radius:8px;margin-bottom:8px;overflow:hidden}
+.mov-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;gap:8px;user-select:none}
+.mov-header:hover{background:var(--s2)}
+.mov-data{font-size:11px;color:var(--tx3);flex-shrink:0}
+.mov-resumo{font-size:13px;color:var(--tx);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mov-body{padding:10px 14px 14px;border-top:1px solid var(--div);display:none}
+.mov-body.open{display:block}
+.ia-card{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:14px}
+.ia-field{margin-bottom:10px;font-size:13px}
+.ia-field:last-child{margin-bottom:0}
+.ia-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);margin-bottom:3px}
+.ia-steps{list-style:none;padding:0;margin:4px 0 0}
+.ia-steps li{padding:3px 0;color:var(--tx2);font-size:13px}
+.ia-steps li::before{content:'→ ';color:var(--gd)}
+.b-rd{background:#fee2e2;color:#b91c1c;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600}
+
 /* ── TOAST ── */
 .toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:10px;font-size:13.5px;font-weight:500;z-index:9999;opacity:0;transform:translateY(8px);transition:all .22s;pointer-events:none;box-shadow:var(--s3s);max-width:340px;display:flex;align-items:center;gap:10px}
 .toast.show{opacity:1;transform:translateY(0)}
@@ -531,6 +548,10 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><path d="M4 2h5l4 4v9a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M9 2v4h4"/><line x1="6" y1="9" x2="10" y2="9"/><line x1="6" y1="12" x2="8" y2="12"/></svg>
       Processos
     </div>
+    <div class="ni" id="n-mov-ia" onclick="showView('mov-ia')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><rect x="2" y="1" width="10" height="13" rx="1.5"/><path d="M5 5h6M5 8h4"/><circle cx="13" cy="12" r="2.5" fill="none"/><line x1="14.8" y1="14.8" x2="16" y2="16" stroke-linecap="round"/></svg>
+      Movimentações & IA
+    </div>
     <div class="nav-sec">Recepção</div>
     <div class="ni" id="n-atendimentos" onclick="showView('atendimentos')">
       <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><path d="M13 2H3a1 1 0 00-1 1v9a1 1 0 001 1h2l2 2 2-2h4a1 1 0 001-1V3a1 1 0 00-1-1z"/><line x1="5" y1="6" x2="11" y2="6"/><line x1="5" y1="9" x2="8" y2="9"/></svg>
@@ -666,6 +687,46 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
           </tr></thead>
           <tbody id="tb-proc"></tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- MOVIMENTAÇÕES & IA -->
+    <div id="v-mov-ia" style="display:none">
+      <div style="max-width:720px;">
+        <div style="background:var(--surface);border:1px solid var(--bd);border-radius:var(--rmd);padding:18px;margin-bottom:16px;">
+          <div class="detsec-title" style="margin-bottom:10px;">Selecionar demanda ou processo</div>
+          <select class="fsel" id="ia-v-dem-sel" onchange="iaViewSelectDem(this.value)" style="width:100%;">
+            <option value="">Selecione uma demanda...</option>
+          </select>
+        </div>
+        <div id="ia-v-panel" style="display:none;">
+          <div style="background:var(--surface);border:1px solid var(--bd);border-radius:var(--rmd);padding:18px;margin-bottom:14px;">
+            <div class="detsec-title" style="margin-bottom:10px;">Registrar movimentação</div>
+            <div style="margin-bottom:12px;">
+              <label class="flabel">PDF da movimentação (opcional)</label>
+              <input type="file" id="ia-v-pdf" accept=".pdf" class="finp" style="padding:6px;" onchange="iaViewOnPdfChange(this)">
+              <div class="fhint" id="ia-v-pdf-hint"></div>
+            </div>
+            <div style="margin-bottom:14px;">
+              <label class="flabel">Texto ou descrição da movimentação</label>
+              <textarea id="ia-v-texto" class="finp" rows="4" style="resize:vertical;" placeholder="Cole o texto da movimentação ou descreva o que aconteceu..."></textarea>
+            </div>
+            <button class="btn btn-p" id="ia-v-btn" onclick="analisarIAView()">✨ Analisar com IA</button>
+          </div>
+          <div id="ia-v-resultado-sec" style="display:none;background:var(--surface);border:1px solid var(--bd);border-radius:var(--rmd);padding:18px;margin-bottom:14px;">
+            <div class="detsec-title" style="margin-bottom:10px;">Análise da IA</div>
+            <div id="ia-v-resultado"></div>
+            <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-sm btn-p" onclick="salvarMovimentacaoView()">💾 Salvar movimentação</button>
+              <button class="btn btn-sm btn-gh" onclick="iaDefinirPrazoView()">📅 Definir prazo</button>
+              <button class="btn btn-sm btn-gh" onclick="iaAlertarView()">📲 Alertar responsável</button>
+            </div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--bd);border-radius:var(--rmd);padding:18px;">
+            <div class="detsec-title" style="margin-bottom:10px;">Histórico de movimentações</div>
+            <div id="ia-v-historico"></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1039,6 +1100,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <button class="det-tab on" data-tab="atos" onclick="switchDetTab('atos')">Atos</button>
       <button class="det-tab" data-tab="hist" onclick="switchDetTab('hist')">Histórico & Avanço</button>
       <button class="det-tab" data-tab="cli" onclick="switchDetTab('cli')">Cliente & Mensagem</button>
+      <button class="det-tab" data-tab="ia" onclick="switchDetTab('ia')">📋 Movimentações & IA</button>
     </div>
 
     <div class="mbody">
@@ -1120,6 +1182,36 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
               Enviar pelo WhatsApp
             </a>
           </div>
+        </div>
+      </div>
+
+      <!-- ABA: MOVIMENTAÇÕES & IA -->
+      <div id="det-tab-ia" style="display:none;">
+        <div class="detsec">
+          <div class="detsec-title"><span>Registrar movimentação</span></div>
+          <div style="margin-bottom:12px;">
+            <label class="flabel">PDF da movimentação (opcional)</label>
+            <input type="file" id="ia-pdf-input" accept=".pdf" class="finp" style="padding:6px;" onchange="iaOnPdfChange(this)">
+            <div class="fhint" id="ia-pdf-hint"></div>
+          </div>
+          <div style="margin-bottom:14px;">
+            <label class="flabel">Texto ou descrição da movimentação</label>
+            <textarea id="ia-texto" class="finp" rows="3" style="resize:vertical;" placeholder="Cole o texto da movimentação ou descreva o que aconteceu..."></textarea>
+          </div>
+          <button class="btn btn-p" id="btn-analisar-ia" onclick="analisarIA()">✨ Analisar com IA</button>
+        </div>
+        <div id="ia-resultado-sec" class="detsec" style="display:none;">
+          <div class="detsec-title">Análise da IA</div>
+          <div id="ia-resultado"></div>
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-sm btn-p" onclick="salvarMovimentacao()">💾 Salvar movimentação</button>
+            <button class="btn btn-sm btn-gh" onclick="iaDefinirPrazo()">📅 Definir prazo</button>
+            <button class="btn btn-sm btn-gh" onclick="iaAlertarResponsavel()">📲 Alertar responsável</button>
+          </div>
+        </div>
+        <div class="detsec" style="border-bottom:none;margin-bottom:0;padding-bottom:0;">
+          <div class="detsec-title">Histórico de movimentações</div>
+          <div id="ia-historico"></div>
         </div>
       </div>
 
@@ -2286,6 +2378,8 @@ function getAtosTemplate(tipo,etapa){
 let demandas=[],colabs=[],convitesPendentes=[],escData={},userAtual=null,usuarioAtual=null,filtroAtivo='todos',filtroFinAtivo='todos',detId=null,quickAvId=null,cliDetId=null;
 let sortDem={col:null,asc:true},sortCli={col:null,asc:true};
 let finLanc=[],finDetId=null;
+let iaResultadoAtual=null,iaPdfBase64=null;
+let iaVDetId=null,iaVResultado=null,iaVPdfBase64=null;
 
 // ── UTILS ──
 function toast(msg,tipo='ts'){
@@ -2365,7 +2459,7 @@ function toggleSidebar(){
   document.getElementById('sb-overlay').classList.toggle('on');
 }
 function switchDetTab(tab){
-  ['atos','hist','cli'].forEach(t=>{
+  ['atos','hist','cli','ia'].forEach(t=>{
     document.getElementById('det-tab-'+t).style.display=t===tab?'block':'none';
     document.querySelector(`.det-tab[data-tab="${t}"]`).classList.toggle('on',t===tab);
   });
@@ -2538,8 +2632,8 @@ function initRespSel(){
 }
 
 // ── VIEWS ──
-const VIEWS=['kanban','demandas','processos','clientes','atendimentos','agenda','equipe','relatorio','fin','cfg'];
-const VTITLES={kanban:'Fluxo de trabalho',demandas:'Demandas',processos:'Processos',clientes:'Carteira de Clientes',atendimentos:'Atendimentos',agenda:'Agenda',equipe:'Advogados e colaboradores',relatorio:'Relatórios',fin:'Contratos & Pagamentos',cfg:'Configurações'};
+const VIEWS=['kanban','demandas','processos','mov-ia','clientes','atendimentos','agenda','equipe','relatorio','fin','cfg'];
+const VTITLES={kanban:'Fluxo de trabalho',demandas:'Demandas',processos:'Processos','mov-ia':'Movimentações & IA',clientes:'Carteira de Clientes',atendimentos:'Atendimentos',agenda:'Agenda',equipe:'Advogados e colaboradores',relatorio:'Relatórios',fin:'Contratos & Pagamentos',cfg:'Configurações'};
 function showView(v){
   // bloqueia views por permissão
   if(v==='fin'&&!temPermissao('ver_financeiro')){toast('Sem permissão para acessar o financeiro.','te');return;}
@@ -2568,6 +2662,7 @@ function showView(v){
   if(v==='relatorio')renderRelatorios();
   if(v==='fin')renderFin();
   if(v==='cfg')renderCfg();
+  if(v==='mov-ia')renderMovIAView();
 }
 
 // ── MÉTRICAS KANBAN ──
@@ -4150,6 +4245,12 @@ function abrirDet(id){
     if(qf){qf.innerHTML='<option value="">Selecione...</option>'+colabs.map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('');if(userAtual)qf.value=userAtual;}
     const oa=document.getElementById('det-obs-av');if(oa)oa.value='';
     document.getElementById('msg-wrap').style.display='none';
+    renderMovimentacoes(d.movimentacoes||[]);
+    document.getElementById('ia-resultado-sec').style.display='none';
+    document.getElementById('ia-texto').value='';
+    document.getElementById('ia-pdf-input').value='';
+    document.getElementById('ia-pdf-hint').textContent='';
+    iaResultadoAtual=null;iaPdfBase64=null;
     initRespSel();
   });
 }
@@ -6138,6 +6239,269 @@ window.addEventListener('load',async()=>{
   if(!escData.onboarding_completo&&usuarioAtual.perfil==='titular'){obIniciar();return;}
   mostrarResumoDiario();
 });
+
+// ── IA / MOVIMENTAÇÕES ──
+function iaOnPdfChange(input){
+  const file=input.files[0];
+  const hint=document.getElementById('ia-pdf-hint');
+  if(!file){iaPdfBase64=null;hint.textContent='';return;}
+  if(file.size>5*1024*1024){toast('PDF muito grande (máx. 5 MB)','e');input.value='';iaPdfBase64=null;hint.textContent='';return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    iaPdfBase64=e.target.result.split(',')[1];
+    hint.textContent=`📄 ${file.name} (${(file.size/1024).toFixed(0)} KB)`;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function analisarIA(){
+  const d=demandas.find(x=>String(x.id)===String(detId));
+  if(!d)return;
+  const texto=document.getElementById('ia-texto').value.trim();
+  if(!texto&&!iaPdfBase64){toast('Informe o texto ou selecione um PDF','e');return;}
+  const btn=document.getElementById('btn-analisar-ia');
+  btn.disabled=true;btn.textContent='Analisando...';
+  try{
+    const body={demandaNome:d.nome,demandaTipo:d.tipo};
+    if(iaPdfBase64)body.pdfBase64=iaPdfBase64;
+    if(texto)body.movimentacao={texto};
+    const r=await fetch(`${SB_URL}/functions/v1/resumir-ia`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${SB_KEY}`},
+      body:JSON.stringify(body)
+    });
+    const res=await r.json();
+    if(!res||res._erro){toast('IA não conseguiu analisar. Tente novamente.','e');console.error(res?._erro);return;}
+    iaResultadoAtual=res;
+    renderResultadoIA(res,'ia-resultado');
+    document.getElementById('ia-resultado-sec').style.display='block';
+  }catch(e){toast('Erro ao chamar IA','e');}
+  finally{btn.disabled=false;btn.textContent='✨ Analisar com IA';}
+}
+
+function renderResultadoIA(r, containerId='ia-resultado'){
+  const urgente=r.urgente?`<span class="bdg b-rd">⚠️ URGENTE</span>`:'';
+  const passos=Array.isArray(r.proximos_passos)&&r.proximos_passos.length
+    ?`<ul class="ia-steps">${r.proximos_passos.map(p=>`<li>${p}</li>`).join('')}</ul>`
+    :(r.acao?`<ul class="ia-steps"><li>${r.acao}</li></ul>`:'<span style="color:var(--tx3)">—</span>');
+  const el=document.getElementById(containerId);
+  if(!el)return;
+  el.innerHTML=`
+    <div class="ia-card">
+      ${urgente?`<div style="margin-bottom:10px;">${urgente}</div>`:''}
+      <div class="ia-field"><div class="ia-label">Resumo</div><div>${r.resumo||'—'}</div></div>
+      ${r.situacao?`<div class="ia-field"><div class="ia-label">Situação atual</div><div>${r.situacao}</div></div>`:''}
+      <div class="ia-field"><div class="ia-label">Próximos passos</div>${passos}</div>
+      ${r.prazo?`<div class="ia-field"><div class="ia-label">Prazo identificado</div><div><strong>${r.prazo}</strong>${r.alerta_prazo?` — <span style="color:var(--rd)">${r.alerta_prazo}</span>`:''}</div></div>`:''}
+    </div>`;
+}
+
+async function salvarMovimentacao(){
+  const d=demandas.find(x=>String(x.id)===String(detId));
+  if(!d||!iaResultadoAtual)return;
+  const texto=document.getElementById('ia-texto').value.trim();
+  const pdfInput=document.getElementById('ia-pdf-input');
+  const pdfNome=pdfInput.files[0]?.name||null;
+  const mov={
+    data:new Date().toLocaleDateString('pt-BR'),
+    texto:texto||pdfNome||'Movimentação analisada',
+    pdf_nome:pdfNome,
+    resumo:iaResultadoAtual.resumo,
+    situacao:iaResultadoAtual.situacao,
+    proximos_passos:iaResultadoAtual.proximos_passos,
+    prazo:iaResultadoAtual.prazo,
+    urgente:iaResultadoAtual.urgente,
+    alerta_prazo:iaResultadoAtual.alerta_prazo,
+    criado_por:userAtual||usuarioAtual?.nome||'Sistema'
+  };
+  const movs=[...(d.movimentacoes||[]),mov];
+  const{error}=await db.from('demandas_escritorio').update({movimentacoes:movs}).eq('id',d.id);
+  if(error){toast('Erro ao salvar','e');return;}
+  d.movimentacoes=movs;
+  renderMovimentacoes(movs);
+  document.getElementById('ia-resultado-sec').style.display='none';
+  document.getElementById('ia-texto').value='';
+  document.getElementById('ia-pdf-input').value='';
+  document.getElementById('ia-pdf-hint').textContent='';
+  iaResultadoAtual=null;iaPdfBase64=null;
+  toast('Movimentação salva!');
+}
+
+function renderMovimentacoes(movs, elId='ia-historico', pfx='m'){
+  const el=document.getElementById(elId);
+  if(!el)return;
+  if(!movs||!movs.length){el.innerHTML='<div style="font-size:13px;color:var(--tx3);padding:8px 0;">Nenhuma movimentação registrada.</div>';return;}
+  el.innerHTML=[...movs].reverse().map((m,i)=>{
+    const idx=movs.length-1-i;
+    const urg=m.urgente?'<span class="bdg b-rd" style="font-size:10px;margin-left:6px;">urgente</span>':'';
+    return`<div class="mov-item">
+      <div class="mov-header" onclick="iaToggleMov('${pfx}-${idx}')">
+        <span class="mov-resumo">${m.resumo||m.texto||'Movimentação'}</span>${urg}
+        <span class="mov-data">${m.data||''}</span>
+      </div>
+      <div class="mov-body" id="mb-${pfx}-${idx}">
+        ${m.texto?`<div class="ia-field"><div class="ia-label">Texto</div><div style="font-size:13px;color:var(--tx2)">${m.texto}</div></div>`:''}
+        ${m.situacao?`<div class="ia-field"><div class="ia-label">Situação</div><div>${m.situacao}</div></div>`:''}
+        ${Array.isArray(m.proximos_passos)&&m.proximos_passos.length?`<div class="ia-field"><div class="ia-label">Próximos passos</div><ul class="ia-steps">${m.proximos_passos.map(p=>`<li>${p}</li>`).join('')}</ul></div>`:''}
+        ${m.prazo?`<div class="ia-field"><div class="ia-label">Prazo</div><div><strong>${m.prazo}</strong></div></div>`:''}
+        <div style="font-size:11px;color:var(--tx3);margin-top:6px;">Por: ${m.criado_por||'Sistema'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function iaToggleMov(key){
+  const el=document.getElementById('mb-'+key);
+  if(el)el.classList.toggle('open');
+}
+
+function iaDefinirPrazo(){
+  if(!iaResultadoAtual?.prazo){toast('Nenhum prazo identificado pela IA','e');return;}
+  const partes=iaResultadoAtual.prazo.split('/');
+  if(partes.length===3){
+    const iso=`${partes[2]}-${partes[1].padStart(2,'0')}-${partes[0].padStart(2,'0')}`;
+    const pf=document.getElementById('det-prazo-input');
+    if(pf)pf.value=iso;
+  }
+  abrirEdicao();
+  toast('Prazo preenchido — confira e salve a edição');
+}
+
+function iaAlertarResponsavel(){
+  const d=demandas.find(x=>String(x.id)===String(detId));
+  if(!d||!iaResultadoAtual)return;
+  const resp=d.responsavel||userAtual||'';
+  const colab=colabs.find(c=>c.nome===resp);
+  const tel=colab?.tel||d.tel||'';
+  if(!tel){toast('Responsável sem WhatsApp cadastrado','e');return;}
+  const prazo=iaResultadoAtual.prazo?`\nPrazo: *${iaResultadoAtual.prazo}*`:'';
+  const steps=(iaResultadoAtual.proximos_passos||[iaResultadoAtual.acao||'']).filter(Boolean).map(p=>`→ ${p}`).join('\n');
+  const msg=`📋 *Movimentação — ${d.nome}*\n\n${iaResultadoAtual.resumo||''}${prazo}${steps?'\n\n'+steps:''}`;
+  const num=tel.replace(/\D/g,'');
+  window.open(`https://wa.me/55${num}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+// ── IA VIEW (sidebar dedicada) ──
+function renderMovIAView(){
+  const sel=document.getElementById('ia-v-dem-sel');
+  if(!sel)return;
+  sel.innerHTML='<option value="">Selecione uma demanda...</option>'+
+    [...demandas].sort((a,b)=>a.nome.localeCompare(b.nome,undefined,{sensitivity:'base'}))
+    .map(d=>`<option value="${d.id}">${d.nome}${d.processo?' — '+d.processo:''}${d.movimentacoes?.length?' ('+d.movimentacoes.length+' mov.)':''}</option>`).join('');
+  if(iaVDetId){sel.value=String(iaVDetId);iaViewSelectDem(String(iaVDetId),false);}
+  else document.getElementById('ia-v-panel').style.display='none';
+}
+
+function iaViewSelectDem(id, reset=true){
+  iaVDetId=id||null;
+  const panel=document.getElementById('ia-v-panel');
+  if(!iaVDetId){panel.style.display='none';return;}
+  panel.style.display='block';
+  if(reset){
+    document.getElementById('ia-v-resultado-sec').style.display='none';
+    document.getElementById('ia-v-texto').value='';
+    document.getElementById('ia-v-pdf').value='';
+    document.getElementById('ia-v-pdf-hint').textContent='';
+    iaVResultado=null;iaVPdfBase64=null;
+  }
+  const d=demandas.find(x=>String(x.id)===String(iaVDetId));
+  renderMovimentacoes(d?.movimentacoes||[],'ia-v-historico','v');
+}
+
+function iaViewOnPdfChange(input){
+  const file=input.files[0];
+  const hint=document.getElementById('ia-v-pdf-hint');
+  if(!file){iaVPdfBase64=null;hint.textContent='';return;}
+  if(file.size>5*1024*1024){toast('PDF muito grande (máx. 5 MB)','e');input.value='';iaVPdfBase64=null;hint.textContent='';return;}
+  const reader=new FileReader();
+  reader.onload=e=>{iaVPdfBase64=e.target.result.split(',')[1];hint.textContent=`📄 ${file.name} (${(file.size/1024).toFixed(0)} KB)`;};
+  reader.readAsDataURL(file);
+}
+
+async function analisarIAView(){
+  const d=demandas.find(x=>String(x.id)===String(iaVDetId));
+  if(!d){toast('Selecione uma demanda','e');return;}
+  const texto=document.getElementById('ia-v-texto').value.trim();
+  if(!texto&&!iaVPdfBase64){toast('Informe o texto ou selecione um PDF','e');return;}
+  const btn=document.getElementById('ia-v-btn');
+  btn.disabled=true;btn.textContent='Analisando...';
+  try{
+    const body={demandaNome:d.nome,demandaTipo:d.tipo};
+    if(iaVPdfBase64)body.pdfBase64=iaVPdfBase64;
+    if(texto)body.movimentacao={texto};
+    const r=await fetch(`${SB_URL}/functions/v1/resumir-ia`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${SB_KEY}`},
+      body:JSON.stringify(body)
+    });
+    const res=await r.json();
+    if(!res||res._erro){toast('IA não conseguiu analisar. Tente novamente.','e');console.error(res?._erro);return;}
+    iaVResultado=res;
+    renderResultadoIA(res,'ia-v-resultado');
+    document.getElementById('ia-v-resultado-sec').style.display='block';
+  }catch(e){toast('Erro ao chamar IA','e');}
+  finally{btn.disabled=false;btn.textContent='✨ Analisar com IA';}
+}
+
+async function salvarMovimentacaoView(){
+  const d=demandas.find(x=>String(x.id)===String(iaVDetId));
+  if(!d||!iaVResultado)return;
+  const texto=document.getElementById('ia-v-texto').value.trim();
+  const pdfInput=document.getElementById('ia-v-pdf');
+  const pdfNome=pdfInput.files[0]?.name||null;
+  const mov={
+    data:new Date().toLocaleDateString('pt-BR'),
+    texto:texto||pdfNome||'Movimentação analisada',
+    pdf_nome:pdfNome,
+    resumo:iaVResultado.resumo,
+    situacao:iaVResultado.situacao,
+    proximos_passos:iaVResultado.proximos_passos,
+    prazo:iaVResultado.prazo,
+    urgente:iaVResultado.urgente,
+    alerta_prazo:iaVResultado.alerta_prazo,
+    criado_por:userAtual||usuarioAtual?.nome||'Sistema'
+  };
+  const movs=[...(d.movimentacoes||[]),mov];
+  const{error}=await db.from('demandas_escritorio').update({movimentacoes:movs}).eq('id',d.id);
+  if(error){toast('Erro ao salvar','e');return;}
+  d.movimentacoes=movs;
+  renderMovimentacoes(movs,'ia-v-historico','v');
+  document.getElementById('ia-v-resultado-sec').style.display='none';
+  document.getElementById('ia-v-texto').value='';
+  document.getElementById('ia-v-pdf').value='';
+  document.getElementById('ia-v-pdf-hint').textContent='';
+  iaVResultado=null;iaVPdfBase64=null;
+  // atualiza o select com a nova contagem
+  renderMovIAView();
+  toast('Movimentação salva!');
+}
+
+function iaDefinirPrazoView(){
+  if(!iaVResultado?.prazo){toast('Nenhum prazo identificado pela IA','e');return;}
+  const partes=iaVResultado.prazo.split('/');
+  if(partes.length===3){
+    const iso=`${partes[2]}-${partes[1].padStart(2,'0')}-${partes[0].padStart(2,'0')}`;
+    const pf=document.getElementById('det-prazo-input');
+    if(pf)pf.value=iso;
+  }
+  const d=demandas.find(x=>String(x.id)===String(iaVDetId));
+  if(d){abrirDet(d.id);switchDetTab('atos');}
+  toast('Prazo identificado: '+iaVResultado.prazo+' — abra Editar dados para salvar');
+}
+
+function iaAlertarView(){
+  const d=demandas.find(x=>String(x.id)===String(iaVDetId));
+  if(!d||!iaVResultado)return;
+  const resp=d.responsavel||userAtual||'';
+  const colab=colabs.find(c=>c.nome===resp);
+  const tel=colab?.tel||d.tel||'';
+  if(!tel){toast('Responsável sem WhatsApp cadastrado','e');return;}
+  const prazo=iaVResultado.prazo?`\nPrazo: *${iaVResultado.prazo}*`:'';
+  const steps=(iaVResultado.proximos_passos||[iaVResultado.acao||'']).filter(Boolean).map(p=>`→ ${p}`).join('\n');
+  const msg=`📋 *Movimentação — ${d.nome}*\n\n${iaVResultado.resumo||''}${prazo}${steps?'\n\n'+steps:''}`;
+  const num=tel.replace(/\D/g,'');
+  window.open(`https://wa.me/55${num}?text=${encodeURIComponent(msg)}`,'_blank');
+}
 </script>
 </body>
 </html>
