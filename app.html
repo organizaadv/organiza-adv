@@ -2050,7 +2050,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
   <div class="mbox" style="max-width:700px">
     <div class="mhead">
       <div>
-        <div class="mtitle">Importar processos</div>
+        <div class="mtitle">Importar clientes</div>
         <div class="msubt" id="imp-subt">Passo 1 de 3 — Prepare seu arquivo</div>
       </div>
       <div class="mx" onclick="closeM('m-import-proc')">✕</div>
@@ -2061,7 +2061,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         <div style="background:var(--gdp);border:1px solid var(--gdb);border-radius:10px;padding:18px 20px;margin-bottom:18px;">
           <div style="font-weight:600;font-size:14px;color:var(--tx);margin-bottom:10px;">O que você precisa ter na planilha</div>
           <div style="font-size:13px;color:var(--tx2);line-height:1.7;">
-            Pode ser Excel (<strong>.xlsx</strong>) ou CSV. Não importa o layout — o sistema vai identificar automaticamente as colunas. Você precisa ter pelo menos estas informações em alguma coluna:
+            Pode ser Excel (<strong>.xlsx</strong>) ou CSV. O sistema vai identificar automaticamente as colunas. Os clientes importados ficam na aba <strong>Clientes</strong> — nenhuma demanda é criada automaticamente. Você precisa ter pelo menos:
           </div>
           <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px;">
             <div style="background:var(--surface);border:1px solid var(--gdb);border-radius:8px;padding:12px 14px;">
@@ -5249,7 +5249,7 @@ function mostrarPreviewImport(){
   document.getElementById('imp-foot1').style.display='none';
   document.getElementById('imp-foot-map').style.display='none';
   document.getElementById('imp-foot2').style.display='flex';
-  document.getElementById('imp-subt').textContent=`Passo 2 de 3 — Pré-visualização (${impDados.length} processo${impDados.length>1?'s':''})`;
+  document.getElementById('imp-subt').textContent=`Passo 2 de 3 — Pré-visualização (${impDados.length} cliente${impDados.length>1?'s':''})`;
   renderPreviewImport();
 }
 
@@ -5259,18 +5259,17 @@ function renderPreviewImport(){
   prev.innerHTML=`
     <div style="font-size:13px;color:var(--tx2);margin-bottom:12px">
       Verifique os dados abaixo. Clique em <strong>✕</strong> para remover linhas indesejadas antes de importar.
-      Dois processos com o mesmo nome de cliente serão vinculados ao mesmo cliente automaticamente.
+      Clientes já cadastrados serão ignorados automaticamente.
     </div>
     <div class="tbl-wrap" style="max-height:360px;overflow-y:auto">
       <table>
-        <thead><tr><th>#</th><th>Cliente</th><th>Telefone</th><th>Nº Processo</th><th>Área</th><th></th></tr></thead>
+        <thead><tr><th>#</th><th>Cliente</th><th>Telefone</th><th>Nº Processo</th><th></th></tr></thead>
         <tbody>${impDados.map((r,i)=>`
           <tr>
             <td style="color:var(--tx3);font-size:12px">${i+1}</td>
             <td style="font-weight:500">${r.nome}</td>
             <td style="font-size:12px;color:var(--tx2)">${r.tel||'—'}</td>
             <td style="font-size:12px;color:var(--tx2);font-family:monospace">${r.processo||'—'}</td>
-            <td><span class="bdg b-bl" style="font-size:10px">${r.tipo}</span></td>
             <td><button onclick="removerLinhaImport(${i})" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:15px;padding:2px 6px;line-height:1" title="Remover linha">✕</button></td>
           </tr>`).join('')}
         </tbody>
@@ -5281,7 +5280,7 @@ function renderPreviewImport(){
 function removerLinhaImport(i){
   impDados.splice(i,1);
   if(!impDados.length){voltarImpStep1();return;}
-  document.getElementById('imp-subt').textContent=`Passo 2 de 3 — Pré-visualização (${impDados.length} processo${impDados.length>1?'s':''})`;
+  document.getElementById('imp-subt').textContent=`Passo 2 de 3 — Pré-visualização (${impDados.length} cliente${impDados.length>1?'s':''})`;
   renderPreviewImport();
 }
 
@@ -5289,43 +5288,53 @@ async function confirmarImportacao(){
   if(!impDados.length){toast('Nenhum dado para importar.','te');return;}
   const btn=document.getElementById('imp-btn-confirmar');
   if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> Importando...';}
-  let criados=0;const erros=[];
-  const escId=escData.id;const dataHj=hoje();
+  let criados=0,duplicados=0;const erros=[];
+  const escId=escData.id;
   for(let i=0;i<impDados.length;i++){
     const r=impDados[i];
-    if(!r.nome){erros.push({linha:i+1,motivo:'Nome do cliente em branco'});continue;}
+    if(!r.nome){erros.push({linha:i+1,motivo:'Nome em branco'});continue;}
+    // Evita duplicata local
+    if(clientes.some(c=>c.nome.trim().toLowerCase()===r.nome.trim().toLowerCase())){
+      duplicados++;continue;
+    }
     try{
-      const{data,error}=await db.from('demandas_escritorio').insert([{
-        escritorio_id:escId,nome:r.nome,tipo:r.tipo||'Cível',
-        tel:r.tel||null,processo:r.processo||null,
-        status:'Em andamento',etapa_atual:0,data:dataHj,criado_por:userAtual||null,
+      const obs=r.processo?`Processo: ${r.processo}`:null;
+      const{data,error}=await db.from('clientes').insert([{
+        escritorio_id:escId,
+        nome:r.nome,
+        telefone:r.tel||null,
+        obs,
       }]).select().single();
-      if(error){erros.push({linha:i+1,motivo:error.message});continue;}
-      demandas.unshift(data);criados++;
+      if(error){
+        if(error.code==='23505'){duplicados++;continue;} // unique violation
+        erros.push({linha:i+1,motivo:error.message});continue;
+      }
+      clientes.push(data);criados++;
     }catch(e){erros.push({linha:i+1,motivo:e.message});}
   }
+  clientes.sort((a,b)=>a.nome.localeCompare(b.nome));
   if(btn){btn.disabled=false;btn.textContent='Confirmar importação';}
-  // Step 3
   document.getElementById('imp-step2').style.display='none';
   document.getElementById('imp-step3').style.display='';
   document.getElementById('imp-foot2').style.display='none';
   document.getElementById('imp-foot3').style.display='flex';
   document.getElementById('imp-subt').textContent='Passo 3 de 3 — Relatório de importação';
-  const tudo=criados+erros.length;
+  const tudo=criados+duplicados+erros.length;
   document.getElementById('imp-result').innerHTML=`
     <div style="text-align:center;padding:24px 0 16px">
-      <div style="font-size:40px;margin-bottom:14px">${erros.length===tudo?'❌':erros.length?'⚠️':'✅'}</div>
+      <div style="font-size:40px;margin-bottom:14px">${erros.length===tudo?'❌':erros.length||duplicados?'⚠️':'✅'}</div>
       <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--tx);margin-bottom:6px">
-        ${criados} processo${criados!==1?'s':''} importado${criados!==1?'s':''}
+        ${criados} cliente${criados!==1?'s':''} importado${criados!==1?'s':''}
       </div>
-      <div style="font-size:13px;color:var(--tx2);margin-bottom:${erros.length?'20px':'0'}">
-        ${erros.length?`${erros.length} linha${erros.length>1?'s tiveram erro e não foram importadas':' teve erro e não foi importada'}.`:'Todos os processos foram cadastrados com sucesso!'}
+      <div style="font-size:13px;color:var(--tx2);margin-bottom:${duplicados||erros.length?'16px':'0'}">
+        ${duplicados?`${duplicados} já existiam e foram ignorados. `:''}${erros.length?`${erros.length} linha${erros.length>1?'s com erro':' com erro'}.`:''}
+        ${!duplicados&&!erros.length?'Todos os clientes foram cadastrados com sucesso!':''}
       </div>
       ${erros.length?`<div class="tbl-wrap"><table><thead><tr><th>Linha</th><th>Motivo do erro</th></tr></thead>
         <tbody>${erros.map(e=>`<tr><td style="color:var(--rd);font-weight:600">${e.linha}</td><td style="font-size:12px;color:var(--tx2)">${e.motivo}</td></tr>`).join('')}</tbody>
       </table></div>`:''}
     </div>`;
-  renderProcessos();renderKanban();renderLista();
+  if(typeof renderClientes==='function')renderClientes();
 }
 
 // ── AGENDA ──
