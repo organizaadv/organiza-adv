@@ -2002,6 +2002,13 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         </div>
         <input type="file" id="imp-file" accept=".xlsx,.csv,.xls" style="display:none" onchange="processarArquivoImport(this.files[0])"/>
       </div>
+      <!-- Step 1b: mapeamento manual de colunas -->
+      <div id="imp-step-map" style="display:none">
+        <div style="background:var(--gdp);border:1px solid var(--gdb);border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:var(--tx2);line-height:1.6;">
+          Não conseguimos identificar as colunas automaticamente. Selecione abaixo qual coluna da sua planilha corresponde a cada campo.
+        </div>
+        <div id="imp-map-campos"></div>
+      </div>
       <!-- Step 2: preview -->
       <div id="imp-step2" style="display:none">
         <div id="imp-preview"></div>
@@ -2014,6 +2021,10 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
     <div class="mfoot">
       <div id="imp-foot1" style="display:flex;justify-content:flex-end;width:100%">
         <button class="btn btn-gh" onclick="closeM('m-import-proc')">Cancelar</button>
+      </div>
+      <div id="imp-foot-map" style="display:none;width:100%;justify-content:space-between;align-items:center">
+        <button class="btn btn-gh" onclick="voltarImpStep1()">← Voltar</button>
+        <button class="btn btn-p" onclick="confirmarMapeamento()">Continuar →</button>
       </div>
       <div id="imp-foot2" style="display:none;width:100%;justify-content:space-between;align-items:center">
         <button class="btn btn-gh" onclick="voltarImpStep1()">← Voltar</button>
@@ -5001,7 +5012,7 @@ function renderProcessos(){
 function abrirImportacao(){
   impDados=[];
   ['imp-step1','imp-foot1'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='';});
-  ['imp-step2','imp-step3','imp-foot3'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  ['imp-step-map','imp-step2','imp-step3','imp-foot-map','imp-foot3'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   const f2=document.getElementById('imp-foot2');if(f2)f2.style.display='none';
   document.getElementById('imp-subt').textContent='Passo 1 de 3 — Prepare seu arquivo';
   const nomeEl=document.getElementById('imp-nome-arquivo');if(nomeEl){nomeEl.style.display='none';nomeEl.textContent='';}
@@ -5011,9 +5022,9 @@ function abrirImportacao(){
 
 function voltarImpStep1(){
   document.getElementById('imp-step1').style.display='';
-  document.getElementById('imp-step2').style.display='none';
+  ['imp-step-map','imp-step2'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   document.getElementById('imp-foot1').style.display='flex';
-  document.getElementById('imp-foot2').style.display='none';
+  ['imp-foot-map','imp-foot2'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   document.getElementById('imp-subt').textContent='Passo 1 de 3 — Prepare seu arquivo';
 }
 
@@ -5029,7 +5040,8 @@ async function processarArquivoImport(file){
       const rows=txt.split(/\r?\n/);
       if(!rows.length){toast('Arquivo CSV vazio.','te');return;}
       const sep=rows[0].includes(';')?';':',';
-      const headers=rows[0].split(sep).map(h=>h.trim().replace(/^"|"$/g,'').toLowerCase());
+      const normH=s=>s.trim().replace(/^"|"$/g,'').replace(/[Nn][º°º°]/g,'n').toLowerCase().trim();
+      const headers=rows[0].split(sep).map(normH);
       for(let i=1;i<rows.length;i++){
         if(!rows[i].trim())continue;
         const cols=rows[i].split(sep).map(c=>c.trim().replace(/^"|"$/g,''));
@@ -5042,42 +5054,99 @@ async function processarArquivoImport(file){
       const buf=await file.arrayBuffer();
       const wb=XLSX.read(buf,{type:'array'});
       const ws=wb.Sheets[wb.SheetNames[0]];
-      const raw=XLSX.utils.sheet_to_json(ws,{defval:''});
-      linhas=raw.map(r=>{
-        const n={};
-        Object.keys(r).forEach(k=>n[k.toString().toLowerCase().trim()]=String(r[k]||'').trim());
-        return n;
-      });
+      const rawRows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      // Normaliza célula: remove BOM, converte Nº/N° → "n", lowercase, trim
+      const normCell=c=>c.toString()
+        .replace(/﻿/g,'')
+        .replace(/[Nn][º°º°]/g,'n')
+        .toLowerCase().trim();
+      // Detecta linha de cabeçalho (busca nas primeiras 6 linhas)
+      const kws=['nome','cliente','parte','tel','fone','processo','proc','numero','area'];
+      let headerIdx=0;
+      for(let i=0;i<Math.min(rawRows.length,6);i++){
+        const rowStr=rawRows[i].map(normCell).join(' ');
+        if(kws.some(k=>rowStr.includes(k))){headerIdx=i;break;}
+      }
+      const hdrs=rawRows[headerIdx].map(normCell);
+      for(let i=headerIdx+1;i<rawRows.length;i++){
+        const row=rawRows[i];
+        if(!row.some(c=>String(c).trim()))continue;
+        const obj={};hdrs.forEach((h,idx)=>obj[h]=String(row[idx]||'').trim());
+        linhas.push(obj);
+      }
     }
   }catch(e){toast('Erro ao ler o arquivo: '+e.message,'te');return;}
 
   if(!linhas.length){toast('Nenhuma linha encontrada no arquivo.','te');return;}
 
   const headers=Object.keys(linhas[0]);
+  if(!headers.length){toast('Não foi possível ler as colunas da planilha.','te');return;}
   const find=(tests)=>headers.find(h=>tests.some(t=>h.includes(t)))||'';
-  const colNome=find(['nome','cliente','parte','name']);
-  const colTel =find(['tel','fone','wpp','whats','celular','phone']);
-  const colProc=find(['processo','proc','número','numero','nro','cnj','autos']);
-  const colArea=find(['área','area','tipo','direito','matéria','materia','assunto']);
+  // Após normCell: "Nº do Processo" → "n do processo", "Nome do Cliente" → "nome do cliente"
+  const colNome=find(['nome do cliente','nome','cliente','parte','name','razao','empresa','requerente','contratante','interessado']);
+  const colTel =find(['telefone','tel','fone','wpp','whats','celular','phone','contato']);
+  const colProc=find(['n do processo','numero do processo','processo','proc','nro','cnj','autos']);
+  const colArea=find(['area','tipo','direito','materia','assunto']);
 
-  if(!colNome){toast('Não foi possível identificar a coluna de nome do cliente. Verifique o cabeçalho da planilha.','te');return;}
+  // Se não detectou o nome, abre tela de mapeamento manual
+  if(!colNome){
+    impLinhas=linhas;
+    mostrarMapeamento(headers,colTel,colProc,colArea);
+    return;
+  }
 
+  _aplicarMapeamento(linhas,colNome,colTel,colProc,colArea);
+}
+
+let impLinhas=[];
+
+function _aplicarMapeamento(linhas,colNome,colTel,colProc,colArea){
   impDados=linhas.map(r=>({
     nome:(r[colNome]||'').trim(),
     tel:colTel?(r[colTel]||'').replace(/\D/g,''):'',
     processo:colProc?(r[colProc]||'').trim():'',
     tipo:colArea?(r[colArea]||'').trim()||'Cível':'Cível',
   })).filter(r=>r.nome);
-
-  if(!impDados.length){toast('Nenhuma linha com nome de cliente válido encontrada.','te');return;}
-
+  if(!impDados.length){toast('Nenhuma linha com nome válido encontrada. Verifique a coluna selecionada.','te');return;}
   mostrarPreviewImport();
+}
+
+function mostrarMapeamento(headers,colTel,colProc,colArea){
+  document.getElementById('imp-step1').style.display='none';
+  document.getElementById('imp-step-map').style.display='';
+  document.getElementById('imp-foot1').style.display='none';
+  document.getElementById('imp-foot-map').style.display='flex';
+  document.getElementById('imp-subt').textContent='Passo 1b — Identificar colunas';
+  const opts='<option value="">— não importar —</option>'+headers.map(h=>`<option value="${h}">${h}</option>`).join('');
+  const selNome=`<select class="fsel" id="map-nome" style="max-width:100%">${opts}</select>`;
+  const selTel=`<select class="fsel" id="map-tel" style="max-width:100%"><option value="">— não importar —</option>${headers.map(h=>`<option value="${h}"${h===colTel?' selected':''}>${h}</option>`).join('')}</select>`;
+  const selProc=`<select class="fsel" id="map-proc" style="max-width:100%"><option value="">— não importar —</option>${headers.map(h=>`<option value="${h}"${h===colProc?' selected':''}>${h}</option>`).join('')}</select>`;
+  document.getElementById('imp-map-campos').innerHTML=`
+    <div style="display:grid;gap:14px">
+      <div class="field"><label class="flabel">Coluna com o <strong>Nome do cliente</strong> <span class="req">*</span></label>${selNome}</div>
+      <div class="field"><label class="flabel">Coluna com o <strong>Telefone</strong> (opcional)</label>${selTel}</div>
+      <div class="field"><label class="flabel">Coluna com o <strong>Nº do processo</strong> (opcional)</label>${selProc}</div>
+    </div>
+    <div style="margin-top:14px;padding:10px 14px;background:var(--s2);border-radius:8px;font-size:12px;color:var(--tx3)">
+      Colunas encontradas: <strong>${headers.join(' · ')}</strong>
+    </div>`;
+}
+
+function confirmarMapeamento(){
+  const colNome=document.getElementById('map-nome')?.value;
+  if(!colNome){toast('Selecione a coluna com o nome do cliente.','te');return;}
+  const colTel=document.getElementById('map-tel')?.value||'';
+  const colProc=document.getElementById('map-proc')?.value||'';
+  _aplicarMapeamento(impLinhas,colNome,colTel,colProc,'');
+  ['imp-step-map','imp-foot-map'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
 }
 
 function mostrarPreviewImport(){
   document.getElementById('imp-step1').style.display='none';
+  document.getElementById('imp-step-map').style.display='none';
   document.getElementById('imp-step2').style.display='';
   document.getElementById('imp-foot1').style.display='none';
+  document.getElementById('imp-foot-map').style.display='none';
   document.getElementById('imp-foot2').style.display='flex';
   document.getElementById('imp-subt').textContent=`Passo 2 de 3 — Pré-visualização (${impDados.length} processo${impDados.length>1?'s':''})`;
   renderPreviewImport();
