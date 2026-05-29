@@ -687,9 +687,9 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
     <div id="v-mov-ia" style="display:none">
       <div style="max-width:720px;">
         <div style="background:var(--surface);border:1px solid var(--bd);border-radius:var(--rmd);padding:18px;margin-bottom:16px;">
-          <div class="detsec-title" style="margin-bottom:10px;">Selecionar demanda ou processo</div>
+          <div class="detsec-title" style="margin-bottom:10px;">Selecionar cliente</div>
           <select class="fsel" id="ia-v-dem-sel" onchange="iaViewSelectDem(this.value)" style="width:100%;">
-            <option value="">Selecione uma demanda...</option>
+            <option value="">Selecione um cliente...</option>
           </select>
         </div>
         <div id="ia-v-panel" style="display:none;">
@@ -3442,16 +3442,13 @@ async function salvarEditarCliente(){
 }
 
 function irParaMovimentacao(){
-  const demandasCli=demandas.filter(d=>{
-    const c=clientes.find(x=>x.id===cliDetId);
-    return c&&(d.cliente_id===cliDetId||d.nome===c.nome);
-  });
+  const id=cliDetId;
   closeM('m-cliente');
   showView('mov-ia');
-  if(demandasCli.length){
+  if(id){
     setTimeout(()=>{
       const sel=document.getElementById('ia-v-dem-sel');
-      if(sel){sel.value=demandasCli[0].id;sel.dispatchEvent(new Event('change'));}
+      if(sel){sel.value=String(id);sel.dispatchEvent(new Event('change'));}
     },100);
   }
 }
@@ -6487,9 +6484,9 @@ function iaAlertarResponsavel(){
 function renderMovIAView(){
   const sel=document.getElementById('ia-v-dem-sel');
   if(!sel)return;
-  sel.innerHTML='<option value="">Selecione uma demanda...</option>'+
-    [...demandas].sort((a,b)=>a.nome.localeCompare(b.nome,undefined,{sensitivity:'base'}))
-    .map(d=>`<option value="${d.id}">${d.nome}${d.processo?' — '+d.processo:''}${d.movimentacoes?.length?' ('+d.movimentacoes.length+' mov.)':''}</option>`).join('');
+  sel.innerHTML='<option value="">Selecione um cliente...</option>'+
+    [...clientes].sort((a,b)=>a.nome.localeCompare(b.nome,undefined,{sensitivity:'base'}))
+    .map(c=>`<option value="${c.id}">${c.nome}${c.movimentacoes?.length?' ('+c.movimentacoes.length+' mov.)':''}</option>`).join('');
   if(iaVDetId){sel.value=String(iaVDetId);iaViewSelectDem(String(iaVDetId),false);}
   else document.getElementById('ia-v-panel').style.display='none';
 }
@@ -6506,8 +6503,8 @@ function iaViewSelectDem(id, reset=true){
     document.getElementById('ia-v-pdf-hint').textContent='';
     iaVResultado=null;iaVPdfBase64=null;
   }
-  const d=demandas.find(x=>String(x.id)===String(iaVDetId));
-  renderMovimentacoes(d?.movimentacoes||[],'ia-v-historico','v');
+  const c=clientes.find(x=>String(x.id)===String(iaVDetId));
+  renderMovimentacoes(c?.movimentacoes||[],'ia-v-historico','v');
 }
 
 function iaViewOnPdfChange(input){
@@ -6521,14 +6518,14 @@ function iaViewOnPdfChange(input){
 }
 
 async function analisarIAView(){
-  const d=demandas.find(x=>String(x.id)===String(iaVDetId));
-  if(!d){toast('Selecione uma demanda','e');return;}
+  const c=clientes.find(x=>String(x.id)===String(iaVDetId));
+  if(!c){toast('Selecione um cliente','e');return;}
   const texto=document.getElementById('ia-v-texto').value.trim();
   if(!texto&&!iaVPdfBase64){toast('Informe o texto ou selecione um PDF','e');return;}
   const btn=document.getElementById('ia-v-btn');
   btn.disabled=true;btn.textContent='Analisando...';
   try{
-    const body={demandaNome:d.nome,demandaTipo:d.tipo};
+    const body={demandaNome:c.nome,demandaTipo:'cliente'};
     if(iaVPdfBase64)body.pdfBase64=iaVPdfBase64;
     if(texto)body.movimentacao={texto};
     const r=await fetch(`${SB_URL}/functions/v1/resumir-ia`,{
@@ -6546,8 +6543,8 @@ async function analisarIAView(){
 }
 
 async function salvarMovimentacaoView(){
-  const d=demandas.find(x=>String(x.id)===String(iaVDetId));
-  if(!d||!iaVResultado)return;
+  const c=clientes.find(x=>String(x.id)===String(iaVDetId));
+  if(!c||!iaVResultado)return;
   const texto=document.getElementById('ia-v-texto').value.trim();
   const pdfInput=document.getElementById('ia-v-pdf');
   const pdfNome=pdfInput.files[0]?.name||null;
@@ -6563,17 +6560,16 @@ async function salvarMovimentacaoView(){
     alerta_prazo:iaVResultado.alerta_prazo,
     criado_por:userAtual||usuarioAtual?.nome||'Sistema'
   };
-  const movs=[...(d.movimentacoes||[]),mov];
-  const{error}=await db.from('demandas_escritorio').update({movimentacoes:movs}).eq('id',d.id);
+  const movs=[...(c.movimentacoes||[]),mov];
+  const{error}=await db.from('clientes').update({movimentacoes:movs}).eq('id',c.id);
   if(error){toast('Erro ao salvar','e');return;}
-  d.movimentacoes=movs;
+  c.movimentacoes=movs;
   renderMovimentacoes(movs,'ia-v-historico','v');
   document.getElementById('ia-v-resultado-sec').style.display='none';
   document.getElementById('ia-v-texto').value='';
   document.getElementById('ia-v-pdf').value='';
   document.getElementById('ia-v-pdf-hint').textContent='';
   iaVResultado=null;iaVPdfBase64=null;
-  // atualiza o select com a nova contagem
   renderMovIAView();
   toast('Movimentação salva!');
 }
@@ -6586,21 +6582,17 @@ function iaDefinirPrazoView(){
     const pf=document.getElementById('det-prazo-input');
     if(pf)pf.value=iso;
   }
-  const d=demandas.find(x=>String(x.id)===String(iaVDetId));
-  if(d){abrirDet(d.id);switchDetTab('atos');}
-  toast('Prazo identificado: '+iaVResultado.prazo+' — abra Editar dados para salvar');
+  toast('Prazo identificado: '+iaVResultado.prazo+' — registrado na movimentação');
 }
 
 function iaAlertarView(){
-  const d=demandas.find(x=>String(x.id)===String(iaVDetId));
-  if(!d||!iaVResultado)return;
-  const resp=d.responsavel||userAtual||'';
-  const colab=colabs.find(c=>c.nome===resp);
-  const tel=colab?.tel||d.tel||'';
-  if(!tel){toast('Responsável sem WhatsApp cadastrado','e');return;}
+  const c=clientes.find(x=>String(x.id)===String(iaVDetId));
+  if(!c||!iaVResultado)return;
+  const tel=c.telefone||'';
+  if(!tel){toast('Cliente sem WhatsApp cadastrado','e');return;}
   const prazo=iaVResultado.prazo?`\nPrazo: *${iaVResultado.prazo}*`:'';
   const steps=(iaVResultado.proximos_passos||[iaVResultado.acao||'']).filter(Boolean).map(p=>`→ ${p}`).join('\n');
-  const msg=`📋 *Movimentação — ${d.nome}*\n\n${iaVResultado.resumo||''}${prazo}${steps?'\n\n'+steps:''}`;
+  const msg=`📋 *Movimentação — ${c.nome}*\n\n${iaVResultado.resumo||''}${prazo}${steps?'\n\n'+steps:''}`;
   const num=tel.replace(/\D/g,'');
   window.open(`https://wa.me/55${num}?text=${encodeURIComponent(msg)}`,'_blank');
 }
