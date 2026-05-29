@@ -1307,8 +1307,48 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
     <div class="mfoot">
       <button class="btn btn-danger" onclick="confirmarExcluirCliente()">Excluir cliente</button>
       <div class="mfoot-r">
-        <button class="btn btn-p" onclick="abrirNovaDemandaCliente()" id="cli-btn-nova">+ Nova demanda para este cliente</button>
+        <button class="btn btn-gh" onclick="irParaMovimentacao()">📋 Registrar movimentação</button>
+        <button class="btn btn-gh" onclick="abrirEditarCliente()">✏️ Editar</button>
+        <button class="btn btn-p" onclick="abrirNovaDemandaCliente()" id="cli-btn-nova">+ Nova demanda</button>
         <button class="btn btn-gh" onclick="closeM('m-cliente')">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDITAR CLIENTE -->
+<div class="mov" id="m-editar-cliente">
+  <div class="mbox">
+    <div class="mhead">
+      <div><div class="mtitle">Editar cliente</div><div class="msubt">Atualize os dados do contato</div></div>
+      <button class="mx" onclick="closeM('m-editar-cliente')">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="fg2">
+        <div class="field" style="grid-column:1/-1"><label class="flabel">Nome completo <span class="req">*</span></label><input type="text" class="finp" id="ec-nome" placeholder="Nome completo"/></div>
+        <div class="field"><label class="flabel">Telefone / WhatsApp</label><input type="text" class="finp" id="ec-tel" placeholder="(00) 00000-0000"/></div>
+        <div class="field"><label class="flabel">E-mail</label><input type="email" class="finp" id="ec-email" placeholder="email@exemplo.com"/></div>
+        <div class="field"><label class="flabel">CPF / CNPJ</label><input type="text" class="finp" id="ec-cpf" placeholder="000.000.000-00"/></div>
+        <div class="field"><label class="flabel">RG</label><input type="text" class="finp" id="ec-rg" placeholder="00.000.000-0"/></div>
+        <div class="field"><label class="flabel">Data de nascimento</label><input type="date" class="finp" id="ec-nasc"/></div>
+        <div class="field"><label class="flabel">Estado civil</label>
+          <select class="finp" id="ec-ecivil">
+            <option value="">Selecione</option>
+            <option value="solteiro">Solteiro(a)</option>
+            <option value="casado">Casado(a)</option>
+            <option value="divorciado">Divorciado(a)</option>
+            <option value="viuvo">Viúvo(a)</option>
+            <option value="uniao_estavel">União estável</option>
+          </select>
+        </div>
+        <div class="field"><label class="flabel">Profissão</label><input type="text" class="finp" id="ec-prof" placeholder="Profissão"/></div>
+      </div>
+      <div class="field" style="margin-top:12px"><label class="flabel">Observações / Resumo do cliente</label><textarea class="finp" id="ec-obs" rows="3" placeholder="Observações internas, resumo do caso..."></textarea></div>
+    </div>
+    <div class="mfoot">
+      <div class="mfoot-r">
+        <button class="btn btn-p" id="ec-btn-salvar" onclick="salvarEditarCliente()">Salvar alterações</button>
+        <button class="btn btn-gh" onclick="closeM('m-editar-cliente')">Cancelar</button>
       </div>
     </div>
   </div>
@@ -3358,6 +3398,62 @@ async function excluirCliente(){
   renderClientes();
   renderKanban();
   toast('Cliente excluído.');
+}
+
+function abrirEditarCliente(){
+  const c=clientes.find(x=>x.id===cliDetId);if(!c)return;
+  document.getElementById('ec-nome').value=c.nome||'';
+  document.getElementById('ec-tel').value=c.telefone||'';
+  document.getElementById('ec-email').value=c.email||'';
+  document.getElementById('ec-cpf').value=c.cpf_cnpj||'';
+  document.getElementById('ec-rg').value=c.rg||'';
+  document.getElementById('ec-nasc').value=c.data_nascimento||'';
+  document.getElementById('ec-ecivil').value=c.estado_civil||'';
+  document.getElementById('ec-prof').value=c.profissao||'';
+  document.getElementById('ec-obs').value=c.obs||'';
+  openM('m-editar-cliente');
+}
+
+async function salvarEditarCliente(){
+  const nome=document.getElementById('ec-nome').value.trim();
+  if(!nome){toast('Informe o nome do cliente.','te');return;}
+  const btn=document.getElementById('ec-btn-salvar');
+  btn.disabled=true;btn.textContent='Salvando...';
+  const updates={
+    nome,
+    telefone:document.getElementById('ec-tel').value.trim()||null,
+    email:document.getElementById('ec-email').value.trim()||null,
+    cpf_cnpj:document.getElementById('ec-cpf').value.trim()||null,
+    rg:document.getElementById('ec-rg').value.trim()||null,
+    data_nascimento:document.getElementById('ec-nasc').value||null,
+    estado_civil:document.getElementById('ec-ecivil').value||null,
+    profissao:document.getElementById('ec-prof').value.trim()||null,
+    obs:document.getElementById('ec-obs').value.trim()||null,
+  };
+  const{error}=await db.from('clientes').update(updates).eq('id',cliDetId);
+  btn.disabled=false;btn.textContent='Salvar alterações';
+  if(error){toast('Erro ao salvar: '+error.message,'te');return;}
+  const c=clientes.find(x=>x.id===cliDetId);
+  if(c)Object.assign(c,updates);
+  closeM('m-editar-cliente');
+  abrirCliente(cliDetId);
+  renderClientes();
+  toast('Cliente atualizado!');
+}
+
+function irParaMovimentacao(){
+  const demandasCli=demandas.filter(d=>{
+    const c=clientes.find(x=>x.id===cliDetId);
+    return c&&(d.cliente_id===cliDetId||d.nome===c.nome);
+  });
+  closeM('m-cliente');
+  showView('mov-ia');
+  if(demandasCli.length){
+    setTimeout(()=>{
+      const sel=document.getElementById('ia-v-dem-sel');
+      if(sel){sel.value=demandasCli[0].id;sel.dispatchEvent(new Event('change'));}
+    },100);
+  }
 }
 
 function abrirNovaDemandaCliente(cliId='',nome='',tel='',email='',cpf=''){
