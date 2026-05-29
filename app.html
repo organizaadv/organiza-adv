@@ -707,7 +707,6 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
               <button class="btn btn-p" onclick="salvarSemIAView()">💾 Salvar movimentação</button>
               <button class="btn btn-gh" id="ia-v-btn" onclick="analisarIAView()">✨ Analisar com IA</button>
-              <button class="btn btn-gh" onclick="criarDemandaDoCliente()">📋 Criar demanda</button>
             </div>
           </div>
           <div id="ia-v-resultado-sec" style="display:none;background:var(--surface);border:1px solid var(--bd);border-radius:var(--rmd);padding:18px;margin-bottom:14px;">
@@ -6434,9 +6433,15 @@ function renderMovimentacoes(movs, elId='ia-historico', pfx='m'){
   const el=document.getElementById(elId);
   if(!el)return;
   if(!movs||!movs.length){el.innerHTML='<div style="font-size:13px;color:var(--tx3);padding:8px 0;">Nenhuma movimentação registrada.</div>';return;}
+  const isView=pfx==='v';
   el.innerHTML=[...movs].reverse().map((m,i)=>{
     const idx=movs.length-1-i;
     const urg=m.urgente?'<span class="bdg b-rd" style="font-size:10px;margin-left:6px;">urgente</span>':'';
+    const acoes=isView?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--bd);">
+        <button class="btn btn-sm btn-gh" onclick="editarMovView(${idx})">✏️ Editar</button>
+        <button class="btn btn-sm btn-gh" onclick="avisarClienteMovView(${idx})">📲 Avisar cliente</button>
+        <button class="btn btn-sm btn-gh" onclick="criarDemandaMovView()">📋 Criar demanda</button>
+      </div>`:'';
     return`<div class="mov-item">
       <div class="mov-header" onclick="iaToggleMov('${pfx}-${idx}')">
         <span class="mov-resumo">${m.resumo||m.texto||'Movimentação'}</span>${urg}
@@ -6448,6 +6453,7 @@ function renderMovimentacoes(movs, elId='ia-historico', pfx='m'){
         ${Array.isArray(m.proximos_passos)&&m.proximos_passos.length?`<div class="ia-field"><div class="ia-label">Próximos passos</div><ul class="ia-steps">${m.proximos_passos.map(p=>`<li>${p}</li>`).join('')}</ul></div>`:''}
         ${m.prazo?`<div class="ia-field"><div class="ia-label">Prazo</div><div><strong>${m.prazo}</strong></div></div>`:''}
         <div style="font-size:11px;color:var(--tx3);margin-top:6px;">Por: ${m.criado_por||'Sistema'}</div>
+        ${acoes}
       </div>
     </div>`;
   }).join('');
@@ -6456,6 +6462,61 @@ function renderMovimentacoes(movs, elId='ia-historico', pfx='m'){
 function iaToggleMov(key){
   const el=document.getElementById('mb-'+key);
   if(el)el.classList.toggle('open');
+}
+
+function editarMovView(idx){
+  const c=clientes.find(x=>String(x.id)===String(iaVDetId));
+  if(!c)return;
+  const mov=c.movimentacoes?.[idx];
+  if(!mov)return;
+  const body=document.getElementById(`mb-v-${idx}`);
+  if(!body)return;
+  body.innerHTML=`
+    <textarea id="edit-mov-txt-${idx}" class="finp" rows="4" style="resize:vertical;width:100%;margin-bottom:8px;">${mov.texto||''}</textarea>
+    <div style="display:flex;gap:6px;">
+      <button class="btn btn-sm btn-p" onclick="salvarEdicaoMovView(${idx})">💾 Salvar</button>
+      <button class="btn btn-sm btn-gh" onclick="cancelarEdicaoMovView()">Cancelar</button>
+    </div>`;
+}
+
+async function salvarEdicaoMovView(idx){
+  const c=clientes.find(x=>String(x.id)===String(iaVDetId));
+  if(!c)return;
+  const txt=document.getElementById(`edit-mov-txt-${idx}`)?.value.trim();
+  if(!txt){toast('Informe o texto','e');return;}
+  const movs=[...(c.movimentacoes||[])];
+  movs[idx]={...movs[idx],texto:txt};
+  const{error}=await db.from('clientes').update({movimentacoes:movs}).eq('id',c.id);
+  if(error){toast('Erro ao salvar','e');return;}
+  c.movimentacoes=movs;
+  renderMovimentacoes(movs,'ia-v-historico','v');
+  toast('Movimentação atualizada!');
+}
+
+function cancelarEdicaoMovView(){
+  const c=clientes.find(x=>String(x.id)===String(iaVDetId));
+  if(c)renderMovimentacoes(c.movimentacoes||[],'ia-v-historico','v');
+}
+
+function avisarClienteMovView(idx){
+  const c=clientes.find(x=>String(x.id)===String(iaVDetId));
+  if(!c)return;
+  const mov=c.movimentacoes?.[idx];
+  if(!mov)return;
+  const tel=c.telefone||'';
+  if(!tel){toast('Cliente sem WhatsApp cadastrado','e');return;}
+  const prazo=mov.prazo?`\nPrazo: *${mov.prazo}*`:'';
+  const passos=Array.isArray(mov.proximos_passos)&&mov.proximos_passos.length
+    ?'\n\n'+mov.proximos_passos.map(p=>`→ ${p}`).join('\n'):'';
+  const resumo=mov.resumo||mov.texto||'Movimentação registrada';
+  const msg=`📋 *${c.nome}*\n\n${resumo}${prazo}${passos}`;
+  window.open(`https://wa.me/55${tel.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+function criarDemandaMovView(){
+  const c=clientes.find(x=>String(x.id)===String(iaVDetId));
+  if(!c){toast('Selecione um cliente','e');return;}
+  abrirNovaDemandaCliente(c.id,c.nome,c.telefone,c.email,c.cpf_cnpj);
 }
 
 function iaDefinirPrazo(){
