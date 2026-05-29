@@ -704,13 +704,17 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
               <label class="flabel">Texto ou descrição da movimentação</label>
               <textarea id="ia-v-texto" class="finp" rows="4" style="resize:vertical;" placeholder="Cole o texto da movimentação ou descreva o que aconteceu..."></textarea>
             </div>
-            <button class="btn btn-p" id="ia-v-btn" onclick="analisarIAView()">✨ Analisar com IA</button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+              <button class="btn btn-p" onclick="salvarSemIAView()">💾 Salvar movimentação</button>
+              <button class="btn btn-gh" id="ia-v-btn" onclick="analisarIAView()">✨ Analisar com IA</button>
+              <button class="btn btn-gh" onclick="criarDemandaDoCliente()">📋 Criar demanda</button>
+            </div>
           </div>
           <div id="ia-v-resultado-sec" style="display:none;background:var(--surface);border:1px solid var(--bd);border-radius:var(--rmd);padding:18px;margin-bottom:14px;">
             <div class="detsec-title" style="margin-bottom:10px;">Análise da IA</div>
             <div id="ia-v-resultado"></div>
             <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn btn-sm btn-p" onclick="salvarMovimentacaoView()">💾 Salvar movimentação</button>
+              <button class="btn btn-sm btn-p" onclick="salvarMovimentacaoView()">💾 Salvar com análise da IA</button>
               <button class="btn btn-sm btn-gh" onclick="iaDefinirPrazoView()">📅 Definir prazo</button>
               <button class="btn btn-sm btn-gh" onclick="iaAlertarView()">📲 Alertar responsável</button>
             </div>
@@ -6540,6 +6544,38 @@ async function analisarIAView(){
     document.getElementById('ia-v-resultado-sec').style.display='block';
   }catch(e){toast('Erro ao chamar IA','e');}
   finally{btn.disabled=false;btn.textContent='✨ Analisar com IA';}
+}
+
+async function salvarSemIAView(){
+  const c=clientes.find(x=>String(x.id)===String(iaVDetId));
+  if(!c){toast('Selecione um cliente','e');return;}
+  const texto=document.getElementById('ia-v-texto').value.trim();
+  const pdfInput=document.getElementById('ia-v-pdf');
+  const pdfNome=pdfInput.files[0]?.name||null;
+  if(!texto&&!pdfNome){toast('Informe o texto ou selecione um PDF','e');return;}
+  const mov={
+    data:new Date().toLocaleDateString('pt-BR'),
+    texto:texto||pdfNome||'Movimentação registrada',
+    pdf_nome:pdfNome,
+    criado_por:userAtual||usuarioAtual?.nome||'Sistema'
+  };
+  const movs=[...(c.movimentacoes||[]),mov];
+  const{error}=await db.from('clientes').update({movimentacoes:movs}).eq('id',c.id);
+  if(error){toast('Erro ao salvar','e');return;}
+  c.movimentacoes=movs;
+  renderMovimentacoes(movs,'ia-v-historico','v');
+  document.getElementById('ia-v-texto').value='';
+  pdfInput.value='';
+  document.getElementById('ia-v-pdf-hint').textContent='';
+  iaVPdfBase64=null;
+  renderMovIAView();
+  toast('Movimentação salva!');
+}
+
+function criarDemandaDoCliente(){
+  const c=clientes.find(x=>String(x.id)===String(iaVDetId));
+  if(!c){toast('Selecione um cliente','e');return;}
+  abrirNovaDemandaCliente(c.id,c.nome,c.telefone,c.email,c.cpf_cnpj);
 }
 
 async function salvarMovimentacaoView(){
