@@ -173,7 +173,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .kcard-ato-pend.k-ato-alta{color:var(--rd);font-weight:500}
 .kcard-ato-pend.k-ato-ok{color:var(--gr);font-style:normal}
 .kcard-ft{display:flex;align-items:center;justify-content:space-between;gap:4px}
-.kavatar{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;background:var(--ink);color:var(--gold);flex-shrink:0;letter-spacing:0}
+.kavatar{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;background:var(--ink);color:var(--gold);flex-shrink:0;letter-spacing:0;overflow:hidden}
 .kavatar-stack{display:flex;align-items:center}
 .kavatar-stack .kavatar+.kavatar{margin-left:-5px}
 .kcard-avbtn{width:24px;height:24px;border-radius:50%;background:var(--gdp);border:1px solid rgba(201,168,76,.3);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s cubic-bezier(.2,0,0,1),transform .2s cubic-bezier(.2,0,0,1);flex-shrink:0;color:var(--gold2);padding:0}
@@ -2747,6 +2747,8 @@ function avatarHTML(nome,title){
   if(!nome)return'';
   const ini=nome.trim().split(/\s+/).map(p=>p[0]).slice(0,2).join('').toUpperCase();
   const t=title||nome;
+  const col=colabs.find(c=>c.nome===nome);
+  if(col?.foto_url)return`<div class="kavatar" style="background:${avatarCor(nome)};" title="${t}"><img src="${col.foto_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;"/></div>`;
   return`<div class="kavatar" style="background:${avatarCor(nome)};" title="${t}">${ini}</div>`;
 }
 
