@@ -841,13 +841,18 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
           <div class="rel-tipo-titulo">Processos sem movimentação</div>
           <div class="rel-tipo-sub">Processos ativos sem nenhum ato registrado nos últimos 30 dias.</div>
         </div>
+        <div class="rel-tipo-card" data-tipo="desempenho" onclick="selecionarTipoRel('desempenho')">
+          <div class="rel-tipo-ico">👥</div>
+          <div class="rel-tipo-titulo">Desempenho da Equipe</div>
+          <div class="rel-tipo-sub">Etapas avançadas, atos concluídos, atendimentos e demandas por colaborador no mês.</div>
+        </div>
       </div>
       <!-- Painel de configuração -->
       <div id="rel-painel" style="display:none">
         <div class="cfg-sec">
           <div class="cfg-title" id="rel-painel-titulo">Configurar relatório</div>
           <div id="rel-painel-corpo" style="margin-bottom:18px"></div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div id="rel-painel-acoes" style="display:flex;gap:10px;flex-wrap:wrap">
             <button class="btn btn-p" onclick="gerarRelPDF()">
               <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 2h5l4 4v9a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M9 2v4h4"/></svg>
               Gerar PDF
@@ -3766,11 +3771,25 @@ function renderRelatorios(){
 function selecionarTipoRel(tipo){
   relTipoAtivo=tipo;relIndSel=null;
   document.querySelectorAll('.rel-tipo-card').forEach(c=>c.classList.toggle('on',c.dataset.tipo===tipo));
-  const titulos={individual:'Relatório individual de processo',lista:'Lista geral de processos',area:'Relatório por área',parado:'Processos sem movimentação'};
+  const titulos={individual:'Relatório individual de processo',lista:'Lista geral de processos',area:'Relatório por área',parado:'Processos sem movimentação',desempenho:'Desempenho da Equipe'};
   const t=document.getElementById('rel-painel-titulo');if(t)t.textContent=titulos[tipo]||'Configurar';
   const w=document.getElementById('rel-wpp-wrap');if(w)w.style.display='none';
+  const acoes=document.getElementById('rel-painel-acoes');
+  if(acoes)acoes.style.display=tipo==='desempenho'?'none':'flex';
   let html='';
-  if(tipo==='individual'){
+  if(tipo==='desempenho'){
+    const nomes=[...new Set(colabs.map(c=>c.nome))];
+    html=`<div style="display:flex;gap:12px;flex-wrap:wrap">
+      <div class="field" style="flex:1;min-width:160px;margin-bottom:0"><label class="flabel">Colaborador</label>
+        <select class="fsel" id="desemp-colab" onchange="renderRelDesempenho()">
+          <option value="">Selecione...</option>
+          ${nomes.map(n=>`<option value="${n}">${n}</option>`).join('')}
+        </select></div>
+      <div class="field" style="flex:1;min-width:160px;margin-bottom:0"><label class="flabel">Mês</label>
+        <select class="fsel" id="desemp-mes" onchange="renderRelDesempenho()">${_mesesOpts()}</select></div>
+    </div>
+    <div id="desemp-resultado" style="margin-top:20px"></div>`;
+  } else if(tipo==='individual'){
     html=`<div class="field" style="margin-bottom:8px"><label class="flabel">Buscar processo ou cliente</label>
       <input type="text" class="finp" id="rel-busca-ind" placeholder="Nome do cliente ou número do processo..." oninput="filtrarRelInd()"/></div>
       <div id="rel-ind-lista" style="border:1px solid var(--bd);border-radius:8px;overflow:hidden;margin-bottom:8px;display:none"></div>
@@ -3801,6 +3820,158 @@ function selecionarTipoRel(tipo){
   const corpo=document.getElementById('rel-painel-corpo');if(corpo)corpo.innerHTML=html;
   const painel=document.getElementById('rel-painel');if(painel)painel.style.display='';
   if(tipo==='individual')setTimeout(()=>document.getElementById('rel-busca-ind')?.focus(),50);
+}
+
+function _mesesOpts(){
+  const nms=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const now=new Date();const opts=[];
+  for(let i=0;i<12;i++){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const val=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    opts.push(`<option value="${val}"${i===0?' selected':''}>${nms[d.getMonth()]} ${d.getFullYear()}</option>`);
+  }
+  return opts.join('');
+}
+
+function renderRelDesempenho(){
+  const nome=document.getElementById('desemp-colab')?.value;
+  const mesVal=document.getElementById('desemp-mes')?.value;
+  const el=document.getElementById('desemp-resultado');
+  if(!el)return;
+  if(!nome||!mesVal){el.innerHTML='<div style="color:var(--tx3);font-size:13px;padding:8px 0">Selecione um colaborador e um mês para ver o desempenho.</div>';return;}
+  const [ano,mes]=mesVal.split('-').map(Number);
+  const nms=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const labelMes=`${nms[mes-1]} ${ano}`;
+
+  // Etapas avançadas no mês
+  const etapasNoMes=[];
+  demandas.forEach(d=>{
+    getH(d).forEach(h=>{
+      if(h.quem!==nome)return;
+      const p=(h.data||'').split('/');
+      if(p.length!==3)return;
+      if(parseInt(p[2])!==ano||parseInt(p[1])!==mes)return;
+      etapasNoMes.push({...h,demanda:d});
+    });
+  });
+
+  // Atos concluídos (sem filtro de mês — atos não têm dataFeito)
+  const atosFeitosTodos=[];
+  demandas.forEach(d=>{
+    getA(d).forEach(a=>{if(a.feito&&a.quem===nome)atosFeitosTodos.push({...a,demandaNome:d.nome});});
+  });
+
+  // Atendimentos realizados no mês
+  const atendRealizados=atendimentos.filter(a=>{
+    if(a.responsavel!==nome||a.status!=='Realizado'||!a.data_atendimento)return false;
+    const dt=new Date(a.data_atendimento+'T00:00:00');
+    return dt.getFullYear()===ano&&dt.getMonth()+1===mes;
+  });
+
+  // Demandas ativas sob responsabilidade
+  const demandasAtivas=demandas.filter(d=>d.responsavel===nome&&statusD(d)==='Em andamento');
+
+  // Contagem de etapas por tipo no mês
+  const contEt={};
+  etapasNoMes.forEach(h=>{contEt[h.etapa]=(contEt[h.etapa]||0)+1;});
+  const etapasOrd=Object.entries(contEt).sort((a,b)=>b[1]-a[1]);
+  const maxEt=etapasOrd[0]?.[1]||1;
+
+  // Atos pendentes atribuídos a ele
+  const atosPend=[];
+  demandas.forEach(d=>{
+    if(statusD(d)!=='Em andamento')return;
+    getA(d).forEach(a=>{
+      if(!a.feito&&(a.resp===nome||a.delegado_para===nome))
+        atosPend.push({...a,demandaNome:d.nome,etapaDemanda:etapaLabel(d)});
+    });
+  });
+
+  el.innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px">
+      <div style="background:var(--blb);border:1px solid var(--blbd);border-radius:var(--rmd);padding:14px 16px">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--bl);margin-bottom:4px">Etapas avançadas</div>
+        <div style="font-size:28px;font-weight:700;font-family:'Fraunces',serif;color:var(--bl)">${etapasNoMes.length}</div>
+        <div style="font-size:11px;color:var(--tx3);margin-top:2px">${labelMes}</div>
+      </div>
+      <div style="background:var(--gdp);border:1px solid var(--gdb);border-radius:var(--rmd);padding:14px 16px">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--am);margin-bottom:4px">Atos concluídos</div>
+        <div style="font-size:28px;font-weight:700;font-family:'Fraunces',serif;color:var(--am)">${atosFeitosTodos.length}</div>
+        <div style="font-size:11px;color:var(--tx3);margin-top:2px">total registrado</div>
+      </div>
+      <div style="background:var(--grb);border:1px solid var(--grbd);border-radius:var(--rmd);padding:14px 16px">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--gr);margin-bottom:4px">Atendimentos</div>
+        <div style="font-size:28px;font-weight:700;font-family:'Fraunces',serif;color:var(--gr)">${atendRealizados.length}</div>
+        <div style="font-size:11px;color:var(--tx3);margin-top:2px">${labelMes}</div>
+      </div>
+      <div style="background:var(--s2);border:1px solid var(--bd);border-radius:var(--rmd);padding:14px 16px">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--tx2);margin-bottom:4px">Demandas ativas</div>
+        <div style="font-size:28px;font-weight:700;font-family:'Fraunces',serif">${demandasAtivas.length}</div>
+        <div style="font-size:11px;color:var(--tx3);margin-top:2px">sob responsabilidade</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:24px">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);margin-bottom:12px">Etapas mais avançadas — ${labelMes}</div>
+      ${etapasOrd.length?etapasOrd.map(([et,cnt])=>`
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <div style="width:140px;font-size:12.5px;color:var(--tx2);flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${et}</div>
+          <div style="flex:1;height:8px;background:var(--s3);border-radius:4px;overflow:hidden">
+            <div style="height:100%;width:${Math.round(cnt/maxEt*100)}%;background:var(--bl);border-radius:4px;transition:width .3s"></div>
+          </div>
+          <div style="font-size:12.5px;font-weight:600;color:var(--bl);width:28px;text-align:right">${cnt}x</div>
+        </div>`).join('')
+      :'<div style="color:var(--tx3);font-size:13px">Nenhuma etapa avançada neste mês.</div>'}
+    </div>
+
+    <div style="margin-bottom:24px">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);margin-bottom:10px">Demandas sob responsabilidade</div>
+      ${demandasAtivas.length?`<div class="tbl-wrap" style="margin-bottom:0"><table>
+        <thead><tr><th>Cliente</th><th>Área</th><th>Etapa atual</th><th>Última mov. dele</th></tr></thead>
+        <tbody>${demandasAtivas.map(d=>{
+          const ultMov=getH(d).filter(h=>h.quem===nome).slice(-1)[0];
+          return`<tr onclick="showView('kanban');setTimeout(()=>abrirDet('${d.id}'),200)" style="cursor:pointer">
+            <td style="font-weight:500">${d.nome}</td>
+            <td style="font-size:12.5px;color:var(--tx2)">${d.tipo||'—'}</td>
+            <td><span class="bdg b-bl">${etapaLabel(d)}</span></td>
+            <td style="font-size:12px;color:var(--tx3)">${ultMov?ultMov.etapa+' · '+ultMov.data:'—'}</td>
+          </tr>`;
+        }).join('')}</tbody></table></div>`
+      :'<div style="color:var(--tx3);font-size:13px">Nenhuma demanda ativa.</div>'}
+    </div>
+
+    <div style="margin-bottom:24px">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);margin-bottom:10px">Histórico de etapas avançadas — ${labelMes}</div>
+      ${etapasNoMes.length?`<div class="tbl-wrap" style="margin-bottom:0"><table>
+        <thead><tr><th>Data</th><th>Demanda</th><th>Etapa concluída</th><th>Avançou para</th></tr></thead>
+        <tbody>${[...etapasNoMes].sort((a,b)=>{
+          const pa=a.data.split('/'),pb=b.data.split('/');
+          return new Date(pa[2],pa[1]-1,pa[0])-new Date(pb[2],pb[1]-1,pb[0]);
+        }).map(h=>{
+          const idx=ETAPAS.findIndex(e=>e.nome===h.etapa);
+          const prox=idx>=0&&idx<ETAPAS.length-1?ETAPAS[idx+1].nome:'Concluído';
+          return`<tr>
+            <td style="font-size:12.5px;color:var(--tx3);white-space:nowrap">${h.data}</td>
+            <td style="font-weight:500">${h.demanda.nome}</td>
+            <td><span class="bdg b-bl">${h.etapa}</span></td>
+            <td style="font-size:12.5px;color:var(--tx2)">→ ${prox}</td>
+          </tr>`;
+        }).join('')}</tbody></table></div>`
+      :'<div style="color:var(--tx3);font-size:13px">Nenhuma etapa avançada neste mês.</div>'}
+    </div>
+
+    <div>
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);margin-bottom:10px">Atos pendentes atribuídos</div>
+      ${atosPend.length?`<div class="tbl-wrap" style="margin-bottom:0"><table>
+        <thead><tr><th>Demanda</th><th>Ato</th><th>Etapa</th><th>Tipo</th></tr></thead>
+        <tbody>${atosPend.map(a=>`<tr>
+          <td style="font-weight:500">${a.demandaNome}</td>
+          <td style="font-size:13px">${a.nome}</td>
+          <td style="font-size:12.5px;color:var(--tx2)">${a.etapa||a.etapaDemanda||'—'}</td>
+          <td>${a.delegado_para===nome?'<span class="bdg b-am">Delegado</span>':'<span class="bdg b-bl">Responsável</span>'}</td>
+        </tr>`).join('')}</tbody></table></div>`
+      :'<div style="color:var(--tx3);font-size:13px">Nenhum ato pendente. ✅</div>'}
+    </div>`;
 }
 
 function filtrarRelInd(){
