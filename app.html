@@ -1932,6 +1932,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <button class="mx" onclick="closeM('m-av-etapa')">✕</button>
     </div>
     <div class="mbody" style="display:flex;flex-direction:column;gap:14px;">
+      <div id="av-etapa-aviso" style="display:none;background:var(--amb);border:1px solid var(--ambd);border-radius:var(--rsm);padding:10px 14px;font-size:13px;color:#92600A;line-height:1.5"></div>
       <div class="field">
         <label class="flabel">Responsável pela próxima etapa <span class="req">*</span></label>
         <select class="fsel" id="av-etapa-resp"></select>
@@ -2800,8 +2801,8 @@ function renderKanban(){
                   ${d.responsavel?avatarHTML(d.responsavel,'Responsável: '+d.responsavel):''}
                   ${delegadoPara&&delegadoPara!==d.responsavel?avatarHTML(delegadoPara,'Executando: '+delegadoPara):''}
                 </div>`:''}
-                ${mostraAvbtn?`<button class="kcard-avbtn" onclick="abrirQuickAv(${d.id},event)" title="Avançar ato">
-                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,4.5 6,8.5 10,4.5"/></svg>
+                ${mostraAvbtn?`<button class="kcard-avbtn" onclick="abrirQuickAv(${d.id},event)" title="Avançar etapa">
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3.5,2 7.5,6 3.5,10"/></svg>
                 </button>`:''}
               </div>
             </div>
@@ -2818,25 +2819,23 @@ function abrirQuickAv(id,evt){
   if(!d||statusD(d)!=='Em andamento')return;
   quickAvId=id;
   const et=ETAPAS[d.etapa_atual]?.nome||'';
+  const proxIdx=d.etapa_atual+1;
+  const proxNome=proxIdx>=ETAPAS.length?'Concluído':ETAPAS[proxIdx]?.nome;
+  _avEtapaCtx={tipo:'avancar',demandaId:id};
+  document.getElementById('av-etapa-titulo').textContent=`Avançar para "${proxNome}"?`;
+  document.getElementById('av-etapa-subt').textContent=d.nome;
+  document.getElementById('av-etapa-resp').innerHTML='<option value="">Selecione...</option>'+colabs.map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('');
   const atosPend=getA(d).filter(a=>a.etapa===et&&!a.feito);
-  if(!atosPend.length){
-    const proxIdx=d.etapa_atual+1;
-    const proxNome=proxIdx>=ETAPAS.length?'Concluído':ETAPAS[proxIdx]?.nome;
-    _avEtapaCtx={tipo:'avancar',demandaId:id};
-    document.getElementById('av-etapa-titulo').textContent=`Confirmar avanço para "${proxNome}"?`;
-    document.getElementById('av-etapa-subt').textContent=d.nome;
-    document.getElementById('av-etapa-resp').innerHTML='<option value="">Selecione...</option>'+colabs.map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('');
-    openM('m-av-etapa');
-    return;
+  const aviso=document.getElementById('av-etapa-aviso');
+  if(aviso){
+    if(atosPend.length){
+      aviso.style.display='';
+      aviso.innerHTML=`⚠️ <strong>${atosPend.length} ato${atosPend.length>1?'s':''} pendente${atosPend.length>1?'s':''}</strong> nesta etapa. Você pode avançar mesmo assim.`;
+    }else{
+      aviso.style.display='none';
+    }
   }
-  document.getElementById('qav-titulo').textContent=d.nome;
-  document.getElementById('qav-subt').textContent=et;
-  document.getElementById('qav-ato').innerHTML=atosPend.map(a=>`<option value="${a.nome}">${a.nome}${a.prioridade==='alta'?' — urgente':''}</option>`).join('');
-  const opts='<option value="">Selecione...</option>'+colabs.map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('');
-  document.getElementById('qav-quem').innerHTML=opts;
-  document.getElementById('qav-delegar').innerHTML='<option value="">Sem delegação</option>'+colabs.map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('');
-  document.getElementById('qav-obs').value='';
-  openM('m-quick-av');
+  openM('m-av-etapa');
 }
 
 async function confirmarQuickAv(){
