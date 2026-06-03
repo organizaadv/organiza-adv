@@ -418,6 +418,20 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
 .spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:rot .6s linear infinite}
 @keyframes rot{to{transform:rotate(360deg)}}
 
+/* ── IA LOADING STATE ── */
+.ia-loading-card{background:var(--surface);border:1px solid var(--gdb);border-radius:var(--rmd);padding:32px 24px 28px;display:flex;flex-direction:column;align-items:center;gap:14px;animation:iaCardIn .22s ease;box-shadow:0 2px 12px rgba(201,168,76,.08)}
+.ia-loading-spinner{width:36px;height:36px;border:3px solid var(--gdb);border-top-color:var(--gold);border-radius:50%;animation:rot .85s linear infinite}
+.ia-loading-msg{font-size:13.5px;font-weight:500;color:var(--tx2);letter-spacing:-.01em}
+.ia-msg-in{animation:iaMsgIn .28s ease}
+.ia-loading-lines{width:100%;max-width:260px;display:flex;flex-direction:column;gap:8px;margin-top:2px}
+.ia-shimmer{height:9px;background:linear-gradient(90deg,var(--s2) 25%,var(--bd) 50%,var(--s2) 75%);background-size:200% 100%;border-radius:4px;animation:shimmer 1.6s ease-in-out infinite}
+.ia-shimmer:nth-child(2){width:72%;align-self:flex-start}
+.ia-shimmer:nth-child(3){width:88%;align-self:flex-start}
+.ia-btn-spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(201,168,76,.35);border-top-color:var(--gold);border-radius:50%;animation:rot .6s linear infinite;vertical-align:middle;margin-right:5px;margin-bottom:1px}
+@keyframes iaCardIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@keyframes iaMsgIn{from{opacity:0;transform:translateY(2px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
 /* ── BUSCA DROPDOWN ── */
 #busca-dropdown{border-radius:var(--rlg) !important;overflow:hidden;box-shadow:var(--s3s) !important}
 
@@ -6645,13 +6659,37 @@ function iaOnPdfChange(input){
   reader.readAsDataURL(file);
 }
 
+const IA_LOADING_MSGS=['Lendo o documento...','Identificando movimentações...','Gerando resumo jurídico...','Quase pronto...'];
+let _iaLoadTimer=null,_iaMsgIdx=0;
+function mostrarLoadingIA(btn,secId){
+  btn.disabled=true;btn.innerHTML='<span class="ia-btn-spin"></span>Analisando com IA...';
+  const sec=document.getElementById(secId);
+  if(sec)sec.style.display='none';
+  const old=document.getElementById('ia-loading-card');if(old)old.remove();
+  const card=document.createElement('div');card.id='ia-loading-card';card.className='ia-loading-card';
+  card.innerHTML='<div class="ia-loading-spinner"></div><div class="ia-loading-msg ia-msg-in" id="ia-loading-msg">Lendo o documento...</div><div class="ia-loading-lines"><div class="ia-shimmer"></div><div class="ia-shimmer"></div><div class="ia-shimmer"></div></div>';
+  if(sec)sec.insertAdjacentElement('beforebegin',card);
+  _iaMsgIdx=0;
+  _iaLoadTimer=setInterval(()=>{
+    _iaMsgIdx=(_iaMsgIdx+1)%IA_LOADING_MSGS.length;
+    const el=document.getElementById('ia-loading-msg');if(!el)return;
+    el.classList.remove('ia-msg-in');void el.offsetWidth;
+    el.textContent=IA_LOADING_MSGS[_iaMsgIdx];el.classList.add('ia-msg-in');
+  },1800);
+}
+function pararLoadingIA(btn){
+  clearInterval(_iaLoadTimer);_iaLoadTimer=null;
+  btn.disabled=false;btn.innerHTML='✨ Analisar com IA';
+  const card=document.getElementById('ia-loading-card');if(card)card.remove();
+}
+
 async function analisarIA(){
   const d=demandas.find(x=>String(x.id)===String(detId));
   if(!d)return;
   const texto=document.getElementById('ia-texto').value.trim();
   if(!texto&&!iaPdfBase64){toast('Informe o texto ou selecione um PDF','e');return;}
   const btn=document.getElementById('btn-analisar-ia');
-  btn.disabled=true;btn.textContent='Analisando...';
+  mostrarLoadingIA(btn,'ia-resultado-sec');
   try{
     const body={demandaNome:d.nome,demandaTipo:d.tipo,escritorioId:escData.id};
     if(iaPdfBase64)body.pdfBase64=iaPdfBase64;
@@ -6668,7 +6706,7 @@ async function analisarIA(){
     renderResultadoIA(res,'ia-resultado');
     document.getElementById('ia-resultado-sec').style.display='block';
   }catch(e){toast('Erro ao chamar IA','e');}
-  finally{btn.disabled=false;btn.textContent='✨ Analisar com IA';}
+  finally{pararLoadingIA(btn);}
 }
 
 function renderResultadoIA(r, containerId='ia-resultado'){
@@ -6892,7 +6930,7 @@ async function analisarIAView(){
   const texto=document.getElementById('ia-v-texto').value.trim();
   if(!texto&&!iaVPdfBase64){toast('Informe o texto ou selecione um PDF','e');return;}
   const btn=document.getElementById('ia-v-btn');
-  btn.disabled=true;btn.textContent='Analisando...';
+  mostrarLoadingIA(btn,'ia-v-resultado-sec');
   try{
     const body={demandaNome:c.nome,demandaTipo:'cliente',escritorioId:escData.id};
     if(iaVPdfBase64)body.pdfBase64=iaVPdfBase64;
@@ -6909,7 +6947,7 @@ async function analisarIAView(){
     renderResultadoIA(res,'ia-v-resultado');
     document.getElementById('ia-v-resultado-sec').style.display='block';
   }catch(e){toast('Erro ao chamar IA','e');}
-  finally{btn.disabled=false;btn.textContent='✨ Analisar com IA';}
+  finally{pararLoadingIA(btn);}
 }
 
 async function salvarSemIAView(){
