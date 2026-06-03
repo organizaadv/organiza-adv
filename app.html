@@ -2474,6 +2474,7 @@ function toast(msg,tipo='ts'){
 function hoje(){const d=new Date();return`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
 function iniciais(n){return(n||'').trim().split(' ').filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase();}
 function fmtMoeda(v){return'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function _wpp(tel){const n=String(tel||'').replace(/\D/g,'');return(n.length>=12&&n.startsWith('55'))?n:'55'+n;}
 function validarCpfCnpj(v){
   const n=v.replace(/\D/g,'');
   if(!n.length)return true;
@@ -6858,7 +6859,7 @@ function avisarClienteMovView(idx){
     ?'\n\n'+mov.proximos_passos.map(p=>`→ ${p}`).join('\n'):'';
   const resumo=mov.resumo||mov.texto||'Movimentação registrada';
   const msg=`📋 *${c.nome}*\n\n${resumo}${prazo}${passos}`;
-  window.open(`https://wa.me/55${tel.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');
+  window.open(`https://wa.me/${_wpp(tel)}?text=${encodeURIComponent(msg)}`,'_blank');
 }
 
 function criarDemandaMovView(){
@@ -6893,7 +6894,7 @@ function confirmarEnvioCliente(){
   const o=document.getElementById('m-envio-cliente');
   const tel=o?.dataset.tel||'';
   const msg=document.getElementById('envio-cli-msg')?.value||'';
-  if(tel)window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`,'_blank');
+  if(tel)window.open(`https://wa.me/${_wpp(tel)}?text=${encodeURIComponent(msg)}`,'_blank');
   o?.remove();
 }
 function enviarMsgClienteIA(){
@@ -6934,7 +6935,7 @@ function iaAlertarResponsavel(){
   const steps=(iaResultadoAtual.proximos_passos||[iaResultadoAtual.acao||'']).filter(Boolean).map(p=>`→ ${p}`).join('\n');
   const msg=`📋 *Movimentação — ${d.nome}*\n\n${iaResultadoAtual.resumo||''}${prazo}${steps?'\n\n'+steps:''}`;
   const num=tel.replace(/\D/g,'');
-  window.open(`https://wa.me/55${num}?text=${encodeURIComponent(msg)}`,'_blank');
+  window.open(`https://wa.me/${_wpp(num)}?text=${encodeURIComponent(msg)}`,'_blank');
 }
 
 // ── IA VIEW (sidebar dedicada) ──
@@ -7084,7 +7085,7 @@ function iaAlertarView(){
   const steps=(iaVResultado.proximos_passos||[iaVResultado.acao||'']).filter(Boolean).map(p=>`→ ${p}`).join('\n');
   const msg=`📋 *Movimentação — ${c.nome}*\n\n${iaVResultado.resumo||''}${prazo}${steps?'\n\n'+steps:''}`;
   const num=tel.replace(/\D/g,'');
-  window.open(`https://wa.me/55${num}?text=${encodeURIComponent(msg)}`,'_blank');
+  window.open(`https://wa.me/${_wpp(num)}?text=${encodeURIComponent(msg)}`,'_blank');
 }
 </script>
 </body>
