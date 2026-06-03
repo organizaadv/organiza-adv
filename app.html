@@ -4649,8 +4649,8 @@ function renderAtosDetalhe(d){
 let atoIdPendente=null;
 
 async function toggleAto(atoId){
-  const d=demandas.find(x=>x.id===detId);if(!d)return;
-  const atos=getA(d);const a=atos.find(x=>x.id===atoId);if(!a)return;
+  const d=demandas.find(x=>String(x.id)===String(detId));if(!d){toast('Erro: demanda não encontrada.','te');return;}
+  const atos=getA(d);const a=atos.find(x=>String(x.id)===String(atoId));if(!a){toast('Erro: ato não encontrado.','te');return;}
 
   if(a.feito){
     // Desfazer conclusão diretamente
@@ -4678,8 +4678,8 @@ function cancelarConclusao(){
 }
 
 async function confirmarConclusao(){
-  const d=demandas.find(x=>x.id===detId);if(!d||!atoIdPendente)return;
-  const atos=getA(d);const a=atos.find(x=>x.id===atoIdPendente);if(!a)return;
+  const d=demandas.find(x=>String(x.id)===String(detId));if(!d||!atoIdPendente){toast('Erro: demanda não encontrada.','te');return;}
+  const atos=getA(d);const a=atos.find(x=>String(x.id)===String(atoIdPendente));if(!a){toast('Erro: ato não encontrado.','te');return;}
   a.feito=true;
   a.dataFeito=hoje();
   a.conclObs=document.getElementById('concl-obs').value.trim()||null;
