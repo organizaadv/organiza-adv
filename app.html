@@ -507,7 +507,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
 <!-- ══ BANNER TRIAL ══ -->
 <div id="tb">
   <span id="tb-msg">Período de teste em andamento.</span>
-  <button class="tb-link" onclick="window.location.href='contratar.html'">Assinar agora →</button>
+  <button class="tb-link" onclick="mostrarPlanos()">Assinar agora →</button>
 </div>
 
 <!-- ══ SIDEBAR ══ -->
@@ -948,7 +948,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         <div class="cfg-sec">
           <div class="cfg-title">Plano atual</div>
           <div class="cfg-sub" id="cfg-plano">Carregando...</div>
-          <a href="contratar.html" class="btn btn-gh" style="text-decoration:none;">Gerenciar assinatura</a>
+          <button id="btn-cfg-assinatura" class="btn btn-gh" onclick="(escData?.plano==='trial'||!escData?.plano)?mostrarPlanos():window.open('mailto:contato@organizaadv.com.br?subject=Gerenciar assinatura','_blank')">Gerenciar assinatura</button>
         </div>
 
         <!-- MEU PERFIL -->
@@ -974,6 +974,24 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
 <!-- ════════════════════════════════════════ MODAIS ═════════════════════════════════════════ -->
 
 <!-- NOVA DEMANDA -->
+<div class="mov" id="m-creditos">
+  <div class="mbox" style="max-width:420px">
+    <div class="mhead">
+      <div><div class="mtitle">Limite de análises atingido</div><div class="msubt" id="m-creditos-sub">Você usou todas as análises do mês</div></div>
+      <button class="mx" onclick="closeM('m-creditos')">✕</button>
+    </div>
+    <div class="mbody">
+      <p style="font-size:13px;color:var(--tx2);margin-bottom:16px;">Compre um pacote de resumos de IA e continue usando agora mesmo. Os créditos são adicionados automaticamente após o pagamento.</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <a href="https://buy.stripe.com/14AfZj3X6e4e8aJ6R63ks00" target="_blank" class="btn btn-p" style="text-align:center;text-decoration:none;">Starter — 20 resumos por R$19,90</a>
+        <a href="https://buy.stripe.com/7sY6oJ79ie4e76F0sI3ks01" target="_blank" class="btn btn-p" style="text-align:center;text-decoration:none;">Pro — 60 resumos por R$49,90</a>
+        <a href="https://buy.stripe.com/fZu5kF1OY4tEez7dfu3ks02" target="_blank" class="btn btn-p" style="text-align:center;text-decoration:none;">Max — 200 resumos por R$129,90</a>
+      </div>
+      <p style="font-size:11px;color:var(--tx3);margin-top:14px;text-align:center;">Pagamento seguro via Stripe. Após confirmar, os créditos serão liberados em até 1 hora.</p>
+    </div>
+  </div>
+</div>
+
 <div class="mov" id="m-nova">
   <div class="mbox wide">
     <div class="mhead">
@@ -2643,24 +2661,74 @@ function bloqueioTrial(){
   const o=document.createElement('div');
   o.style.cssText='position:fixed;inset:0;background:rgba(20,24,32,.97);z-index:9998;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px)';
   o.innerHTML=`
-    <div style="text-align:center;max-width:460px;">
+    <div style="text-align:center;max-width:500px;">
       <div style="font-size:52px;margin-bottom:20px">⏰</div>
       <div style="font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:#fff;margin-bottom:10px;letter-spacing:-.4px">Período de teste encerrado</div>
-      <div style="font-size:15px;color:rgba(255,255,255,.55);line-height:1.75;margin-bottom:10px">Seus 7 dias gratuitos chegaram ao fim. Assine para continuar usando o OrganizaADV — todos os seus dados estão preservados.</div>
-      <div style="display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap">
-        <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:16px 24px;min-width:160px">
-          <div style="font-size:11px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Essencial</div>
-          <div style="font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:#fff">R$ 99<span style="font-size:14px;font-family:'Inter',sans-serif;color:rgba(255,255,255,.4)">/mês</span></div>
-          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px">2 advogados · 10 colaboradores</div>
+      <div style="font-size:15px;color:rgba(255,255,255,.55);line-height:1.75;margin-bottom:24px">Seus 7 dias gratuitos chegaram ao fim. Assine para continuar usando o OrganizaADV — todos os seus dados estão preservados.</div>
+      <div style="display:flex;gap:16px;justify-content:center;margin-bottom:20px;flex-wrap:wrap">
+        <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:20px 24px;min-width:170px;display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:11px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px">Essencial</div>
+          <div style="font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:#fff">R$ 97<span style="font-size:14px;font-family:'Inter',sans-serif;color:rgba(255,255,255,.4)">/mês</span></div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4)">2 advogados · 10 colaboradores</div>
+          <button id="btn-assinar-ess" onclick="assinarPlano('essencial',this)" style="margin-top:6px;background:#fff;color:#1A1A1F;padding:10px 0;border-radius:8px;font-size:13px;font-weight:700;border:none;cursor:pointer;width:100%">Assinar Essencial</button>
         </div>
-        <div style="background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);border-radius:12px;padding:16px 24px;min-width:160px">
-          <div style="font-size:11px;color:rgba(201,168,76,.7);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Avançado</div>
+        <div style="background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);border-radius:12px;padding:20px 24px;min-width:170px;display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:11px;color:rgba(201,168,76,.7);text-transform:uppercase;letter-spacing:1px">Avançado</div>
           <div style="font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:#C9A84C">R$ 149<span style="font-size:14px;font-family:'Inter',sans-serif;color:rgba(201,168,76,.5)">/mês</span></div>
-          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px">5 advogados · 25 colaboradores</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4)">5 advogados · 25 colaboradores</div>
+          <button id="btn-assinar-adv" onclick="assinarPlano('avancado',this)" style="margin-top:6px;background:#C9A84C;color:#1A1A1F;padding:10px 0;border-radius:8px;font-size:13px;font-weight:700;border:none;cursor:pointer;width:100%">Assinar Avançado</button>
         </div>
       </div>
-      <a href="contratar.html" style="background:#C9A84C;color:#1A1A1F;padding:14px 36px;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;display:inline-block;transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Assinar agora →</a>
-      <div style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.25)">Seus dados ficam preservados. Cancele quando quiser.</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.25)">Pagamento seguro via Stripe. Cancele quando quiser.</div>
+    </div>`;
+  document.body.appendChild(o);
+}
+async function assinarPlano(plano,btn){
+  const orig=btn.textContent;
+  btn.textContent='Aguarde...';
+  btn.disabled=true;
+  try{
+    const{data:{session}}=await db.auth.getSession();
+    if(!session){window.location.href='auth.html';return;}
+    const r=await fetch(`${SB_URL}/functions/v1/criar-checkout`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`},
+      body:JSON.stringify({plano})
+    });
+    const j=await r.json();
+    if(j.url){window.location.href=j.url;}
+    else throw new Error(j.error||'Erro ao criar sessão');
+  }catch(e){
+    btn.textContent=orig;
+    btn.disabled=false;
+    toast('Erro ao iniciar pagamento. Tente novamente.','err');
+  }
+}
+function mostrarPlanos(){
+  if(document.getElementById('overlay-planos'))return;
+  const o=document.createElement('div');
+  o.id='overlay-planos';
+  o.style.cssText='position:fixed;inset:0;background:rgba(20,24,32,.95);z-index:9998;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px)';
+  o.innerHTML=`
+    <div style="text-align:center;max-width:500px;position:relative;">
+      <button onclick="document.getElementById('overlay-planos').remove()" style="position:absolute;top:-36px;right:0;background:none;border:none;color:rgba(255,255,255,.4);font-size:22px;cursor:pointer;line-height:1;padding:4px">✕</button>
+      <div style="font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:#fff;margin-bottom:8px;letter-spacing:-.4px">Escolha seu plano</div>
+      <div style="font-size:15px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:24px">Assine agora e mantenha acesso a todos os seus dados.</div>
+      <div style="display:flex;gap:16px;justify-content:center;margin-bottom:20px;flex-wrap:wrap">
+        <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:20px 24px;min-width:170px;display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:11px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px">Essencial</div>
+          <div style="font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:#fff">R$ 97<span style="font-size:14px;font-family:'Inter',sans-serif;color:rgba(255,255,255,.4)">/mês</span></div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4)">2 advogados · 10 colaboradores</div>
+          <button onclick="assinarPlano('essencial',this)" style="margin-top:6px;background:#fff;color:#1A1A1F;padding:10px 0;border-radius:8px;font-size:13px;font-weight:700;border:none;cursor:pointer;width:100%">Assinar Essencial</button>
+        </div>
+        <div style="background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);border-radius:12px;padding:20px 24px;min-width:170px;display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:11px;color:rgba(201,168,76,.7);text-transform:uppercase;letter-spacing:1px">Avançado</div>
+          <div style="font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:#C9A84C">R$ 149<span style="font-size:14px;font-family:'Inter',sans-serif;color:rgba(201,168,76,.5)">/mês</span></div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4)">5 advogados · 25 colaboradores</div>
+          <button onclick="assinarPlano('avancado',this)" style="margin-top:6px;background:#C9A84C;color:#1A1A1F;padding:10px 0;border-radius:8px;font-size:13px;font-weight:700;border:none;cursor:pointer;width:100%">Assinar Avançado</button>
+        </div>
+      </div>
+      <div style="font-size:12px;color:rgba(255,255,255,.25)">Pagamento seguro via Stripe. Cancele quando quiser.</div>
     </div>`;
   document.body.appendChild(o);
 }
@@ -5229,7 +5297,7 @@ function renderCfg(){
   }
   const trialFim=escData.trial_fim||escData.trial_expira;
   const dias=calcPrazo(trialFim?.split('T')[0]);
-  document.getElementById('cfg-plano').textContent=escData.plano==='avancado'?'Plano Avançado ativo — R$ 149/mês · Até 5 advogados e 25 colaboradores':escData.plano==='essencial'?'Plano Essencial ativo — R$ 99/mês · Até 2 advogados e 10 colaboradores':`Período de teste${dias!==null?` — ${dias>0?dias+' dias restantes':'Expirado'}`:''}.`;
+  document.getElementById('cfg-plano').textContent=escData.plano==='avancado'?'Plano Avançado ativo — R$ 149/mês · Até 5 advogados e 25 colaboradores':escData.plano==='essencial'?'Plano Essencial ativo — R$ 97/mês · Até 2 advogados e 10 colaboradores':`Período de teste${dias!==null?` — ${dias>0?dias+' dias restantes':'Expirado'}`:''}.`;
   // Preenche campos do perfil pessoal
   const meuNomeEl=document.getElementById('meu-nome');
   const wppEl=document.getElementById('meu-wpp');
@@ -6553,6 +6621,13 @@ window.addEventListener('load',async()=>{
 
   if(!escData.onboarding_completo&&usuarioAtual.perfil==='titular'){obIniciar();return;}
   mostrarResumoDiario();
+
+  // Retorno do checkout Stripe
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('assinatura')==='ok'){
+    history.replaceState({},'','/app.html');
+    toast('Assinatura confirmada! Seu plano será ativado em instantes.','ok');
+  }
 });
 
 // ── IA / MOVIMENTAÇÕES ──
@@ -6577,7 +6652,7 @@ async function analisarIA(){
   const btn=document.getElementById('btn-analisar-ia');
   btn.disabled=true;btn.textContent='Analisando...';
   try{
-    const body={demandaNome:d.nome,demandaTipo:d.tipo};
+    const body={demandaNome:d.nome,demandaTipo:d.tipo,escritorioId:escData.id};
     if(iaPdfBase64)body.pdfBase64=iaPdfBase64;
     if(texto)body.movimentacao={texto};
     const r=await fetch(`${SB_URL}/functions/v1/resumir-ia`,{
@@ -6586,6 +6661,7 @@ async function analisarIA(){
       body:JSON.stringify(body)
     });
     const res=await r.json();
+    if(res?._limite){document.getElementById('m-creditos-sub').textContent=`Você usou ${res.uso} de ${res.limite} análises este mês`;openM('m-creditos');return;}
     if(!res||res._erro){toast('IA não conseguiu analisar. Tente novamente.','e');console.error(res?._erro);return;}
     iaResultadoAtual=res;
     renderResultadoIA(res,'ia-resultado');
@@ -6803,7 +6879,7 @@ async function analisarIAView(){
   const btn=document.getElementById('ia-v-btn');
   btn.disabled=true;btn.textContent='Analisando...';
   try{
-    const body={demandaNome:c.nome,demandaTipo:'cliente'};
+    const body={demandaNome:c.nome,demandaTipo:'cliente',escritorioId:escData.id};
     if(iaVPdfBase64)body.pdfBase64=iaVPdfBase64;
     if(texto)body.movimentacao={texto};
     const r=await fetch(`${SB_URL}/functions/v1/resumir-ia`,{
@@ -6812,6 +6888,7 @@ async function analisarIAView(){
       body:JSON.stringify(body)
     });
     const res=await r.json();
+    if(res?._limite){document.getElementById('m-creditos-sub').textContent=`Você usou ${res.uso} de ${res.limite} análises este mês`;openM('m-creditos');return;}
     if(!res||res._erro){toast('IA não conseguiu analisar. Tente novamente.','e');console.error(res?._erro);return;}
     iaVResultado=res;
     renderResultadoIA(res,'ia-v-resultado');
