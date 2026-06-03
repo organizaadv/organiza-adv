@@ -5928,14 +5928,18 @@ async function salvarEvento(){
     cliente_id:document.getElementById('ag-cliente').value||null,
     wpp_notif:document.getElementById('ag-wpp').value.trim()||null,
   };
-  let error;
-  if(agEditId){
-    const r=await db.from('agenda').update(payload).eq('id',agEditId);
-    error=r.error;
-    if(!error){const i=agenda.findIndex(x=>x.id===agEditId);if(i>=0)agenda[i]={...agenda[i],...payload};}
-  } else {
-    const r=await db.from('agenda').insert([payload]).select().single();
-    error=r.error;if(!error)agenda.push(r.data);
+  let error,data_saved;
+  for(let i=0;i<8;i++){
+    if(agEditId){
+      const r=await db.from('agenda').update(payload).eq('id',agEditId);
+      error=r.error;
+      if(!error){const idx=agenda.findIndex(x=>x.id===agEditId);if(idx>=0)agenda[idx]={...agenda[idx],...payload};break;}
+    } else {
+      const r=await db.from('agenda').insert([payload]).select().single();
+      error=r.error;if(!error){data_saved=r.data;agenda.push(r.data);break;}
+    }
+    const m=error?.message?.match(/find the '(\w+)' column/);
+    if(m){delete payload[m[1]];}else break;
   }
   btn.disabled=false;btn.textContent='Salvar evento';
   if(error){toast('Erro: '+error.message,'te');return;}
