@@ -988,6 +988,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         <a href="https://buy.stripe.com/fZu5kF1OY4tEez7dfu3ks02" target="_blank" class="btn btn-p" style="text-align:center;text-decoration:none;">Max — 200 resumos por R$129,90</a>
       </div>
       <p style="font-size:11px;color:var(--tx3);margin-top:14px;text-align:center;">Pagamento seguro via Stripe. Após confirmar, os créditos serão liberados em até 1 hora.</p>
+      <p style="font-size:11px;color:var(--am);margin-top:6px;text-align:center;font-weight:500;">⚠️ Use o mesmo e-mail do seu cadastro na hora do pagamento.</p>
     </div>
   </div>
 </div>
@@ -6661,7 +6662,7 @@ async function analisarIA(){
       body:JSON.stringify(body)
     });
     const res=await r.json();
-    if(res?._limite){document.getElementById('m-creditos-sub').textContent=`Você usou ${res.uso} de ${res.limite} análises este mês`;openM('m-creditos');return;}
+    if(res?._limite){document.getElementById('m-creditos-sub').textContent=res.plano==='trial'?'Você usou todos os seus 10 créditos gratuitos':`Você usou ${res.uso} de ${res.limite} análises este mês`;openM('m-creditos');return;}
     if(!res||res._erro){toast('IA não conseguiu analisar. Tente novamente.','e');console.error(res?._erro);return;}
     iaResultadoAtual=res;
     renderResultadoIA(res,'ia-resultado');
@@ -6902,7 +6903,7 @@ async function analisarIAView(){
       body:JSON.stringify(body)
     });
     const res=await r.json();
-    if(res?._limite){document.getElementById('m-creditos-sub').textContent=`Você usou ${res.uso} de ${res.limite} análises este mês`;openM('m-creditos');return;}
+    if(res?._limite){document.getElementById('m-creditos-sub').textContent=res.plano==='trial'?'Você usou todos os seus 10 créditos gratuitos':`Você usou ${res.uso} de ${res.limite} análises este mês`;openM('m-creditos');return;}
     if(!res||res._erro){toast('IA não conseguiu analisar. Tente novamente.','e');console.error(res?._erro);return;}
     iaVResultado=res;
     renderResultadoIA(res,'ia-v-resultado');

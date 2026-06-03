@@ -6,7 +6,7 @@ const CORS = {
 }
 
 const LIMITES: Record<string, number> = {
-  trial: 10,
+  trial: 0,      // trial não tem cota mensal — usa apenas ia_creditos_extras
   essencial: 50,
   avancado: 150,
   pro: 150,
