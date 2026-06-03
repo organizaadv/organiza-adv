@@ -1185,9 +1185,6 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
             </div>
           </div>
         </div>
-        <div class="detsec" id="det-voltar-sec">
-          <button class="btn btn-gh" style="width:100%;" onclick="voltarEtapa()">← Voltar etapa</button>
-        </div>
         <div class="detsec" style="border-bottom:none;margin-bottom:0;padding-bottom:0;">
           <div class="detsec-title">Histórico de fases</div>
           <div id="det-hist"></div>
@@ -1265,6 +1262,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
     <div class="mfoot">
       <button class="btn btn-danger" onclick="excluirDemanda()">Excluir demanda</button>
       <div class="mfoot-r">
+        <button class="btn btn-gh" id="det-voltar-sec" onclick="voltarEtapa()">← Voltar etapa</button>
         <button class="btn btn-gh" onclick="exportPDF()">📄 Exportar PDF</button>
         <button class="btn btn-gh" onclick="abrirEdicao()">✏️ Editar dados</button>
         <button class="btn btn-gh" onclick="closeM('m-det')">Fechar</button>
