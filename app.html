@@ -1733,7 +1733,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         <div class="field"><label class="flabel">Horário</label><input type="time" class="finp" id="ag-hora"/></div>
       </div>
       <div class="field"><label class="flabel">Local / fórum</label><input type="text" class="finp" id="ag-local" placeholder="Ex.: 2ª Vara Cível de Salvador — Sala 3"/></div>
-      <div class="field"><label class="flabel">Demanda vinculada</label><select class="fsel" id="ag-demanda"><option value="">Nenhuma</option></select></div>
+      <div class="field"><label class="flabel">Cliente vinculado</label><select class="fsel" id="ag-cliente"><option value="">Nenhum</option></select></div>
       <div class="field"><label class="flabel">Descrição / observações</label><textarea class="fta" id="ag-desc" placeholder="Detalhes relevantes sobre o evento..." style="min-height:60px"></textarea></div>
       <div style="background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:4px;">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);margin-bottom:10px;">Lembrete por WhatsApp</div>
@@ -2760,7 +2760,7 @@ function initRespSel(){
   const nomes=colabs.map(c=>c.nome);
   const opts='<option value="">Selecione...</option>'+nomes.map(n=>`<option value="${n}">${n}</option>`).join('');
   ['f-resp','ato-resp','at-resp','ag-resp'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
-  initAgendaDemandaSel();
+  initAgendaClienteSel();
   const del=document.getElementById('ato-deleg');
   if(del)del.innerHTML='<option value="">Não delegar</option>'+nomes.map(n=>`<option value="${n}">${n}</option>`).join('');
 }
@@ -5888,9 +5888,10 @@ function abrirEvento(id){
   document.getElementById('ag-resp').value=a.responsavel||'';
   document.getElementById('ag-wpp').value=a.wpp_notif||'';
   document.getElementById('ag-notif-ant').value=a.notif_antecedencia||'1 dia';
-  // vincula demanda
-  const sel=document.getElementById('ag-demanda');
-  if(sel)sel.value=a.demanda_id||'';
+  // vincula cliente
+  initAgendaClienteSel();
+  const sel=document.getElementById('ag-cliente');
+  if(sel)sel.value=a.cliente_id||'';
   document.getElementById('ag-btn-excluir').style.display='';
   openM('m-agenda');
 }
@@ -5898,16 +5899,17 @@ function abrirNovoEvento(){
   agEditId=null;
   document.getElementById('mag-titulo').textContent='Novo evento';
   ['ag-titulo','ag-hora','ag-local','ag-desc','ag-wpp'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  initAgendaClienteSel();const agcli=document.getElementById('ag-cliente');if(agcli)agcli.value='';;
   document.getElementById('ag-tipo').value='Audiência';
   document.getElementById('ag-data').value=new Date().toISOString().split('T')[0];
   document.getElementById('ag-notif-ant').value='1 dia';
   document.getElementById('ag-btn-excluir').style.display='none';
   openM('m-agenda');
 }
-function initAgendaDemandaSel(){
-  const sel=document.getElementById('ag-demanda');
+function initAgendaClienteSel(){
+  const sel=document.getElementById('ag-cliente');
   if(!sel)return;
-  sel.innerHTML='<option value="">Nenhuma</option>'+demandas.filter(d=>d.status!=='Cancelado').map(d=>`<option value="${d.id}">${d.nome} — ${d.tipo||'Sem tipo'}</option>`).join('');
+  sel.innerHTML='<option value="">Nenhum</option>'+[...clientes].sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR')).map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
 }
 async function salvarEvento(){
   const titulo=document.getElementById('ag-titulo').value.trim();
@@ -5922,7 +5924,7 @@ async function salvarEvento(){
     local:document.getElementById('ag-local').value.trim()||null,
     descricao:document.getElementById('ag-desc').value.trim()||null,
     responsavel:document.getElementById('ag-resp').value||null,
-    demanda_id:document.getElementById('ag-demanda').value||null,
+    cliente_id:document.getElementById('ag-cliente').value||null,
     wpp_notif:document.getElementById('ag-wpp').value.trim()||null,
     notif_antecedencia:document.getElementById('ag-notif-ant').value,
   };
