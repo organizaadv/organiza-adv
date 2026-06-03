@@ -729,6 +729,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
             <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--div);padding-top:12px;">
               <button class="btn btn-sm btn-p" onclick="salvarMovimentacaoView()">💾 Salvar com análise da IA</button>
               <button class="btn btn-sm btn-gh" onclick="cancelarResumoIAView()">Cancelar</button>
+              <button class="btn btn-sm btn-gh" onclick="enviarMsgClienteIAView()" style="color:#065F46;border-color:#A7F3D0;">💬 Enviar para cliente</button>
               <button class="btn btn-sm btn-gh" onclick="iaDefinirPrazoView()">📅 Definir prazo</button>
               <button class="btn btn-sm btn-gh" onclick="iaAlertarView()">📲 Alertar responsável</button>
             </div>
@@ -1246,6 +1247,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
           <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--div);padding-top:12px;">
             <button class="btn btn-sm btn-p" onclick="salvarMovimentacao()">💾 Salvar movimentação</button>
             <button class="btn btn-sm btn-gh" onclick="cancelarResumoIA()">Cancelar</button>
+            <button class="btn btn-sm btn-gh" onclick="enviarMsgClienteIA()" style="color:#065F46;border-color:#A7F3D0;">💬 Enviar para cliente</button>
             <button class="btn btn-sm btn-gh" onclick="iaDefinirPrazo()">📅 Definir prazo</button>
             <button class="btn btn-sm btn-gh" onclick="iaAlertarResponsavel()">📲 Alertar responsável</button>
           </div>
@@ -6870,6 +6872,41 @@ function cancelarResumoIA(){
 function cancelarResumoIAView(){
   document.getElementById('ia-v-resultado-sec').style.display='none';
   iaVResultado=null;
+}
+function _msgCliente(res,nomeCliente){
+  const primeiroPasso=Array.isArray(res.proximos_passos)&&res.proximos_passos.length
+    ?`\n\n📌 *Próximo passo:* ${res.proximos_passos[0]}`:'';
+  const prazo=res.prazo?`\n\n⚠️ *Prazo:* ${res.prazo}${res.alerta_prazo?' — '+res.alerta_prazo:''}`:'' ;
+  return`Olá, *${nomeCliente}*! Aqui é do escritório *${escData.nome||''}*. 👋\n\nPassamos para informar uma atualização no seu processo:\n\n${res.resumo||''}${res.situacao?'\n\n'+res.situacao:''}${prazo}${primeiroPasso}\n\nQualquer dúvida, estamos à disposição!`;
+}
+function _abrirModalMsgCliente(tel,msg){
+  const old=document.getElementById('m-envio-cliente');if(old)old.remove();
+  const o=document.createElement('div');
+  o.id='m-envio-cliente';o.className='mov';o.style.display='flex';
+  o.dataset.tel=tel;
+  o.innerHTML=`<div class="mbox"><div class="mhead"><div><div class="mtitle">Mensagem para o cliente</div><div class="msubt">Revise e edite antes de enviar pelo WhatsApp</div></div><button class="mx" onclick="document.getElementById('m-envio-cliente').remove()">✕</button></div><div class="mbody"><textarea id="envio-cli-msg" class="finp" rows="9" style="resize:vertical;font-size:13px;line-height:1.65;font-family:inherit;">${msg.replace(/</g,'&lt;')}</textarea><div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end;"><button class="btn btn-gh" onclick="document.getElementById('m-envio-cliente').remove()">Cancelar</button><button class="btn btn-p" onclick="confirmarEnvioCliente()">💬 Abrir no WhatsApp</button></div></div></div>`;
+  document.body.appendChild(o);
+}
+function confirmarEnvioCliente(){
+  const o=document.getElementById('m-envio-cliente');
+  const tel=o?.dataset.tel||'';
+  const msg=document.getElementById('envio-cli-msg')?.value||'';
+  if(tel)window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`,'_blank');
+  o?.remove();
+}
+function enviarMsgClienteIA(){
+  const d=demandas.find(x=>String(x.id)===String(detId));
+  if(!d||!iaResultadoAtual){toast('Gere o resumo da IA antes de enviar','e');return;}
+  const tel=(d.tel||'').replace(/\D/g,'');
+  if(!tel){toast('Cliente sem WhatsApp cadastrado nesta demanda','e');return;}
+  _abrirModalMsgCliente(tel,_msgCliente(iaResultadoAtual,d.nome));
+}
+function enviarMsgClienteIAView(){
+  const c=clientes.find(x=>String(x.id)===String(iaVDetId));
+  if(!c||!iaVResultado){toast('Gere o resumo da IA antes de enviar','e');return;}
+  const tel=(c.telefone||'').replace(/\D/g,'');
+  if(!tel){toast('Cliente sem WhatsApp cadastrado','e');return;}
+  _abrirModalMsgCliente(tel,_msgCliente(iaVResultado,c.nome));
 }
 
 function iaDefinirPrazo(){
