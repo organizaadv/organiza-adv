@@ -1185,6 +1185,13 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
             </div>
           </div>
         </div>
+        <div class="detsec">
+          <div class="detsec-title">Mover para etapa</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <select class="fsel" id="det-mover-etapa" style="flex:1;"></select>
+            <button class="btn btn-gh" onclick="moverParaEtapa()">Mover</button>
+          </div>
+        </div>
         <div class="detsec" style="border-bottom:none;margin-bottom:0;padding-bottom:0;">
           <div class="detsec-title">Histórico de fases</div>
           <div id="det-hist"></div>
@@ -4592,6 +4599,8 @@ function abrirDet(id){
       </div>`).join('');
     const conc=statusD(d)==='Concluído';
     document.getElementById('det-avanco').style.display=conc?'none':'block';
+    const selMover=document.getElementById('det-mover-etapa');
+    if(selMover){selMover.innerHTML=ETAPAS.map((e,idx)=>`<option value="${idx}" ${idx===d.etapa_atual&&!conc?'selected':''}>${idx+1}. ${e.nome}</option>`).join('');}
     const hist=getH(d);
     document.getElementById('det-hist').innerHTML=hist.length?hist.map(h=>`<div class="hist-item">
       <div class="hist-top"><span class="hist-et">${h.etapa}</span><span class="hist-dt">${h.data}</span></div>
@@ -4789,6 +4798,18 @@ async function voltar(){
   if(error){toast('Erro: '+error.message,'te');return;}
   d.etapa_atual=nova;d.status='Em andamento';abrirDet(detId);renderKanban();
   toast(`Voltou para: ${ETAPAS[nova]?.nome}`);
+}
+
+async function moverParaEtapa(){
+  const d=demandas.find(x=>String(x.id)===String(detId));if(!d)return;
+  const nova=parseInt(document.getElementById('det-mover-etapa').value);
+  if(isNaN(nova)||nova===d.etapa_atual)return;
+  if(!confirm(`Mover para "${ETAPAS[nova]?.nome}"?`))return;
+  const{error}=await db.from('demandas_escritorio').update({etapa_atual:nova,status:'Em andamento'}).eq('id',detId);
+  if(error){toast('Erro: '+error.message,'te');return;}
+  d.etapa_atual=nova;d.status='Em andamento';
+  abrirDet(detId);renderKanban();
+  toast(`Movido para: ${ETAPAS[nova]?.nome}`);
 }
 
 function toggleEditTipoOutro(){
