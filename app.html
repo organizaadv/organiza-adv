@@ -5432,8 +5432,9 @@ function moverEtapa(i,dir){
 }
 
 async function salvarEtapas(){
-  const{error}=await db.from('escritorios').update({etapas:JSON.stringify(ETAPAS)}).eq('id',escData.id);
+  const{data:updated,error}=await db.from('escritorios').update({etapas:JSON.stringify(ETAPAS)}).eq('id',escData.id).select('id');
   if(error){toast('Erro ao salvar etapas: '+error.message,'te');return;}
+  if(!updated||updated.length===0){toast('Não foi possível salvar. Peça ao Vini rodar o SQL 014 no Supabase.','te');return;}
   escData.etapas=ETAPAS;
   renderKanban();
   toast('Etapas salvas com sucesso!');
