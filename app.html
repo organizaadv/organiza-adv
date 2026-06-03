@@ -5360,11 +5360,18 @@ function renderCfgEtapas(){
   lista.innerHTML=ETAPAS.map((e,i)=>`
     <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--rsm);">
       <span style="font-size:12px;color:var(--tx3);width:20px;text-align:center;font-weight:600;">${i+1}</span>
-      <span style="flex:1;font-size:13.5px;font-weight:500;">${e.nome}</span>
+      <input id="etapa-inp-${i}" value="${e.nome.replace(/"/g,'&quot;')}" style="flex:1;font-size:13.5px;font-weight:500;background:transparent;border:none;outline:none;color:var(--tx);padding:2px 4px;border-radius:4px;cursor:text;" onchange="renomearEtapa(${i},this.value)" onfocus="this.style.background='var(--surface)';this.style.border='1px solid var(--gdb)'" onblur="this.style.background='transparent';this.style.border='none'"/>
       <button onclick="moverEtapa(${i},-1)" ${i===0?'disabled':''} style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:14px;padding:2px 6px;" title="Subir">↑</button>
       <button onclick="moverEtapa(${i},1)" ${i===ETAPAS.length-1?'disabled':''} style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:14px;padding:2px 6px;" title="Descer">↓</button>
       <button onclick="removeEtapa(${i})" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:16px;padding:2px 6px;transition:color .15s;" onmouseover="this.style.color='var(--rd)'" onmouseout="this.style.color='var(--tx3)'" title="Remover">×</button>
     </div>`).join('');
+}
+function renomearEtapa(i,novoNome){
+  novoNome=novoNome.trim();
+  if(!novoNome){document.getElementById('etapa-inp-'+i).value=ETAPAS[i].nome;toast('O nome não pode ser vazio.','te');return;}
+  if(ETAPAS.some((e,j)=>j!==i&&e.nome.toLowerCase()===novoNome.toLowerCase())){document.getElementById('etapa-inp-'+i).value=ETAPAS[i].nome;toast('Já existe uma etapa com este nome.','te');return;}
+  ETAPAS[i].nome=novoNome;ETAPAS[i].label=novoNome;
+  initEtapaSel();
 }
 
 function addEtapa(){
