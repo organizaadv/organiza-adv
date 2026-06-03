@@ -2780,6 +2780,8 @@ function showView(v){
   });
   const n=document.getElementById('n-'+v);if(n)n.classList.add('on');
   document.getElementById('view-title').textContent=VTITLES[v]||v;
+  const btnNovaDem=document.getElementById('btn-nova-demanda');
+  if(btnNovaDem)btnNovaDem.style.display=['kanban','demandas'].includes(v)&&temPermissao('criar_demandas')?'':'none';
   // oculta busca global nas abas que têm busca própria
   const bgWrap=document.querySelector('.topbar .tb-right > div[style*="relative"]')||document.getElementById('busca-global')?.parentElement;
   if(bgWrap)bgWrap.style.display=['clientes','atendimentos','demandas','fin','processos'].includes(v)?'none':'';
