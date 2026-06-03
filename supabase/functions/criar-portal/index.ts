@@ -10,6 +10,13 @@ const CORS = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+async function stripeGet(path: string) {
+  const r = await fetch(`https://api.stripe.com/v1/${path}`, {
+    headers: { 'Authorization': `Bearer ${STRIPE_KEY}` },
+  })
+  return r.json()
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
@@ -25,7 +32,6 @@ serve(async (req) => {
       })
     }
 
-    // Busca escritório do usuário
     const { data: usuario } = await sbAdmin
       .from('usuarios')
       .select('escritorio_id')
@@ -40,11 +46,42 @@ serve(async (req) => {
 
     const { data: escritorio } = await sbAdmin
       .from('escritorios')
-      .select('stripe_customer_id, plano')
+      .select('stripe_customer_id, stripe_subscription_id, plano, email')
       .eq('id', usuario.escritorio_id)
       .single()
 
-    if (!escritorio?.stripe_customer_id) {
+    let customerId: string = escritorio?.stripe_customer_id ?? ''
+
+    // Fallback: se não tem customer_id mas tem subscription_id, busca no Stripe e salva
+    if (!customerId && escritorio?.stripe_subscription_id) {
+      console.log('Buscando customer via subscription:', escritorio.stripe_subscription_id)
+      const sub = await stripeGet(`subscriptions/${escritorio.stripe_subscription_id}`)
+      if (sub.customer) {
+        customerId = sub.customer
+        await sbAdmin
+          .from('escritorios')
+          .update({ stripe_customer_id: customerId })
+          .eq('id', usuario.escritorio_id)
+        console.log('stripe_customer_id salvo retroativamente:', customerId)
+      }
+    }
+
+    // Fallback: busca customer pelo e-mail do escritório
+    if (!customerId && escritorio?.email) {
+      console.log('Buscando customer por e-mail:', escritorio.email)
+      const list = await stripeGet(`customers?email=${encodeURIComponent(escritorio.email)}&limit=1`)
+      const found = list.data?.[0]
+      if (found?.id) {
+        customerId = found.id
+        await sbAdmin
+          .from('escritorios')
+          .update({ stripe_customer_id: customerId })
+          .eq('id', usuario.escritorio_id)
+        console.log('stripe_customer_id salvo via e-mail:', customerId)
+      }
+    }
+
+    if (!customerId) {
       return new Response(JSON.stringify({ error: 'sem_assinatura' }), {
         status: 400, headers: { ...CORS, 'Content-Type': 'application/json' },
       })
@@ -59,7 +96,7 @@ serve(async (req) => {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        'customer': escritorio.stripe_customer_id,
+        'customer': customerId,
         'return_url': `${origin}/app.html`,
       }).toString(),
     })
