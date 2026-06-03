@@ -65,13 +65,15 @@ serve(async (req) => {
       const plano: string        = session.metadata?.plano ?? ''
       const escritorioId: string = session.metadata?.escritorio_id ?? ''
       const subId: string        = session.subscription ?? ''
+      const customerId: string   = session.customer ?? ''
       if (escritorioId && plano) {
         await patchEscritorio(escritorioId, {
           plano,
           ativo: true,
           stripe_subscription_id: subId || null,
+          stripe_customer_id: customerId || null,
         })
-        console.log(`✅ Plano ${plano} ativado — escritório ${escritorioId}`)
+        console.log(`✅ Plano ${plano} ativado — escritório ${escritorioId} — customer ${customerId}`)
       }
     } else {
       // Compra de créditos avulsos via payment link

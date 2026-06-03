@@ -986,7 +986,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         <div class="cfg-sec">
           <div class="cfg-title">Plano atual</div>
           <div class="cfg-sub" id="cfg-plano">Carregando...</div>
-          <button id="btn-cfg-assinatura" class="btn btn-gh" onclick="(escData?.plano==='trial'||!escData?.plano)?mostrarPlanos():window.open('mailto:contato@organizaadv.com.br?subject=Gerenciar assinatura','_blank')">Gerenciar assinatura</button>
+          <button id="btn-cfg-assinatura" class="btn btn-gh" onclick="gerenciarAssinatura(this)">Gerenciar assinatura</button>
         </div>
 
         <!-- MEU PERFIL -->
@@ -2731,6 +2731,26 @@ function bloqueioTrial(){
       <div style="font-size:12px;color:rgba(255,255,255,.25)">Pagamento seguro via Stripe. Cancele quando quiser.</div>
     </div>`;
   document.body.appendChild(o);
+}
+async function gerenciarAssinatura(btn){
+  const planosPagos=['essencial','avancado','pro'];
+  if(!planosPagos.includes(escData?.plano)){mostrarPlanos();return;}
+  const orig=btn.textContent;
+  btn.textContent='Aguarde...';btn.disabled=true;
+  try{
+    const{data:{session}}=await db.auth.getSession();
+    if(!session){window.location.href='auth.html';return;}
+    const r=await fetch(`${SB_URL}/functions/v1/criar-portal`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`}
+    });
+    const j=await r.json();
+    if(j.url){window.location.href=j.url;}
+    else if(j.error==='sem_assinatura'){toast('Nenhuma assinatura ativa encontrada.','e');}
+    else throw new Error(j.error||'Erro ao abrir portal');
+  }catch(e){
+    toast('Erro ao abrir portal de assinatura. Tente novamente.','e');
+  }finally{btn.textContent=orig;btn.disabled=false;}
 }
 async function assinarPlano(plano,btn){
   const orig=btn.textContent;
