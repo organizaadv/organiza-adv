@@ -5885,7 +5885,7 @@ function abrirEvento(id){
   document.getElementById('ag-data').value=a.data_evento||'';
   document.getElementById('ag-hora').value=a.hora_evento||'';
   document.getElementById('ag-local').value=a.local||'';
-  document.getElementById('ag-desc').value=a.descricao||'';
+  document.getElementById('ag-desc').value=a.obs||'';
   document.getElementById('ag-resp').value=a.responsavel||'';
   document.getElementById('ag-wpp').value=a.wpp_notif||'';
   document.getElementById('ag-notif-ant').value=a.notif_antecedencia||'1 dia';
@@ -5923,7 +5923,7 @@ async function salvarEvento(){
     titulo,tipo:document.getElementById('ag-tipo').value,
     data_evento:data,hora_evento:document.getElementById('ag-hora').value||null,
     local:document.getElementById('ag-local').value.trim()||null,
-    descricao:document.getElementById('ag-desc').value.trim()||null,
+    obs:document.getElementById('ag-desc').value.trim()||null,
     responsavel:document.getElementById('ag-resp').value||null,
     cliente_id:document.getElementById('ag-cliente').value||null,
     wpp_notif:document.getElementById('ag-wpp').value.trim()||null,
