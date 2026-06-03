@@ -974,6 +974,16 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
           </div>
         </div>
         <div class="cfg-sec">
+          <div class="cfg-title">Mover demandas entre etapas</div>
+          <div class="cfg-sub">Move todas as demandas de uma coluna para outra de uma vez.</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;">
+            <select class="fsel" id="cfg-mover-de" style="flex:1;min-width:120px;"></select>
+            <span style="font-size:13px;color:var(--tx3);">→</span>
+            <select class="fsel" id="cfg-mover-para" style="flex:1;min-width:120px;"></select>
+            <button class="btn btn-p" onclick="moverDemandasEntreEtapas()">Mover</button>
+          </div>
+        </div>
+        <div class="cfg-sec">
           <div class="cfg-title">Plano atual</div>
           <div class="cfg-sub" id="cfg-plano">Carregando...</div>
           <button id="btn-cfg-assinatura" class="btn btn-gh" onclick="(escData?.plano==='trial'||!escData?.plano)?mostrarPlanos():window.open('mailto:contato@organizaadv.com.br?subject=Gerenciar assinatura','_blank')">Gerenciar assinatura</button>
@@ -5374,6 +5384,28 @@ function renderCfg(){
   document.getElementById('meu-pw1').value='';
   document.getElementById('meu-pw2').value='';
   renderCfgEtapas();
+  _renderCfgMoverSels();
+}
+function _renderCfgMoverSels(){
+  const opts=ETAPAS.map((e,i)=>`<option value="${i}">${i+1}. ${e.nome}</option>`).join('');
+  const de=document.getElementById('cfg-mover-de');
+  const para=document.getElementById('cfg-mover-para');
+  if(de)de.innerHTML=opts;
+  if(para)para.innerHTML=opts;
+}
+async function moverDemandasEntreEtapas(){
+  const de=parseInt(document.getElementById('cfg-mover-de').value);
+  const para=parseInt(document.getElementById('cfg-mover-para').value);
+  if(de===para){toast('Selecione etapas diferentes.','te');return;}
+  const alvo=demandas.filter(d=>d.etapa_atual===de&&statusD(d)==='Em andamento');
+  if(!alvo.length){toast(`Nenhuma demanda em "${ETAPAS[de]?.nome}".`,'ti');return;}
+  if(!confirm(`Mover ${alvo.length} demanda(s) de "${ETAPAS[de]?.nome}" para "${ETAPAS[para]?.nome}"?`))return;
+  const ids=alvo.map(d=>d.id);
+  const{error}=await db.from('demandas_escritorio').update({etapa_atual:para}).in('id',ids);
+  if(error){toast('Erro: '+error.message,'te');return;}
+  alvo.forEach(d=>d.etapa_atual=para);
+  renderKanban();
+  toast(`${alvo.length} demanda(s) movida(s) para "${ETAPAS[para]?.nome}"!`);
 }
 
 async function salvarMeuPerfil(){
