@@ -6650,6 +6650,8 @@ window.addEventListener('load',async()=>{
     history.replaceState({},'','/app.html');
     toast('Assinatura confirmada! Seu plano será ativado em instantes.','ok');
   }
+
+  iniciarRealtime();
 });
 
 // ── IA / MOVIMENTAÇÕES ──
@@ -7086,6 +7088,59 @@ function iaAlertarView(){
   const msg=`📋 *Movimentação — ${c.nome}*\n\n${iaVResultado.resumo||''}${prazo}${steps?'\n\n'+steps:''}`;
   const num=tel.replace(/\D/g,'');
   window.open(`https://wa.me/${_wpp(num)}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+// ── SUPABASE REALTIME ────────────────────────────────────────────
+function iniciarRealtime(){
+  if(!escData?.id)return;
+  db.channel(`escr-${escData.id}`)
+    .on('postgres_changes',{event:'*',schema:'public',table:'demandas_escritorio',filter:`escritorio_id=eq.${escData.id}`},p=>_rtDemanda(p))
+    .on('postgres_changes',{event:'*',schema:'public',table:'clientes',filter:`escritorio_id=eq.${escData.id}`},p=>_rtCliente(p))
+    .on('postgres_changes',{event:'*',schema:'public',table:'colab_escritorio',filter:`escritorio_id=eq.${escData.id}`},p=>_rtColab(p))
+    .subscribe(status=>{if(status==='SUBSCRIBED')console.log('[Realtime] conectado — escritório',escData.id);});
+}
+function _rtDemanda({eventType,new:n,old:o}){
+  if(eventType==='INSERT'){
+    if(demandas.some(d=>d.id===n.id))return; // já adicionado localmente
+    demandas.unshift(n);
+    toast(`Nova demanda: ${n.nome}`,'ti');
+  }else if(eventType==='UPDATE'){
+    const i=demandas.findIndex(d=>d.id===n.id);
+    if(i>=0)demandas[i]=n;else demandas.unshift(n);
+  }else if(eventType==='DELETE'){
+    demandas=demandas.filter(d=>d.id!==o.id);
+  }
+  renderKanban();
+  if(document.getElementById('v-demandas').style.display!=='none')renderLista();
+  if(document.getElementById('v-processos').style.display!=='none')renderProcessos();
+}
+function _rtCliente({eventType,new:n,old:o}){
+  if(eventType==='INSERT'){
+    if(clientes.some(c=>c.id===n.id))return;
+    clientes.push(n);clientes.sort((a,b)=>a.nome.localeCompare(b.nome));
+    toast(`Novo cliente: ${n.nome}`,'ti');
+  }else if(eventType==='UPDATE'){
+    const i=clientes.findIndex(c=>c.id===n.id);
+    if(i>=0)clientes[i]=n;else clientes.push(n);
+    clientes.sort((a,b)=>a.nome.localeCompare(b.nome));
+  }else if(eventType==='DELETE'){
+    clientes=clientes.filter(c=>c.id!==o.id);
+  }
+  if(document.getElementById('v-clientes').style.display!=='none')renderClientes();
+}
+function _rtColab({eventType,new:n,old:o}){
+  if(eventType==='INSERT'){
+    if(colabs.some(c=>c.id===n.id))return;
+    colabs.push(n);
+    toast(`${n.nome} entrou na equipe`,'ti');
+  }else if(eventType==='UPDATE'){
+    const i=colabs.findIndex(c=>c.id===n.id);
+    if(i>=0)colabs[i]=n;else colabs.push(n);
+  }else if(eventType==='DELETE'){
+    colabs=colabs.filter(c=>c.id!==o.id);
+  }
+  initRespSel();
+  if(document.getElementById('v-equipe').style.display!=='none'){renderEqTabela();renderEqCfg();}
 }
 </script>
 </body>
