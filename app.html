@@ -724,10 +724,11 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
             </div>
           </div>
           <div id="ia-v-resultado-sec" style="display:none;background:var(--surface);border:1px solid var(--bd);border-radius:var(--rmd);padding:18px;margin-bottom:14px;">
-            <div class="detsec-title" style="margin-bottom:10px;"><span>Análise da IA</span><button class="btn btn-sm btn-gh" onclick="cancelarResumoIAView()" style="font-size:12px;color:var(--tx3);">✕ Descartar resumo</button></div>
+            <div class="detsec-title" style="margin-bottom:10px;">Análise da IA</div>
             <div id="ia-v-resultado"></div>
             <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--div);padding-top:12px;">
               <button class="btn btn-sm btn-p" onclick="salvarMovimentacaoView()">💾 Salvar com análise da IA</button>
+              <button class="btn btn-sm btn-gh" onclick="cancelarResumoIAView()">Cancelar</button>
               <button class="btn btn-sm btn-gh" onclick="iaDefinirPrazoView()">📅 Definir prazo</button>
               <button class="btn btn-sm btn-gh" onclick="iaAlertarView()">📲 Alertar responsável</button>
             </div>
@@ -1240,10 +1241,11 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
           <button class="btn btn-p" id="btn-analisar-ia" onclick="analisarIA()">✨ Analisar com IA</button>
         </div>
         <div id="ia-resultado-sec" class="detsec" style="display:none;">
-          <div class="detsec-title"><span>Análise da IA</span><button class="btn btn-sm btn-gh" onclick="cancelarResumoIA()" style="font-size:12px;color:var(--tx3);">✕ Descartar resumo</button></div>
+          <div class="detsec-title">Análise da IA</div>
           <div id="ia-resultado"></div>
           <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--div);padding-top:12px;">
             <button class="btn btn-sm btn-p" onclick="salvarMovimentacao()">💾 Salvar movimentação</button>
+            <button class="btn btn-sm btn-gh" onclick="cancelarResumoIA()">Cancelar</button>
             <button class="btn btn-sm btn-gh" onclick="iaDefinirPrazo()">📅 Definir prazo</button>
             <button class="btn btn-sm btn-gh" onclick="iaAlertarResponsavel()">📲 Alertar responsável</button>
           </div>
