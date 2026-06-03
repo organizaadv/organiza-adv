@@ -2892,6 +2892,9 @@ function renderKanban(){
                   ${d.responsavel?avatarHTML(d.responsavel,'Responsável: '+d.responsavel):''}
                   ${delegadoPara&&delegadoPara!==d.responsavel?avatarHTML(delegadoPara,'Executando: '+delegadoPara):''}
                 </div>`:''}
+                ${mostraAvbtn&&d.etapa_atual>0?`<button class="kcard-avbtn" onclick="quickVoltarEtapa(${d.id},event)" title="Voltar etapa">
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="8.5,2 4.5,6 8.5,10"/></svg>
+                </button>`:''}
                 ${mostraAvbtn?`<button class="kcard-avbtn" onclick="abrirQuickAv(${d.id},event)" title="Avançar etapa">
                   <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3.5,2 7.5,6 3.5,10"/></svg>
                 </button>`:''}
@@ -2904,6 +2907,16 @@ function renderKanban(){
 }
 
 // ── QUICK ADVANCE ──
+async function quickVoltarEtapa(id,evt){
+  evt.stopPropagation();
+  const d=demandas.find(x=>String(x.id)===String(id));
+  if(!d||d.etapa_atual<=0)return;
+  const nova=d.etapa_atual-1;
+  const{error}=await db.from('demandas_escritorio').update({etapa_atual:nova,status:'Em andamento'}).eq('id',id);
+  if(error){toast('Erro: '+error.message,'te');return;}
+  d.etapa_atual=nova;d.status='Em andamento';
+  renderKanban();toast(`← ${ETAPAS[nova]?.nome}`);
+}
 function abrirQuickAv(id,evt){
   evt.stopPropagation();
   const d=demandas.find(x=>x.id===id);
@@ -4901,9 +4914,10 @@ async function salvarEdicao(){
 
 async function excluirDemanda(){
   if(!confirm('Excluir esta demanda? Esta ação não pode ser desfeita.'))return;
-  const{error}=await db.from('demandas_escritorio').delete().eq('id',detId);
+  const{data:deleted,error}=await db.from('demandas_escritorio').delete().eq('id',detId).select();
   if(error){toast('Erro: '+error.message,'te');return;}
-  demandas=demandas.filter(x=>x.id!==detId);closeM('m-det');renderKanban();toast('Demanda excluída.');
+  if(!deleted||deleted.length===0){toast('Não foi possível excluir. Verifique suas permissões.','te');return;}
+  demandas=demandas.filter(x=>String(x.id)!==String(detId));closeM('m-det');renderKanban();toast('Demanda excluída.');
 }
 
 function notifConc(d,quem){
