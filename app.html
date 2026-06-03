@@ -5461,40 +5461,39 @@ function addEtapa(){
   if(ETAPAS.find(e=>e.nome.toLowerCase()===nome.toLowerCase())){toast('Já existe uma etapa com este nome.','te');return;}
   ETAPAS.push({nome,label:nome});
   inp.value='';
-  renderCfgEtapas();
-  initEtapaSel();
+  renderCfgEtapas();initEtapaSel();salvarEtapas();
 }
 
 function removeEtapa(i){
   if(ETAPAS.length<=2){toast('O fluxo precisa ter ao menos 2 etapas.','te');return;}
   if(!confirm(`Remover a etapa "${ETAPAS[i].nome}"?`))return;
   ETAPAS.splice(i,1);
-  renderCfgEtapas();
-  initEtapaSel();
+  renderCfgEtapas();initEtapaSel();salvarEtapas();
 }
 
 function moverEtapa(i,dir){
   const j=i+dir;
   if(j<0||j>=ETAPAS.length)return;
   [ETAPAS[i],ETAPAS[j]]=[ETAPAS[j],ETAPAS[i]];
-  renderCfgEtapas();
-  initEtapaSel();
+  renderCfgEtapas();initEtapaSel();salvarEtapas();
 }
 
 async function salvarEtapas(){
-  const{data:updated,error}=await db.from('escritorios').update({etapas:JSON.stringify(ETAPAS)}).eq('id',escData.id).select('id');
-  if(error){toast('Erro ao salvar etapas: '+error.message,'te');return;}
-  if(!updated||updated.length===0){toast('Não foi possível salvar. Peça ao Vini rodar o SQL 014 no Supabase.','te');return;}
-  escData.etapas=ETAPAS;
+  const{data,error}=await db.rpc('fn_salvar_etapas',{p_escritorio_id:escData.id,p_etapas:JSON.stringify(ETAPAS)});
+  if(error){
+    // fallback: tenta update direto
+    const r=await db.from('escritorios').update({etapas:JSON.stringify(ETAPAS)}).eq('id',escData.id).select('id');
+    if(r.error||!r.data?.length){toast('Erro ao salvar etapas. Peça ao Vini rodar o SQL 015.','te');return;}
+  }
+  escData.etapas=[...ETAPAS];
   renderKanban();
-  toast('Etapas salvas com sucesso!');
+  toast('Fluxo de etapas salvo!');
 }
 
 function resetEtapas(){
   if(!confirm('Restaurar as etapas padrão? As etapas atuais serão substituídas.'))return;
   ETAPAS=[...ETAPAS_DEFAULT];
-  renderCfgEtapas();
-  initEtapaSel();
+  renderCfgEtapas();initEtapaSel();salvarEtapas();
 }
 async function salvarCfg(){
   const escId=escData.id;
