@@ -1,0 +1,11 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "routes": [
+    { "src": "/(.*)\\.html", "dest": "/$1.html" },
+    { "src": "/app",   "dest": "/app.html" },
+    { "src": "/auth",  "dest": "/auth.html" },
+    { "src": "/admin", "dest": "/admin.html" },
+    { "src": "/",      "dest": "/index.html" }
+  ]
+}
