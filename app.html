@@ -2541,6 +2541,15 @@ function tocarNotificacao(){
     o.start(t);o.stop(t+0.45);
   });
 }
+function _notifNativa(titulo,corpo){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  const n=new Notification(titulo,{body:corpo,tag:'repasse-demanda',requireInteraction:false});
+  setTimeout(()=>n.close(),8000);
+}
+function _pedirPermissaoNotif(){
+  if('Notification' in window&&Notification.permission==='default')
+    Notification.requestPermission();
+}
 function _piscarTitulo(msg){
   const orig=document.title;let i=0;
   const iv=setInterval(()=>{
@@ -6962,7 +6971,7 @@ window.addEventListener('load',async()=>{
     if(tc)colabs.unshift(tc);
   }
 
-  initEtapaSel();initRespSel();renderKanban();atualizarBadgeMinhas();loadAtendimentos();loadAgenda();
+  initEtapaSel();initRespSel();renderKanban();atualizarBadgeMinhas();loadAtendimentos();loadAgenda();_pedirPermissaoNotif();
 
   // Exibe usuário logado na sidebar
   document.getElementById('sb-uav').textContent=iniciais(userAtual);
@@ -7452,7 +7461,11 @@ function _rtDemanda({eventType,new:n,old:o}){
     if(i>=0)demandas[i]=n;else demandas.unshift(n);
     if(o.responsavel!==n.responsavel&&n.responsavel===userAtual){
       toast(`📋 Você recebeu a demanda: ${n.nome}`,'ti',6000);
-      tocarNotificacao();
+      if(document.hidden){
+        _notifNativa('📋 Nova demanda para você!',n.nome);
+      }else{
+        tocarNotificacao();
+      }
       _piscarTitulo('🔔 Nova demanda para você!');
     }
     if(o.status!==n.status&&n.status){
