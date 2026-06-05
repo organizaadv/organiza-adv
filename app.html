@@ -2496,10 +2496,10 @@ let iaResultadoAtual=null,iaPdfBase64=null;
 let iaVDetId=null,iaVResultado=null,iaVPdfBase64=null;
 
 // ── UTILS ──
-function toast(msg,tipo='ts'){
+function toast(msg,tipo='ts',dur=3000){
   const el=document.getElementById('toast');
   el.textContent=msg;el.className=`toast ${tipo} show`;
-  setTimeout(()=>el.classList.remove('show'),3000);
+  setTimeout(()=>el.classList.remove('show'),dur);
 }
 function hoje(){const d=new Date();return`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
 function iniciais(n){return(n||'').trim().split(' ').filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase();}
@@ -7355,6 +7355,9 @@ function _rtDemanda({eventType,new:n,old:o}){
   }else if(eventType==='UPDATE'){
     const i=demandas.findIndex(d=>d.id===n.id);
     if(i>=0)demandas[i]=n;else demandas.unshift(n);
+    if(o.responsavel!==n.responsavel&&n.responsavel===userAtual){
+      toast(`📋 Você recebeu a demanda: ${n.nome}`,'ti',6000);
+    }
   }else if(eventType==='DELETE'){
     demandas=demandas.filter(d=>d.id!==o.id);
   }
