@@ -2526,16 +2526,16 @@ function _getAudioCtx(){
   if(_audioCtx.state==='suspended')_audioCtx.resume();
   return _audioCtx;
 }
-function tocarNotificacao(){
+async function tocarNotificacao(){
   try{
     const ctx=_getAudioCtx();
+    await ctx.resume();
     const t=ctx.currentTime;
-    [[660,.05,.22],[880,.2,.4]].forEach(([freq,start,end])=>{
+    [[660,.0,.18],[880,.16,.38]].forEach(([freq,start,end])=>{
       const o=ctx.createOscillator(),g=ctx.createGain();
       o.connect(g);g.connect(ctx.destination);
       o.type='sine';o.frequency.value=freq;
-      g.gain.setValueAtTime(0,t+start);
-      g.gain.linearRampToValueAtTime(0.25,t+start+0.04);
+      g.gain.setValueAtTime(0.3,t+start);
       g.gain.exponentialRampToValueAtTime(0.001,t+end);
       o.start(t+start);o.stop(t+end+0.05);
     });
