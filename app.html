@@ -3068,6 +3068,55 @@ function setFiltro(el){
   document.querySelectorAll('.fc').forEach(b=>b.classList.remove('on'));
   el.classList.add('on');renderLista();
 }
+function _demCard(d){
+  const diff=calcPrazo(d.prazo);
+  const conc=statusD(d)==='Concluído';
+  const cls=conc?'k-conc':diff!==null&&diff<0?'k-ven':diff!==null&&diff<=1?'k-urg':diff!==null&&diff<=5?'k-av':d.prazo?'k-ok':'';
+  const atos=getA(d);
+  const et=ETAPAS[d.etapa_atual]?.nome||'';
+  const atosEt=atos.filter(a=>a.etapa===et);
+  const atoPend=atosEt.find(a=>!a.feito);
+  const todosOk=atosEt.length>0&&atosEt.every(a=>a.feito);
+  const delegadoPara=atoPend?.delegado_para||'';
+  const isDemo=d.obs?.startsWith('[FICTÍCIO]');
+  const mostraAvbtn=!conc;
+  return`<div class="kcard ${cls}" onclick="abrirDet('${d.id}')">
+    <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:3px;">
+      <div class="kcard-nome" style="flex:1;min-width:0;">${d.nome}</div>
+      ${isDemo?`<span style="font-size:9px;font-weight:700;letter-spacing:.5px;background:var(--pub);color:var(--pu);border:1px solid var(--pubd);border-radius:4px;padding:1px 5px;flex-shrink:0;">Fictício</span>`:''}
+    </div>
+    <div class="kcard-tipo">${d.tipo||'—'}</div>
+    ${atoPend?`<div class="kcard-ato-pend${atoPend.prioridade==='alta'?' k-ato-alta':''}">↳ ${atoPend.nome}</div>`:
+      todosOk?`<div class="kcard-ato-pend k-ato-ok">✓ Todos atos concluídos</div>`:
+      `<div class="kcard-ato-pend" style="color:var(--tx3);">—</div>`}
+    <div class="kcard-ft">
+      <div>${conc?`<span style="font-size:11px;color:var(--tx3);">${d.data||'—'}</span>`:d.prazo?prazoBadge(d.prazo):`<span style="font-size:11px;color:var(--tx3);">${d.data||'—'}</span>`}</div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        ${d.responsavel||delegadoPara?`<div class="kavatar-stack">
+          ${d.responsavel?avatarHTML(d.responsavel,'Responsável: '+d.responsavel):''}
+          ${delegadoPara&&delegadoPara!==d.responsavel?avatarHTML(delegadoPara,'Executando: '+delegadoPara):''}
+        </div>`:''}
+        ${mostraAvbtn&&d.etapa_atual>0?`<button class="kcard-avbtn" onclick="quickVoltarEtapa(${d.id},event)" title="Voltar etapa">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="8.5,2 4.5,6 8.5,10"/></svg>
+        </button>`:''}
+        ${mostraAvbtn?`<button class="kcard-avbtn" onclick="abrirQuickAv(${d.id},event)" title="Avançar etapa">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3.5,2 7.5,6 3.5,10"/></svg>
+        </button>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+function _sortDemCards(lista){
+  return lista.slice().sort((a,b)=>{
+    const pa=calcPrazo(a.prazo),pb=calcPrazo(b.prazo);
+    const ca=statusD(a)==='Concluído'||a.status==='Cancelado';
+    const cb=statusD(b)==='Concluído'||b.status==='Cancelado';
+    if(ca!==cb)return ca?1:-1;
+    if(pa===null&&pb===null)return(a.nome||'').localeCompare(b.nome||'','pt-BR');
+    if(pa===null)return 1;if(pb===null)return -1;
+    return pa-pb;
+  });
+}
 function renderLista(){
   const q=(document.getElementById('si')?.value||'').toLowerCase();
   let lista=userAtual?[...demandasDoUser(userAtual)]:[...demandas];
@@ -3088,59 +3137,7 @@ function renderLista(){
     container.innerHTML=`<div class="empty"><div class="empty-ico">📋</div><div class="empty-title">Nenhuma demanda encontrada</div><div class="empty-sub">${q?'Ajuste a busca ou limpe o campo.':'Ajuste os filtros ou cadastre uma nova demanda.'}</div></div>`;
     return;
   }
-  // Agrupar por cliente
-  const mapa={};
-  lista.forEach(d=>{
-    if(!mapa[d.nome])mapa[d.nome]={nome:d.nome,tel:d.tel,items:[]};
-    mapa[d.nome].items.push(d);
-    if(d.tel)mapa[d.nome].tel=d.tel;
-  });
-  const grupos=Object.values(mapa).sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR'));
-  const autoOpen=q||grupos.length===1;
-  container.innerHTML=grupos.map(g=>{
-    const ativas=g.items.filter(d=>statusD(d)==='Em andamento');
-    const urgentes=ativas.filter(d=>{const p=calcPrazo(d.prazo);return p!==null&&p<=1;});
-    const aviso=ativas.filter(d=>{const p=calcPrazo(d.prazo);return p!==null&&p>1&&p<=5;});
-    const total=g.items.length;
-    const badgeUrg=urgentes.length?`<span class="bdg" style="background:#FEE2E2;color:#DC2626;border:1px solid #FECACA;font-size:10.5px">${urgentes.length} urgente${urgentes.length>1?'s':''}</span>`:'';
-    const badgeAv=aviso.length&&!urgentes.length?`<span class="bdg" style="background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;font-size:10.5px">${aviso.length} prazo próximo</span>`:'';
-    const gId='dg-'+g.nome.replace(/[^a-zA-Z0-9]/g,'_');
-    const rows=g.items.map(d=>{
-      const st=statusD(d);
-      const dias=calcPrazo(d.prazo);
-      const isUrg=st==='Em andamento'&&dias!==null&&dias<=1;
-      const isAv=st==='Em andamento'&&dias!==null&&dias>1&&dias<=5;
-      const stCls=st==='Concluído'?'b-conc':st==='Cancelado'?'b-can':'b-bl';
-      return`<div class="dem-grupo-row" onclick="abrirDet('${d.id}')">
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13.5px;font-weight:500;color:var(--tx);margin-bottom:2px">${d.tipo||'—'}</div>
-          <div style="font-size:12px;color:var(--tx2)">${etapaLabel(d)}${d.responsavel?' · '+d.responsavel:''}</div>
-          ${d.processo?`<div style="font-size:11px;color:var(--tx3);font-family:monospace;margin-top:1px">${d.processo}</div>`:''}
-        </div>
-        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">
-          ${isUrg?`<span class="bdg b-rd" style="font-size:10px">${dias<0?Math.abs(dias)+'d atraso':dias===0?'Hoje':'Amanhã'}</span>`:''}
-          ${isAv?`<span class="bdg b-av" style="font-size:10px">em ${dias}d</span>`:''}
-          ${d.prazo&&!isUrg&&!isAv?`<span style="font-size:11.5px;color:var(--tx3)">${fmtDt(d.prazo)}</span>`:''}
-          <span class="bdg ${stCls}" style="font-size:10px">${st}</span>
-        </div>
-      </div>`;
-    }).join('');
-    return`<div class="dem-grupo${autoOpen?' open':''}" id="${gId}">
-      <div class="dem-grupo-header" onclick="toggleGrupoDem('${gId}')">
-        <div class="av" style="flex-shrink:0">${iniciais(g.nome)}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:600;font-size:14px;color:var(--tx)">${g.nome}</div>
-          ${g.tel?`<div style="font-size:12px;color:var(--tx2);margin-top:1px">${g.tel}</div>`:''}
-        </div>
-        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
-          <span style="font-size:12.5px;color:var(--tx2);white-space:nowrap">${total} demanda${total!==1?'s':''}</span>
-          ${badgeUrg}${badgeAv}
-          <svg class="dem-g-arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></svg>
-        </div>
-      </div>
-      <div class="dem-grupo-body">${rows}</div>
-    </div>`;
-  }).join('');
+  container.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">${_sortDemCards(lista).map(_demCard).join('')}</div>`;
 }
 
 function toggleGrupoDem(id){
@@ -3185,58 +3182,7 @@ function renderMinhas(){
     container.innerHTML=`<div class="empty"><div class="empty-ico">✅</div><div class="empty-title">Nenhuma demanda encontrada</div><div class="empty-sub">${q?'Ajuste a busca.':'Você não tem demandas nessa categoria.'}</div></div>`;
     return;
   }
-  const mapa={};
-  lista.forEach(d=>{
-    if(!mapa[d.nome])mapa[d.nome]={nome:d.nome,tel:d.tel,items:[]};
-    mapa[d.nome].items.push(d);
-    if(d.tel)mapa[d.nome].tel=d.tel;
-  });
-  const grupos=Object.values(mapa).sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR'));
-  const autoOpen=q||grupos.length===1;
-  container.innerHTML=grupos.map(g=>{
-    const ativas=g.items.filter(d=>statusD(d)==='Em andamento');
-    const urgentes=ativas.filter(d=>{const p=calcPrazo(d.prazo);return p!==null&&p<=1;});
-    const aviso=ativas.filter(d=>{const p=calcPrazo(d.prazo);return p!==null&&p>1&&p<=5;});
-    const total=g.items.length;
-    const badgeUrg=urgentes.length?`<span class="bdg" style="background:#FEE2E2;color:#DC2626;border:1px solid #FECACA;font-size:10.5px">${urgentes.length} urgente${urgentes.length>1?'s':''}</span>`:'';
-    const badgeAv=aviso.length&&!urgentes.length?`<span class="bdg" style="background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;font-size:10.5px">${aviso.length} prazo próximo</span>`:'';
-    const gId='mg-'+g.nome.replace(/[^a-zA-Z0-9]/g,'_');
-    const rows=g.items.map(d=>{
-      const st=statusD(d);
-      const dias=calcPrazo(d.prazo);
-      const isUrg=st==='Em andamento'&&dias!==null&&dias<=1;
-      const isAv=st==='Em andamento'&&dias!==null&&dias>1&&dias<=5;
-      const stCls=st==='Concluído'?'b-conc':st==='Cancelado'?'b-can':'b-bl';
-      return`<div class="dem-grupo-row" onclick="abrirDet('${d.id}')">
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13.5px;font-weight:500;color:var(--tx);margin-bottom:2px">${d.tipo||'—'}</div>
-          <div style="font-size:12px;color:var(--tx2)">${etapaLabel(d)}</div>
-          ${d.processo?`<div style="font-size:11px;color:var(--tx3);font-family:monospace;margin-top:1px">${d.processo}</div>`:''}
-        </div>
-        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">
-          ${isUrg?`<span class="bdg b-rd" style="font-size:10px">${dias<0?Math.abs(dias)+'d atraso':dias===0?'Hoje':'Amanhã'}</span>`:''}
-          ${isAv?`<span class="bdg b-av" style="font-size:10px">em ${dias}d</span>`:''}
-          ${d.prazo&&!isUrg&&!isAv?`<span style="font-size:11.5px;color:var(--tx3)">${fmtDt(d.prazo)}</span>`:''}
-          <span class="bdg ${stCls}" style="font-size:10px">${st}</span>
-        </div>
-      </div>`;
-    }).join('');
-    return`<div class="dem-grupo${autoOpen?' open':''}" id="${gId}">
-      <div class="dem-grupo-header" onclick="toggleGrupoDem('${gId}')">
-        <div class="av" style="flex-shrink:0">${iniciais(g.nome)}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:600;font-size:14px;color:var(--tx)">${g.nome}</div>
-          ${g.tel?`<div style="font-size:12px;color:var(--tx2);margin-top:1px">${g.tel}</div>`:''}
-        </div>
-        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
-          <span style="font-size:12.5px;color:var(--tx2);white-space:nowrap">${total} demanda${total!==1?'s':''}</span>
-          ${badgeUrg}${badgeAv}
-          <svg class="dem-g-arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></svg>
-        </div>
-      </div>
-      <div class="dem-grupo-body">${rows}</div>
-    </div>`;
-  }).join('');
+  container.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">${_sortDemCards(lista).map(_demCard).join('')}</div>`;
 }
 
 // ── PRODUTIVIDADE ──
