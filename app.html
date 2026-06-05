@@ -1014,6 +1014,15 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
 
         <!-- MEU PERFIL -->
         <div class="cfg-sec">
+          <div class="cfg-title">Notificações</div>
+          <div class="cfg-sub">Alertas sonoros e notificações do sistema</div>
+          <div id="cfg-notif-status" style="font-size:13px;color:var(--tx2);margin-bottom:14px"></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-gh" onclick="testarNotificacao()">Testar notificação</button>
+            <button class="btn btn-gh" id="btn-pedir-notif" onclick="pedirPermissaoNotifManual()" style="display:none">Permitir notificações</button>
+          </div>
+        </div>
+        <div class="cfg-sec">
           <div class="cfg-title">Meu perfil</div>
           <div class="cfg-sub">Suas informações de acesso ao sistema</div>
           <div class="field"><label class="flabel">Nome</label><input type="text" class="finp" id="meu-nome" placeholder="Seu nome completo"/></div>
@@ -2548,7 +2557,40 @@ function _notifNativa(titulo,corpo){
 }
 function _pedirPermissaoNotif(){
   if('Notification' in window&&Notification.permission==='default')
-    Notification.requestPermission();
+    Notification.requestPermission().then(()=>_atualizarStatusNotif());
+}
+function pedirPermissaoNotifManual(){
+  if(!('Notification' in window))return;
+  Notification.requestPermission().then(()=>_atualizarStatusNotif());
+}
+function _atualizarStatusNotif(){
+  const el=document.getElementById('cfg-notif-status');
+  const btn=document.getElementById('btn-pedir-notif');
+  if(!el)return;
+  if(!('Notification' in window)){
+    el.innerHTML='<span style="color:var(--tx3)">Seu navegador não suporta notificações.</span>';
+    return;
+  }
+  if(Notification.permission==='granted'){
+    el.innerHTML='<span style="color:var(--gr)">✓ Notificações ativadas — você receberá alertas mesmo com a aba em segundo plano.</span>';
+    if(btn)btn.style.display='none';
+  }else if(Notification.permission==='denied'){
+    el.innerHTML='<span style="color:var(--rd)">Notificações bloqueadas pelo navegador. Para ativar, clique no cadeado na barra de endereço e permita notificações para este site.</span>';
+    if(btn)btn.style.display='none';
+  }else{
+    el.innerHTML='<span style="color:var(--am)">Notificações não ativadas. Clique em "Permitir notificações" para receber alertas em segundo plano.</span>';
+    if(btn)btn.style.display='';
+  }
+}
+function testarNotificacao(){
+  tocarNotificacao();
+  if('Notification' in window&&Notification.permission==='granted'){
+    const n=new Notification('📋 Teste de notificação',{body:'Se você está vendo isso, está funcionando!',tag:'teste'});
+    setTimeout(()=>n.close(),5000);
+    toast('Som + notificação enviados!');
+  }else{
+    toast('Som tocado — ative as notificações para testar o alerta em segundo plano.');
+  }
 }
 function _piscarTitulo(msg){
   const orig=document.title;let i=0;
@@ -5532,6 +5574,7 @@ function renderCfg(){
   document.getElementById('meu-pw2').value='';
   renderCfgEtapas();
   _renderCfgMoverSels();
+  _atualizarStatusNotif();
 }
 function _renderCfgMoverSels(){
   const opts=ETAPAS.map((e,i)=>`<option value="${i}">${i+1}. ${e.nome}</option>`).join('');
