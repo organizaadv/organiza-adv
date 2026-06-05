@@ -2520,6 +2520,34 @@ let iaResultadoAtual=null,iaPdfBase64=null;
 let iaVDetId=null,iaVResultado=null,iaVPdfBase64=null;
 
 // ── UTILS ──
+let _audioCtx=null;
+function _getAudioCtx(){
+  if(!_audioCtx)_audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  if(_audioCtx.state==='suspended')_audioCtx.resume();
+  return _audioCtx;
+}
+function tocarNotificacao(){
+  try{
+    const ctx=_getAudioCtx();
+    const t=ctx.currentTime;
+    [[660,.05,.22],[880,.2,.4]].forEach(([freq,start,end])=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.type='sine';o.frequency.value=freq;
+      g.gain.setValueAtTime(0,t+start);
+      g.gain.linearRampToValueAtTime(0.25,t+start+0.04);
+      g.gain.exponentialRampToValueAtTime(0.001,t+end);
+      o.start(t+start);o.stop(t+end+0.05);
+    });
+  }catch(e){}
+}
+function _piscarTitulo(msg){
+  const orig=document.title;let i=0;
+  const iv=setInterval(()=>{
+    document.title=i%2===0?msg:orig;
+    if(++i>=8){clearInterval(iv);document.title=orig;}
+  },700);
+}
 function toast(msg,tipo='ts',dur=3000){
   const el=document.getElementById('toast');
   el.textContent=msg;el.className=`toast ${tipo} show`;
@@ -6886,6 +6914,7 @@ async function obConcluir(){
 }
 
 // ── INIT ──
+document.addEventListener('click',()=>{try{_getAudioCtx();}catch(e){}},{once:true});
 window.addEventListener('load',async()=>{
   const{data:{session}}=await db.auth.getSession();
   if(!session){window.location.href='auth.html';return;}
@@ -7424,6 +7453,8 @@ function _rtDemanda({eventType,new:n,old:o}){
     if(i>=0)demandas[i]=n;else demandas.unshift(n);
     if(o.responsavel!==n.responsavel&&n.responsavel===userAtual){
       toast(`📋 Você recebeu a demanda: ${n.nome}`,'ti',6000);
+      tocarNotificacao();
+      _piscarTitulo('🔔 Nova demanda para você!');
     }
     if(o.status!==n.status&&n.status){
       miniToast(`${n.nome} → ${n.status}`);
