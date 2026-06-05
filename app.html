@@ -4074,7 +4074,7 @@ function selecionarTipoRel(tipo){
   let html='';
   if(tipo==='desempenho'){
     const nomes=[...new Set(colabs.map(c=>c.nome))];
-    html=`<div style="display:flex;gap:12px;flex-wrap:wrap">
+    html=`<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
       <div class="field" style="flex:1;min-width:160px;margin-bottom:0"><label class="flabel">Colaborador</label>
         <select class="fsel" id="desemp-colab" onchange="renderRelDesempenho()">
           <option value="">Selecione...</option>
@@ -4082,6 +4082,7 @@ function selecionarTipoRel(tipo){
         </select></div>
       <div class="field" style="flex:1;min-width:160px;margin-bottom:0"><label class="flabel">Mês</label>
         <select class="fsel" id="desemp-mes" onchange="renderRelDesempenho()">${_mesesOpts()}</select></div>
+      <div style="margin-bottom:0;flex-shrink:0"><button class="btn-sec" onclick="gerarRelDesempenhoPDF()" style="height:38px;display:flex;align-items:center;gap:6px;white-space:nowrap">📄 Exportar PDF</button></div>
     </div>
     <div id="desemp-resultado" style="margin-top:20px"></div>`;
   } else if(tipo==='individual'){
@@ -4150,10 +4151,15 @@ function renderRelDesempenho(){
     });
   });
 
-  // Atos concluídos (sem filtro de mês — atos não têm dataFeito)
-  const atosFeitosTodos=[];
+  // Atos concluídos no mês — usa conclQuem e dataFeito (DD/MM/YYYY)
+  const atosFeitosNoMes=[];const atosSemData=[];
   demandas.forEach(d=>{
-    getA(d).forEach(a=>{if(a.feito&&a.quem===nome)atosFeitosTodos.push({...a,demandaNome:d.nome});});
+    getA(d).forEach(a=>{
+      if(!a.feito||a.conclQuem!==nome)return;
+      if(!a.dataFeito){atosSemData.push({...a,demandaNome:d.nome});return;}
+      const p=(a.dataFeito||'').split('/');
+      if(p.length===3&&parseInt(p[2])===ano&&parseInt(p[1])===mes)atosFeitosNoMes.push({...a,demandaNome:d.nome});
+    });
   });
 
   // Atendimentos realizados no mês
@@ -4191,8 +4197,8 @@ function renderRelDesempenho(){
       </div>
       <div style="background:var(--gdp);border:1px solid var(--gdb);border-radius:var(--rmd);padding:14px 16px">
         <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--am);margin-bottom:4px">Atos concluídos</div>
-        <div style="font-size:28px;font-weight:700;font-family:'Fraunces',serif;color:var(--am)">${atosFeitosTodos.length}</div>
-        <div style="font-size:11px;color:var(--tx3);margin-top:2px">total registrado</div>
+        <div style="font-size:28px;font-weight:700;font-family:'Fraunces',serif;color:var(--am)">${atosFeitosNoMes.length}</div>
+        <div style="font-size:11px;color:var(--tx3);margin-top:2px">${labelMes}${atosSemData.length?` · ${atosSemData.length} s/ data`:''}</div>
       </div>
       <div style="background:var(--grb);border:1px solid var(--grbd);border-radius:var(--rmd);padding:14px 16px">
         <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--gr);margin-bottom:4px">Atendimentos</div>
@@ -4269,6 +4275,120 @@ function renderRelDesempenho(){
     </div>`;
 }
 
+function gerarRelDesempenhoPDF(){
+  const nome=document.getElementById('desemp-colab')?.value;
+  const mesVal=document.getElementById('desemp-mes')?.value;
+  if(!nome||!mesVal){toast('Selecione colaborador e mês.','te');return;}
+  const [ano,mes]=mesVal.split('-').map(Number);
+  const nms=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const labelMes=`${nms[mes-1]} ${ano}`;
+
+  const etapasNoMes=[];
+  demandas.forEach(d=>{
+    getH(d).forEach(h=>{
+      if(h.quem!==nome)return;
+      const p=(h.data||'').split('/');
+      if(p.length!==3||parseInt(p[2])!==ano||parseInt(p[1])!==mes)return;
+      etapasNoMes.push({...h,demanda:d});
+    });
+  });
+
+  const atosFeitosNoMes=[];const atosSemData=[];
+  demandas.forEach(d=>{
+    getA(d).forEach(a=>{
+      if(!a.feito||a.conclQuem!==nome)return;
+      if(!a.dataFeito){atosSemData.push({...a,demandaNome:d.nome});return;}
+      const p=(a.dataFeito||'').split('/');
+      if(p.length===3&&parseInt(p[2])===ano&&parseInt(p[1])===mes)atosFeitosNoMes.push({...a,demandaNome:d.nome});
+    });
+  });
+
+  const atendRealizados=atendimentos.filter(a=>{
+    if(a.responsavel!==nome||a.status!=='Realizado'||!a.data_atendimento)return false;
+    const dt=new Date(a.data_atendimento+'T00:00:00');
+    return dt.getFullYear()===ano&&dt.getMonth()+1===mes;
+  });
+
+  const demandasAtivas=demandas.filter(d=>d.responsavel===nome&&statusD(d)==='Em andamento');
+
+  const contEt={};
+  etapasNoMes.forEach(h=>{contEt[h.etapa]=(contEt[h.etapa]||0)+1;});
+  const etapasOrd=Object.entries(contEt).sort((a,b)=>b[1]-a[1]);
+
+  const atosPend=[];
+  demandas.forEach(d=>{
+    if(statusD(d)!=='Em andamento')return;
+    getA(d).forEach(a=>{
+      if(!a.feito&&(a.resp===nome||a.delegado_para===nome))
+        atosPend.push({...a,demandaNome:d.nome,etapaDemanda:etapaLabel(d)});
+    });
+  });
+
+  const etapasOrdenadas=[...etapasNoMes].sort((a,b)=>{
+    const pa=a.data.split('/'),pb=b.data.split('/');
+    return new Date(pa[2],pa[1]-1,pa[0])-new Date(pb[2],pb[1]-1,pb[0]);
+  });
+
+  const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Desempenho — ${nome} — ${labelMes}</title>
+  ${estiloPDF()}</head><body>
+  ${cabecalhoPDF()}
+  <h1>Desempenho da Equipe</h1>
+  <div style="font-size:13px;color:#555;margin-bottom:20px">${nome} · ${labelMes}</div>
+
+  <h2>Resumo do mês</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px">
+    <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:14px 16px">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#1D4ED8;margin-bottom:4px">Etapas avançadas</div>
+      <div style="font-size:26px;font-weight:700">${etapasNoMes.length}</div>
+      <div style="font-size:11px;color:#888;margin-top:2px">${labelMes}</div>
+    </div>
+    <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:6px;padding:14px 16px">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#92400E;margin-bottom:4px">Atos concluídos</div>
+      <div style="font-size:26px;font-weight:700">${atosFeitosNoMes.length}</div>
+      <div style="font-size:11px;color:#888;margin-top:2px">${labelMes}${atosSemData.length?` · ${atosSemData.length} s/ data`:''}</div>
+    </div>
+    <div style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:6px;padding:14px 16px">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#065F46;margin-bottom:4px">Atendimentos</div>
+      <div style="font-size:26px;font-weight:700">${atendRealizados.length}</div>
+      <div style="font-size:11px;color:#888;margin-top:2px">${labelMes}</div>
+    </div>
+    <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:14px 16px">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#374151;margin-bottom:4px">Demandas ativas</div>
+      <div style="font-size:26px;font-weight:700">${demandasAtivas.length}</div>
+      <div style="font-size:11px;color:#888;margin-top:2px">sob responsabilidade</div>
+    </div>
+  </div>
+
+  <h2>Etapas mais avançadas — ${labelMes}</h2>
+  ${etapasOrd.length?`<table><thead><tr><th>Etapa</th><th style="text-align:right">Qtd.</th></tr></thead><tbody>${etapasOrd.map(([et,cnt])=>`<tr><td>${et}</td><td style="text-align:right;font-weight:600">${cnt}x</td></tr>`).join('')}</tbody></table>`:'<p style="color:#888;font-size:13px">Nenhuma etapa avançada neste mês.</p>'}
+
+  <h2>Demandas sob responsabilidade</h2>
+  ${demandasAtivas.length?`<table><thead><tr><th>Cliente</th><th>Área</th><th>Etapa atual</th><th>Última mov.</th></tr></thead><tbody>${demandasAtivas.map(d=>{
+    const ultMov=getH(d).filter(h=>h.quem===nome).slice(-1)[0];
+    return`<tr><td style="font-weight:500">${d.nome}</td><td style="color:#666">${d.tipo||'—'}</td><td>${etapaLabel(d)}</td><td style="color:#888;font-size:12px">${ultMov?ultMov.etapa+' · '+ultMov.data:'—'}</td></tr>`;
+  }).join('')}</tbody></table>`:'<p style="color:#888;font-size:13px">Nenhuma demanda ativa.</p>'}
+
+  <h2>Histórico cronológico — ${labelMes}</h2>
+  ${etapasOrdenadas.length?`<table><thead><tr><th>Data</th><th>Demanda</th><th>Etapa concluída</th><th>Avançou para</th></tr></thead><tbody>${etapasOrdenadas.map(h=>{
+    const idx=ETAPAS.findIndex(e=>e.nome===h.etapa);
+    const prox=idx>=0&&idx<ETAPAS.length-1?ETAPAS[idx+1].nome:'Concluído';
+    return`<tr><td style="color:#888;white-space:nowrap">${h.data}</td><td style="font-weight:500">${h.demanda.nome}</td><td>${h.etapa}</td><td style="color:#555">→ ${prox}</td></tr>`;
+  }).join('')}</tbody></table>`:'<p style="color:#888;font-size:13px">Nenhuma etapa avançada neste mês.</p>'}
+
+  <h2>Atos pendentes atribuídos</h2>
+  ${atosPend.length?`<table><thead><tr><th>Demanda</th><th>Ato</th><th>Etapa</th><th>Tipo</th></tr></thead><tbody>${atosPend.map(a=>`<tr><td style="font-weight:500">${a.demandaNome}</td><td>${a.nome}</td><td style="color:#666">${a.etapa||a.etapaDemanda||'—'}</td><td>${a.delegado_para===nome?'Delegado':'Responsável'}</td></tr>`).join('')}</tbody></table>`:'<p style="color:#888;font-size:13px">Nenhum ato pendente. ✅</p>'}
+
+  <div style="margin-top:48px;padding-top:16px;border-top:1px solid #ddd;display:flex;justify-content:space-between;align-items:flex-end">
+    <div style="font-size:12px;color:#888">Documento gerado pelo OrganizaADV</div>
+    <div style="text-align:center">
+      <div style="width:220px;border-top:1px solid #333;padding-top:6px;font-size:12px;color:#555">Assinatura do Gestor</div>
+    </div>
+  </div>
+  </body></html>`;
+
+  abrirJanelaPDF(html,`desempenho-${nome.replace(/\s/g,'-').toLowerCase()}-${mesVal}`);
+}
+
 function filtrarRelInd(){
   const q=(document.getElementById('rel-busca-ind')?.value||'').toLowerCase().trim();
   const lista=document.getElementById('rel-ind-lista');
@@ -4331,6 +4451,7 @@ function gerarRelPDF(){
   else if(relTipoAtivo==='lista')gerarRelListaGeralPDF();
   else if(relTipoAtivo==='area')gerarRelPorAreaPDF();
   else if(relTipoAtivo==='parado')gerarRelParadoPDF();
+  else if(relTipoAtivo==='desempenho')gerarRelDesempenhoPDF();
 }
 
 function gerarRelWpp(){
