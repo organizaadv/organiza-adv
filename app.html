@@ -1286,6 +1286,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <div class="mfoot-r">
         <button class="btn btn-gh" id="det-voltar-sec" onclick="voltarEtapa()">← Voltar etapa</button>
         <button class="btn btn-gh" onclick="exportPDF()">📄 Exportar PDF</button>
+        <button class="btn btn-gh" onclick="abrirRepassar()">🔄 Repassar</button>
         <button class="btn btn-gh" onclick="abrirEdicao()">✏️ Editar dados</button>
         <button class="btn btn-gh" onclick="closeM('m-det')">Fechar</button>
       </div>
@@ -2610,14 +2611,11 @@ function isAdvogado(nome){
 
 // Filtra demandas conforme perfil do usuário
 function demandasDoUser(nome){
-  if(isAdvogado(nome))return demandas; // titular e advogado veem tudo
-  // Colaborador: só vê as suas
+  if(temPermissao('ver_todas_demandas'))return demandas;
+  // Sem permissão: só vê as suas
   return demandas.filter(d=>{
-    // É responsável atual
     if(d.responsavel===nome)return true;
-    // Criou a demanda
     if(d.criado_por===nome)return true;
-    // Tem ato delegado para ele
     const atos=getA(d);
     return atos.some(a=>a.delegadoPara===nome);
   });
@@ -4887,6 +4885,31 @@ function abrirConverterProcesso(){
   });
 }
 
+function abrirRepassar(){
+  const d=demandas.find(x=>String(x.id)===String(detId));if(!d)return;
+  const old=document.getElementById('m-repassar');if(old)old.remove();
+  const o=document.createElement('div');o.id='m-repassar';o.className='mov';o.style.display='flex';
+  const membros=colabs.filter(c=>c.perfil!=='colaborador'&&c.nome!==d.responsavel);
+  const opts=membros.map(c=>`<option value="${c.nome}">${c.nome}${c.perfil?` (${c.perfil})`:''}` ).join('');
+  o.innerHTML=`<div class="mbox narrow"><div class="mhead"><div><div class="mtitle">Repassar demanda</div><div class="msubt">${d.nome}</div></div><button class="mx" onclick="document.getElementById('m-repassar').remove()">✕</button></div><div class="mbody"><div class="field"><label class="flabel">Responsável atual</label><div style="font-size:13px;color:var(--tx2);padding:8px 0">${d.responsavel||'<span style="color:var(--tx3)">Sem responsável</span>'}</div></div><div class="field"><label class="flabel">Passar para <span class="req">*</span></label><select class="fsel" id="repassar-sel"><option value="">Selecione um membro...</option>${opts}</select></div></div><div class="mfoot"><div></div><div class="mfoot-r"><button class="btn btn-gh" onclick="document.getElementById('m-repassar').remove()">Cancelar</button><button class="btn btn-p" onclick="confirmarRepassar()">Repassar</button></div></div></div>`;
+  document.body.appendChild(o);
+}
+async function confirmarRepassar(){
+  const novoResp=document.getElementById('repassar-sel')?.value;
+  if(!novoResp){toast('Selecione um membro','e');return;}
+  const d=demandas.find(x=>String(x.id)===String(detId));if(!d)return;
+  const anterior=d.responsavel||'—';
+  const{error}=await db.from('demandas_escritorio').update({responsavel:novoResp}).eq('id',detId);
+  if(error){toast('Erro ao repassar: '+error.message,'te');return;}
+  d.responsavel=novoResp;
+  document.getElementById('m-repassar')?.remove();
+  renderKanban();
+  if(document.getElementById('v-demandas').style.display!=='none')renderLista();
+  // Atualiza campo de responsável no detalhe se ainda aberto
+  const respEl=document.getElementById('det-responsavel');
+  if(respEl)respEl.textContent=novoResp;
+  toast(`Demanda repassada de ${anterior} para ${novoResp}`);
+}
 function abrirEdicao(){
   const d=demandas.find(x=>x.id===detId);if(!d)return;
 
@@ -6075,10 +6098,10 @@ const PERMS_DEF={
   titular:  {ver_financeiro:true, ver_todas_demandas:true, criar_demandas:true, editar_demandas:true, ver_atendimentos:true, gerenciar_equipe:true, exportar:true},
   socio:    {ver_financeiro:true, ver_todas_demandas:true, criar_demandas:true, editar_demandas:true, ver_atendimentos:true, gerenciar_equipe:true, exportar:true},
   advogado: {ver_financeiro:true, ver_todas_demandas:true, criar_demandas:true, editar_demandas:true, ver_atendimentos:true, gerenciar_equipe:false,exportar:true},
-  estagiario:{ver_financeiro:false,ver_todas_demandas:false,criar_demandas:true, editar_demandas:true, ver_atendimentos:true, gerenciar_equipe:false,exportar:false},
-  secretaria:{ver_financeiro:false,ver_todas_demandas:false,criar_demandas:false,editar_demandas:false,ver_atendimentos:true, gerenciar_equipe:false,exportar:false},
-  assistente:{ver_financeiro:false,ver_todas_demandas:false,criar_demandas:false,editar_demandas:false,ver_atendimentos:true, gerenciar_equipe:false,exportar:false},
-  colaborador:{ver_financeiro:false,ver_todas_demandas:false,criar_demandas:false,editar_demandas:false,ver_atendimentos:false,gerenciar_equipe:false,exportar:false},
+  estagiario:{ver_financeiro:false,ver_todas_demandas:true, criar_demandas:true, editar_demandas:true, ver_atendimentos:true, gerenciar_equipe:false,exportar:false},
+  secretaria:{ver_financeiro:false,ver_todas_demandas:true, criar_demandas:false,editar_demandas:false,ver_atendimentos:true, gerenciar_equipe:false,exportar:false},
+  assistente:{ver_financeiro:false,ver_todas_demandas:true, criar_demandas:false,editar_demandas:false,ver_atendimentos:true, gerenciar_equipe:false,exportar:false},
+  colaborador:{ver_financeiro:false,ver_todas_demandas:true, criar_demandas:false,editar_demandas:false,ver_atendimentos:false,gerenciar_equipe:false,exportar:false},
 };
 const PERMS_LABEL={
   ver_financeiro:'Ver módulo financeiro',
