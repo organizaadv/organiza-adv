@@ -291,6 +291,9 @@ tbody td{padding:13px 18px;font-size:13.5px;color:var(--ink);vertical-align:midd
 .ato-prior-baixa{display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 8px;border-radius:99px;background:var(--s3);color:var(--tx3);border:1px solid var(--bd)}
 .ato-obrig{display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 8px;border-radius:99px;background:var(--amb);color:var(--am);border:1px solid var(--ambd)}
 .ato-concl-obs{font-size:12px;color:var(--gr);font-style:italic;margin-top:4px;padding:5px 10px;background:var(--grb);border-radius:6px;border-left:3px solid var(--gr)}
+.ato-del{display:none;background:none;border:none;cursor:pointer;color:var(--tx3);font-size:16px;line-height:1;padding:2px 4px;border-radius:4px;flex-shrink:0;transition:color .15s,background .15s}
+.ato-del:hover{color:var(--rd);background:var(--rdb)}
+.ato-item:hover .ato-del{display:block}
 
 /* ── SUGESTÕES ── */
 .sg-wrap{margin-bottom:14px}
@@ -4973,6 +4976,7 @@ function renderAtosDetalhe(d){
         ${a.instrucao?`<div class="ato-instr">${a.instrucao}</div>`:''}
         ${a.conclObs?`<div class="ato-concl-obs">✓ ${a.conclObs}</div>`:''}
       </div>
+      <button class="ato-del" onclick="excluirAto('${a.id}')" title="Excluir ato">×</button>
     </div>`;
   }).join('');
 }
@@ -5027,7 +5031,7 @@ async function confirmarConclusao(){
 }
 
 function abrirModalAto(){
-  const d=demandas.find(x=>x.id===detId);
+  const d=demandas.find(x=>String(x.id)===String(detId));
   if(d){
     const et=ETAPAS[d.etapa_atual]?.nome||'';
     const sg=getAtosTemplate(d.tipo,et);
@@ -5041,10 +5045,25 @@ function abrirModalAto(){
   initRespSel();openM('m-ato');
 }
 
+async function excluirAto(atoId){
+  if(!confirm('Excluir este ato?'))return;
+  const d=demandas.find(x=>String(x.id)===String(detId));if(!d)return;
+  const atos=getA(d);
+  const idx=atos.findIndex(a=>String(a.id)===String(atoId));
+  if(idx===-1)return;
+  atos.splice(idx,1);
+  const{error}=await db.from('demandas_escritorio').update({atos:JSON.stringify(atos)}).eq('id',detId);
+  if(error){toast('Erro: '+error.message,'te');return;}
+  d.atos=JSON.stringify(atos);
+  renderAtosDetalhe(d);
+  renderProgressoAtos(d);
+  toast('Ato excluído.');
+}
+
 async function salvarAto(){
   const nome=document.getElementById('ato-nome').value.trim();
   if(!nome){toast('Informe o nome do ato.','te');return;}
-  const d=demandas.find(x=>x.id===detId);if(!d)return;
+  const d=demandas.find(x=>String(x.id)===String(detId));if(!d)return;
   const atos=getA(d);
   const et=ETAPAS[d.etapa_atual]?.nome||'';
   const deleg=document.getElementById('ato-deleg').value;
@@ -5081,7 +5100,7 @@ async function salvarAto(){
 }
 
 async function salvarObsEt(idx){
-  const d=demandas.find(x=>x.id===detId);if(!d)return;
+  const d=demandas.find(x=>String(x.id)===String(detId));if(!d)return;
   const obs=getO(d);obs[idx]=document.getElementById('ob-et-'+idx).value.trim();
   const{error}=await db.from('demandas_escritorio').update({obs_etapas:JSON.stringify(obs)}).eq('id',detId);
   if(error){toast('Erro: '+error.message,'te');return;}
@@ -5089,7 +5108,7 @@ async function salvarObsEt(idx){
 }
 
 async function avancar(){
-  const d=demandas.find(x=>x.id===detId);if(!d)return;
+  const d=demandas.find(x=>String(x.id)===String(detId));if(!d)return;
   const quem=document.getElementById('det-quem').value.trim();
   if(!quem){toast('Informe quem realizou esta etapa.','te');return;}
   const etAtual=ETAPAS[d.etapa_atual]?.nome||'';
@@ -5111,7 +5130,7 @@ async function avancar(){
 }
 
 async function voltar(){
-  const d=demandas.find(x=>x.id===detId);if(!d||d.etapa_atual<=0)return;
+  const d=demandas.find(x=>String(x.id)===String(detId));if(!d||d.etapa_atual<=0)return;
   if(!confirm('Voltar para a etapa anterior?'))return;
   const nova=d.etapa_atual-1;
   const{error}=await db.from('demandas_escritorio').update({etapa_atual:nova,status:'Em andamento'}).eq('id',detId);
@@ -5137,14 +5156,14 @@ function toggleEditTipoOutro(){
 }
 
 function abrirConverterProcesso(){
-  const d=demandas.find(x=>x.id===detId);if(!d)return;
+  const d=demandas.find(x=>String(x.id)===String(detId));if(!d)return;
   const num=prompt('Informe o número do processo (ex: 0001234-56.2026.1.00.0001):');
   if(num===null)return;
   const numLimpo=num.trim();
   if(!numLimpo){toast('Número do processo não informado.','te');return;}
   db.from('demandas_escritorio').update({processo:numLimpo}).eq('id',detId).then(({error})=>{
     if(error){toast('Erro: '+error.message,'te');return;}
-    const d2=demandas.find(x=>x.id===detId);if(d2)d2.processo=numLimpo;
+    const d2=demandas.find(x=>String(x.id)===String(detId));if(d2)d2.processo=numLimpo;
     document.getElementById('det-proc').textContent=numLimpo;
     const banner=document.getElementById('det-prot-banner');if(banner)banner.style.display='none';
     renderKanban();
@@ -5178,7 +5197,7 @@ async function confirmarRepassar(){
   toast(`Demanda repassada de ${anterior} para ${novoResp}`);
 }
 function abrirEdicao(){
-  const d=demandas.find(x=>x.id===detId);if(!d)return;
+  const d=demandas.find(x=>String(x.id)===String(detId));if(!d)return;
 
   // Preencher campos com dados atuais
   document.getElementById('e-nome').value=d.nome||'';
@@ -5241,7 +5260,7 @@ async function salvarEdicao(){
   if(error){toast('Erro ao salvar: '+error.message,'te');return;}
 
   // Atualizar local
-  const d=demandas.find(x=>x.id===detId);
+  const d=demandas.find(x=>String(x.id)===String(detId));
   if(d)Object.assign(d,updates);
 
   closeM('m-editar');
@@ -5270,7 +5289,7 @@ function notifConc(d,quem){
 }
 
 function gerarMsg(){
-  const d=demandas.find(x=>x.id===detId);if(!d)return;
+  const d=demandas.find(x=>String(x.id)===String(detId));if(!d)return;
   const atos=getA(d);const et=ETAPAS[d.etapa_atual]?.nome||'concluída';
   const atoAt=atos.find(a=>a.etapa===et&&!a.feito);
   let msg=`Prezado(a) ${d.nome},\n\nInformamos que sua demanda de ${d.tipo||'direito'} está em andamento em nosso escritório.\n\n`;
@@ -5295,7 +5314,7 @@ function atualizarLinkWpp(){
 }
 
 function exportPDF(){
-  const d=demandas.find(x=>x.id===detId);if(!d)return;
+  const d=demandas.find(x=>String(x.id)===String(detId));if(!d)return;
   const hist=getH(d),atos=getA(d),obsEt=getO(d);
   const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"/>
   <style>body{font-family:Arial,sans-serif;max-width:800px;margin:40px auto;color:#111;line-height:1.6;}h1{font-size:22px;border-bottom:2px solid #C9A84C;padding-bottom:8px;}h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#555;margin:24px 0 10px;}.info{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;background:#f9f9f9;padding:16px;border-radius:6px;font-size:13px;margin-bottom:20px;}.hist{padding:10px;border-left:3px solid #C9A84C;margin-bottom:8px;background:#fffdf5;border-radius:0 4px 4px 0;}.ato{padding:7px;border-bottom:1px solid #eee;font-size:13px;}.ato.done{color:#888;text-decoration:line-through;}.obs{padding:10px;background:#f9f9f9;border-radius:4px;margin-bottom:8px;font-size:13px;}.hdr{text-align:right;font-size:11px;color:#888;margin-bottom:24px;}@media print{body{margin:20px;}}</style>
