@@ -28,28 +28,13 @@ serve(async (req) => {
       const otp       = Math.floor(100000 + Math.random() * 900000).toString()
       const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString()
 
-      // Gera recovery token do Supabase (não envia e-mail, só gera o token)
-      const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
-        type: 'recovery',
-        email,
-      })
-
-      // Usuário não existe → retorna sucesso silencioso (não revela se o e-mail está cadastrado)
-      if (linkErr || !linkData?.properties?.hashed_token) {
-        console.log('generateLink skipped:', linkErr?.message)
-        return ok({ ok: true })
-      }
-
-      const hashedToken = linkData.properties.hashed_token
-
       // Invalida códigos anteriores pendentes
       await admin.from('recovery_codes').update({ used: true }).eq('email', email).eq('used', false)
 
-      // Salva novo código
+      // Salva novo código (hashed_token será gerado na etapa de verificação)
       const { error: insertErr } = await admin.from('recovery_codes').insert({
         email,
         code: otp,
-        hashed_token: hashedToken,
         expires_at: expiresAt,
       })
       if (insertErr) throw insertErr
@@ -108,10 +93,20 @@ serve(async (req) => {
 
       if (selErr || !data) return err('Código incorreto ou expirado. Verifique e tente novamente.')
 
-      // Marca como usado e retorna o hashed_token para o cliente criar a sessão
+      // Gera o hashed_token do Supabase agora (apenas na verificação, não no envio)
+      const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
+        type: 'recovery',
+        email,
+      })
+
+      if (linkErr || !linkData?.properties?.hashed_token) {
+        return err('E-mail não encontrado. Verifique se o endereço está cadastrado.')
+      }
+
+      // Marca como usado
       await admin.from('recovery_codes').update({ used: true }).eq('id', data.id)
 
-      return ok({ hashed_token: data.hashed_token })
+      return ok({ hashed_token: linkData.properties.hashed_token })
     }
 
     return err('Ação inválida')
