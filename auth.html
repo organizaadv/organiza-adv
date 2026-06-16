@@ -167,7 +167,7 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoo
           </button>
           <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#0D1321;margin-bottom:6px">Verifique seu e-mail</div>
           <div style="font-size:13px;color:#48556A;line-height:1.6">Enviamos um código de <strong>6 dígitos</strong> para<br><span id="v-email-show" style="font-weight:600;color:#1C1F2E"></span></div>
-          <div style="font-size:12px;color:#96A3B5;margin-top:6px">O código expira em 15 minutos.</div>
+          <div style="font-size:12px;color:#96A3B5;margin-top:6px">O código expira em 1 hora.</div>
         </div>
         <div class="alert err" id="verify-err"></div>
         <div class="alert ok" id="verify-ok"></div>
@@ -192,6 +192,10 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoo
           <div style="font-size:13px;color:#48556A;line-height:1.6">Defina a senha para acessar o OrganizaADV.</div>
         </div>
         <div class="alert err" id="spw-err"></div>
+        <div class="field">
+          <label class="flabel">Nome do escritório <span style="color:#DC2626">*</span></label>
+          <input class="finp" id="spw-esc" type="text" placeholder="Ex: Silva & Associados Advocacia" autocomplete="organization"/>
+        </div>
         <div class="field">
           <label class="flabel">Nova senha <span style="color:#DC2626">*</span></label>
           <div class="pw-wrap">
@@ -466,8 +470,10 @@ async function verificarCodigo(){
     const{error}=await db.auth.verifyOtp({email:pv.email,token,type:'email'});
     if(error)throw error;
     // Verifica se já é usuário existente (membro ou titular)
-    const{data:uEx}=await db.from('usuarios').select('id').eq('id',(await db.auth.getUser()).data.user?.id||'').maybeSingle();
-    const{data:eEx}=await db.from('escritorios').select('id').eq('user_id',(await db.auth.getUser()).data.user?.id||'').maybeSingle();
+    const{data:{user}}=await db.auth.getUser();
+    const uid=user?.id||'';
+    const{data:uEx}=await db.from('usuarios').select('id').eq('id',uid).maybeSingle();
+    const{data:eEx}=await db.from('escritorios').select('id').eq('user_id',uid).maybeSingle();
     const{data:cvEx}=await db.rpc('buscar_meu_convite').maybeSingle();
     if(uEx||eEx||cvEx){window.location.href='app.html';return;}
     setPV({...pv,step:3});
@@ -490,8 +496,10 @@ function mostrarCriarSenha(){
 // ── PASSO 3: completar cadastro ──
 async function completarCadastro(){
   clearMsg('spw-err');
+  const esc=document.getElementById('spw-esc').value.trim();
   const senha=document.getElementById('spw-senha').value;
   const conf=document.getElementById('spw-conf').value;
+  if(!esc){document.getElementById('spw-esc').classList.add('err');showErr('spw-err','Informe o nome do escritório.');return;}
   if(senha.length<8){document.getElementById('spw-senha').classList.add('err');showErr('spw-err','A senha precisa ter pelo menos 8 caracteres.');return;}
   if(senha!==conf){document.getElementById('spw-conf').classList.add('err');showErr('spw-err','As senhas não coincidem.');return;}
   const pv=getPV();
@@ -507,7 +515,7 @@ async function completarCadastro(){
 
     const{data:escData,error:escErr}=await db.from('escritorios').insert([{
       user_id:userId,
-      nome:'Escritório de '+pv.nome,
+      nome:esc,
       responsavel:pv.nome,
       email:pv.email,
       plano:'trial',
@@ -608,6 +616,7 @@ function fotpPaste(e){
   const boxes=document.querySelectorAll('.fotp-digit');
   txt.split('').forEach((c,i)=>{if(boxes[i])boxes[i].value=c;});
   if(boxes[Math.min(txt.length,5)])boxes[Math.min(txt.length,5)].focus();
+  if(txt.length===6)setTimeout(verificarRecupero,100);
 }
 
 function iniciarTimerFotp(){

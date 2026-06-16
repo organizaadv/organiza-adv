@@ -86,17 +86,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
 <div class="left">
   <a href="index.html" class="left-logo">Organiza<span>ADV</span></a>
   <div class="left-body">
-    <div class="left-eyebrow">Para escritorios de advocacia</div>
-    <div class="left-title">Seu escritorio mais organizado a partir de <em>hoje</em></div>
-    <div class="left-sub">Gerencie processos, equipe e financeiro em um so lugar. Simples, rapido e feito para advogados.</div>
+    <div class="left-eyebrow">Para escritórios de advocacia</div>
+    <div class="left-title">Seu escritório mais organizado a partir de <em>hoje</em></div>
+    <div class="left-sub">Gerencie processos, equipe e financeiro em um só lugar. Simples, rápido e feito para advogados.</div>
     <div class="left-feats">
       <div class="left-feat"><div class="left-feat-icon">&#9878;</div><div class="left-feat-text">Fluxo de trabalho com atos dentro de cada etapa</div></div>
-      <div class="left-feat"><div class="left-feat-icon">&#128308;</div><div class="left-feat-text">Prazos fatais com alertas visuais automaticos</div></div>
+      <div class="left-feat"><div class="left-feat-icon">&#128308;</div><div class="left-feat-text">Prazos fatais com alertas visuais automáticos</div></div>
       <div class="left-feat"><div class="left-feat-icon">&#128176;</div><div class="left-feat-text">Controle financeiro e parcelas a receber</div></div>
-      <div class="left-feat"><div class="left-feat-icon">&#128172;</div><div class="left-feat-text">Notificacoes automaticas pelo WhatsApp</div></div>
+      <div class="left-feat"><div class="left-feat-icon">&#128172;</div><div class="left-feat-text">Notificações automáticas pelo WhatsApp</div></div>
     </div>
   </div>
-  <div class="left-footer">2026 OrganizaADV. Todos os direitos reservados.</div>
+  <div class="left-footer">© 2026 OrganizaADV. Todos os direitos reservados.</div>
 </div>
 
 <div class="right">
@@ -108,11 +108,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
 
     <!-- CADASTRO -->
     <div class="form active" id="form-cad">
-      <div class="form-title">Crie sua conta gratis</div>
-      <div class="form-sub">7 dias de acesso completo, sem cartao de credito.</div>
+      <div class="form-title">Crie sua conta grátis</div>
+      <div class="form-sub">7 dias de acesso completo, sem cartão de crédito.</div>
       <div class="trial-banner">
         <span style="font-size:18px;">&#127873;</span>
-        <div><div class="trial-banner-text">7 dias gratis incluidos</div><div class="trial-banner-sub">Sem cobrancas durante o periodo de teste</div></div>
+        <div><div class="trial-banner-text">7 dias grátis incluídos</div><div class="trial-banner-sub">Sem cobranças durante o período de teste</div></div>
       </div>
       <div class="alert alert-err" id="cad-err"></div>
       <div class="row2">
@@ -124,23 +124,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
       <div class="field"><label>WhatsApp *</label><input type="tel" id="c-tel" placeholder="(00) 9 0000-0000"/><div class="field-err" id="err-c-tel">Informe seu WhatsApp.</div></div>
       <div class="field"><label>Senha *</label><input type="password" id="c-senha" placeholder="Minimo 8 caracteres"/><div class="field-err" id="err-c-senha">Senha deve ter pelo menos 8 caracteres.</div></div>
       <div style="margin-bottom:18px;">
-        <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:10px;">Escolha seu plano</div>
-        <div class="planos">
-          <label class="plano sel" id="plano-teste" onclick="selPlano('teste')">
-            <input type="radio" name="plano" value="teste" checked/>
-            <div class="plano-name">Teste gratis</div>
-            <div class="plano-price">R$ 0 <span>/ 7 dias</span></div>
-            <div class="plano-desc">Sem cartao</div>
-          </label>
-          <label class="plano" id="plano-pro" onclick="selPlano('pro')">
-            <div class="plano-badge">Popular</div>
-            <input type="radio" name="plano" value="pro"/>
-            <div class="plano-name">Plano Pro</div>
-            <div class="plano-price">R$ 99 <span>/ mes</span></div>
-            <div class="plano-desc">Ilimitado</div>
-          </label>
-        </div>
-      </div>
       <button class="btn-sub btn-sub-prim" id="btn-cad" onclick="cadastrar()">Criar conta e comecar</button>
       <div class="terms">Ao criar sua conta voce concorda com os <a href="#">Termos de Uso</a> e a <a href="#">Politica de Privacidade</a>.</div>
     </div>
@@ -160,7 +143,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
     <!-- LOGIN -->
     <div class="form" id="form-login">
       <div class="form-title">Bem-vindo de volta</div>
-      <div class="form-sub">Entre com seu email e senha para acessar seu escritorio.</div>
+      <div class="form-sub">Entre com seu e-mail e senha para acessar seu escritório.</div>
       <div class="alert alert-err" id="login-err"></div>
       <div class="field"><label>Email *</label><input type="email" id="l-email" placeholder="voce@escritorio.com.br"/><div class="field-err" id="err-l-email">Informe seu email.</div></div>
       <div class="field"><label>Senha *</label><input type="password" id="l-senha" placeholder="Sua senha"/><div class="field-err" id="err-l-senha">Informe sua senha.</div></div>
@@ -169,7 +152,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
         <span class="forgot-link" onclick="esqueceu()">Esqueci a senha</span>
       </div>
       <button class="btn-sub btn-sub-prim" id="btn-login" onclick="login()">Entrar na minha conta</button>
-      <div class="divider"><div class="divider-line"></div><div class="divider-text">nao tem conta?</div><div class="divider-line"></div></div>
+      <div class="divider"><div class="divider-line"></div><div class="divider-text">não tem conta?</div><div class="divider-line"></div></div>
       <button class="btn-sub btn-sub-ghost" onclick="setTab('cad')">Criar conta gratis</button>
     </div>
   </div>
@@ -188,10 +171,6 @@ function setTab(t){
   document.getElementById('success').classList.remove('show');
   clearErrs();
 }
-function selPlano(p){
-  document.getElementById('plano-teste').classList.toggle('sel',p==='teste');
-  document.getElementById('plano-pro').classList.toggle('sel',p==='pro');
-}
 function clearErrs(){document.querySelectorAll('.field-err').forEach(e=>e.classList.remove('show'));document.querySelectorAll('.field input').forEach(e=>e.classList.remove('err'));document.querySelectorAll('.alert').forEach(e=>e.classList.remove('show'));}
 function showErr(id,inp){document.getElementById('err-'+id).classList.add('show');if(inp){inp.classList.add('err');inp.focus();}return false;}
 function showAlert(id,msg){const el=document.getElementById(id);el.textContent=msg;el.classList.add('show');}
@@ -204,7 +183,7 @@ async function cadastrar(){
   const email=document.getElementById('c-email').value.trim();
   const tel=document.getElementById('c-tel').value.trim();
   const senha=document.getElementById('c-senha').value;
-  const plano=document.querySelector('input[name="plano"]:checked').value;
+  const plano='trial';
   if(!nome)return showErr('c-nome',document.getElementById('c-nome'));
   if(!sob)return showErr('c-sob',document.getElementById('c-sob'));
   if(!esc)return showErr('c-esc',document.getElementById('c-esc'));
@@ -276,11 +255,8 @@ async function login(){
   }finally{btn.disabled=false;btn.innerHTML='Entrar na minha conta';}
 }
 
-async function esqueceu(){
-  const email=document.getElementById('l-email').value.trim();
-  if(!email){alert('Informe seu email no campo acima para recuperar a senha.');document.getElementById('l-email').focus();return;}
-  await db.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+'/nova-senha.html'});
-  alert('Link de recuperacao enviado para: '+email+'\n\nVerifique sua caixa de entrada.');
+function esqueceu(){
+  window.location.href='auth.html';
 }
 
 function irApp(){window.location.href='app.html';}
