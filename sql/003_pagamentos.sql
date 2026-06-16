@@ -26,15 +26,19 @@ DROP POLICY IF EXISTS "pagamentos_leitura" ON public.pagamentos;
 DROP POLICY IF EXISTS "pagamentos_escrita" ON public.pagamentos;
 DROP POLICY IF EXISTS "pagamentos_atualizacao" ON public.pagamentos;
 
+DROP POLICY IF EXISTS "pagamentos_leitura" ON public.pagamentos;
 CREATE POLICY "pagamentos_leitura" ON public.pagamentos
   FOR SELECT USING (auth.email() = 'organizaadv81@gmail.com');
 
+DROP POLICY IF EXISTS "pagamentos_escrita" ON public.pagamentos;
 CREATE POLICY "pagamentos_escrita" ON public.pagamentos
   FOR INSERT WITH CHECK (auth.email() = 'organizaadv81@gmail.com');
 
+DROP POLICY IF EXISTS "pagamentos_atualizacao" ON public.pagamentos;
 CREATE POLICY "pagamentos_atualizacao" ON public.pagamentos
   FOR UPDATE USING (auth.email() = 'organizaadv81@gmail.com');
 
+DROP POLICY IF EXISTS "pagamentos_exclusao" ON public.pagamentos;
 CREATE POLICY "pagamentos_exclusao" ON public.pagamentos
   FOR DELETE USING (auth.email() = 'organizaadv81@gmail.com');
 

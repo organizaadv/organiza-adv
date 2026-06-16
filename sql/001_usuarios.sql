@@ -33,12 +33,14 @@ ALTER TABLE public.escritorios
 ALTER TABLE public.usuarios ENABLE ROW LEVEL SECURITY;
 
 -- Usuário pode inserir o próprio registro (no momento do signup)
-CREATE POLICY IF NOT EXISTS "inserir_proprio_usuario" ON public.usuarios
+DROP POLICY IF EXISTS "inserir_proprio_usuario" ON public.usuarios;
+CREATE POLICY "inserir_proprio_usuario" ON public.usuarios
   FOR INSERT
   WITH CHECK (id = auth.uid());
 
 -- Qualquer usuário vê todos os membros do mesmo escritório
-CREATE POLICY IF NOT EXISTS "ver_membros_do_escritorio" ON public.usuarios
+DROP POLICY IF EXISTS "ver_membros_do_escritorio" ON public.usuarios;
+CREATE POLICY "ver_membros_do_escritorio" ON public.usuarios
   FOR SELECT
   USING (
     escritorio_id = (
@@ -47,7 +49,8 @@ CREATE POLICY IF NOT EXISTS "ver_membros_do_escritorio" ON public.usuarios
   );
 
 -- Titular pode atualizar membros do seu escritório
-CREATE POLICY IF NOT EXISTS "atualizar_membros" ON public.usuarios
+DROP POLICY IF EXISTS "atualizar_membros" ON public.usuarios;
+CREATE POLICY "atualizar_membros" ON public.usuarios
   FOR UPDATE
   USING (
     escritorio_id = (
@@ -56,7 +59,8 @@ CREATE POLICY IF NOT EXISTS "atualizar_membros" ON public.usuarios
   );
 
 -- Titular pode remover membros (exceto si mesmo)
-CREATE POLICY IF NOT EXISTS "remover_membros" ON public.usuarios
+DROP POLICY IF EXISTS "remover_membros" ON public.usuarios;
+CREATE POLICY "remover_membros" ON public.usuarios
   FOR DELETE
   USING (
     escritorio_id = (

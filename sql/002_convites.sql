@@ -30,7 +30,8 @@ CREATE INDEX IF NOT EXISTS convites_email_idx ON public.convites(email, status);
 ALTER TABLE public.convites ENABLE ROW LEVEL SECURITY;
 
 -- Membros do escritório podem ver convites do seu escritório
-CREATE POLICY IF NOT EXISTS "ver_convites_do_escritorio" ON public.convites
+DROP POLICY IF EXISTS "ver_convites_do_escritorio" ON public.convites;
+CREATE POLICY "ver_convites_do_escritorio" ON public.convites
   FOR SELECT
   USING (
     escritorio_id = (
@@ -40,7 +41,8 @@ CREATE POLICY IF NOT EXISTS "ver_convites_do_escritorio" ON public.convites
   );
 
 -- Titular pode criar convites
-CREATE POLICY IF NOT EXISTS "criar_convite" ON public.convites
+DROP POLICY IF EXISTS "criar_convite" ON public.convites;
+CREATE POLICY "criar_convite" ON public.convites
   FOR INSERT
   WITH CHECK (
     escritorio_id = (
@@ -49,7 +51,8 @@ CREATE POLICY IF NOT EXISTS "criar_convite" ON public.convites
   );
 
 -- Titular pode cancelar convites do seu escritório
-CREATE POLICY IF NOT EXISTS "cancelar_convite" ON public.convites
+DROP POLICY IF EXISTS "cancelar_convite" ON public.convites;
+CREATE POLICY "cancelar_convite" ON public.convites
   FOR UPDATE
   USING (
     escritorio_id = (

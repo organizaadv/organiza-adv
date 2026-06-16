@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS public.ia_uso (
 ALTER TABLE public.ia_uso ENABLE ROW LEVEL SECURITY;
 
 -- Escritório só vê o próprio uso
-CREATE POLICY IF NOT EXISTS "ver_proprio_uso_ia" ON public.ia_uso
+DROP POLICY IF EXISTS "ver_proprio_uso_ia" ON public.ia_uso;
+CREATE POLICY "ver_proprio_uso_ia" ON public.ia_uso
   FOR SELECT
   USING (
     escritorio_id = (

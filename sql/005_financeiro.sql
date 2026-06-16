@@ -61,7 +61,8 @@ CREATE INDEX IF NOT EXISTS parcelas_escritorio_idx
 -- ── RLS: contratos ───────────────────────────────────────────────
 ALTER TABLE public.contratos ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "ver_contratos_do_escritorio" ON public.contratos
+DROP POLICY IF EXISTS "ver_contratos_do_escritorio" ON public.contratos;
+CREATE POLICY "ver_contratos_do_escritorio" ON public.contratos
   FOR SELECT
   USING (
     escritorio_id = (
@@ -69,7 +70,8 @@ CREATE POLICY IF NOT EXISTS "ver_contratos_do_escritorio" ON public.contratos
     )
   );
 
-CREATE POLICY IF NOT EXISTS "criar_contrato" ON public.contratos
+DROP POLICY IF EXISTS "criar_contrato" ON public.contratos;
+CREATE POLICY "criar_contrato" ON public.contratos
   FOR INSERT
   WITH CHECK (
     escritorio_id = (
@@ -77,7 +79,8 @@ CREATE POLICY IF NOT EXISTS "criar_contrato" ON public.contratos
     )
   );
 
-CREATE POLICY IF NOT EXISTS "atualizar_contrato" ON public.contratos
+DROP POLICY IF EXISTS "atualizar_contrato" ON public.contratos;
+CREATE POLICY "atualizar_contrato" ON public.contratos
   FOR UPDATE
   USING (
     escritorio_id = (
@@ -85,7 +88,8 @@ CREATE POLICY IF NOT EXISTS "atualizar_contrato" ON public.contratos
     )
   );
 
-CREATE POLICY IF NOT EXISTS "excluir_contrato" ON public.contratos
+DROP POLICY IF EXISTS "excluir_contrato" ON public.contratos;
+CREATE POLICY "excluir_contrato" ON public.contratos
   FOR DELETE
   USING (
     escritorio_id = (
@@ -96,7 +100,8 @@ CREATE POLICY IF NOT EXISTS "excluir_contrato" ON public.contratos
 -- ── RLS: contratos_parcelas ──────────────────────────────────────
 ALTER TABLE public.contratos_parcelas ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "ver_parcelas_do_escritorio" ON public.contratos_parcelas
+DROP POLICY IF EXISTS "ver_parcelas_do_escritorio" ON public.contratos_parcelas;
+CREATE POLICY "ver_parcelas_do_escritorio" ON public.contratos_parcelas
   FOR SELECT
   USING (
     escritorio_id = (
@@ -104,7 +109,8 @@ CREATE POLICY IF NOT EXISTS "ver_parcelas_do_escritorio" ON public.contratos_par
     )
   );
 
-CREATE POLICY IF NOT EXISTS "criar_parcela" ON public.contratos_parcelas
+DROP POLICY IF EXISTS "criar_parcela" ON public.contratos_parcelas;
+CREATE POLICY "criar_parcela" ON public.contratos_parcelas
   FOR INSERT
   WITH CHECK (
     escritorio_id = (
@@ -112,7 +118,8 @@ CREATE POLICY IF NOT EXISTS "criar_parcela" ON public.contratos_parcelas
     )
   );
 
-CREATE POLICY IF NOT EXISTS "atualizar_parcela" ON public.contratos_parcelas
+DROP POLICY IF EXISTS "atualizar_parcela" ON public.contratos_parcelas;
+CREATE POLICY "atualizar_parcela" ON public.contratos_parcelas
   FOR UPDATE
   USING (
     escritorio_id = (
@@ -120,7 +127,8 @@ CREATE POLICY IF NOT EXISTS "atualizar_parcela" ON public.contratos_parcelas
     )
   );
 
-CREATE POLICY IF NOT EXISTS "excluir_parcela" ON public.contratos_parcelas
+DROP POLICY IF EXISTS "excluir_parcela" ON public.contratos_parcelas;
+CREATE POLICY "excluir_parcela" ON public.contratos_parcelas
   FOR DELETE
   USING (
     escritorio_id = (
