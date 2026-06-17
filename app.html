@@ -578,6 +578,10 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       Demandas
     </div>
 
+    <div class="ni" id="n-arquivadas" onclick="showView('arquivadas')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><rect x="1" y="3" width="14" height="11" rx="1.5"/><path d="M1 7h14"/><path d="M6 10h4"/></svg>
+      Arquivadas
+    </div>
     <div class="ni" id="n-mov-ia" onclick="showView('mov-ia')">
       <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><rect x="2" y="1" width="10" height="13" rx="1.5"/><path d="M5 5h6M5 8h4"/><circle cx="13" cy="12" r="2.5" fill="none"/><line x1="14.8" y1="14.8" x2="16" y2="16" stroke-linecap="round"/></svg>
       Movimentações & IA
@@ -704,6 +708,14 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <div id="dem-lista-grupos"></div>
     </div>
 
+
+    <!-- ARQUIVADAS -->
+    <div id="v-arquivadas" style="display:none">
+      <div style="margin-bottom:16px;">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Demandas concluídas há mais de 10 dias são movidas automaticamente para cá.</div>
+        <div id="arq-lista"></div>
+      </div>
+    </div>
     <!-- PROCESSOS -->
     <div id="v-processos" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
@@ -2924,8 +2936,8 @@ function initRespSel(){
 }
 
 // ── VIEWS ──
-const VIEWS=['kanban','minhas','demandas','processos','mov-ia','clientes','atendimentos','agenda','equipe','relatorio','fin','cfg'];
-const VTITLES={kanban:'Fluxo de trabalho',minhas:'Minhas demandas',demandas:'Demandas',processos:'Processos','mov-ia':'Movimentações & IA',clientes:'Carteira de Clientes',atendimentos:'Atendimentos',agenda:'Agenda',equipe:'Advogados e colaboradores',relatorio:'Relatórios',fin:'Contratos & Pagamentos',cfg:'Configurações'};
+const VIEWS=['kanban','minhas','demandas','arquivadas','processos','mov-ia','clientes','atendimentos','agenda','equipe','relatorio','fin','cfg'];
+const VTITLES={kanban:'Fluxo de trabalho',minhas:'Minhas demandas',demandas:'Demandas',arquivadas:'Arquivadas',processos:'Processos','mov-ia':'Movimentações & IA',clientes:'Carteira de Clientes',atendimentos:'Atendimentos',agenda:'Agenda',equipe:'Advogados e colaboradores',relatorio:'Relatórios',fin:'Contratos & Pagamentos',cfg:'Configurações'};
 function showView(v){
   // bloqueia views por permissão
   if(v==='fin'&&!temPermissao('ver_financeiro')){toast('Sem permissão para acessar o financeiro.','te');return;}
@@ -2958,6 +2970,7 @@ function showView(v){
   if(v==='fin')renderFin();
   if(v==='cfg')renderCfg();
   if(v==='mov-ia')renderMovIAView();
+  if(v==='arquivadas')loadArquivadas();
 }
 
 // ── MÉTRICAS KANBAN ──
@@ -5120,10 +5133,11 @@ async function avancar(){
   const etFeita=ETAPAS[d.etapa_atual]?.nome||'';
   const nova=d.etapa_atual+1;const conc=nova>=ETAPAS.length;
   const hist=getH(d);hist.push({etapa:etFeita,quem,obs,data:hoje()});
-  const{error}=await db.from('demandas_escritorio').update({etapa_atual:nova,status:conc?'Concluído':'Em andamento',hist_fases:JSON.stringify(hist)}).eq('id',detId);
+  const concTs=conc?new Date().toISOString():null;
+  const{error}=await db.from('demandas_escritorio').update({etapa_atual:nova,status:conc?'Concluído':'Em andamento',hist_fases:JSON.stringify(hist),...(conc?{concluido_em:concTs}:{})}).eq('id',detId);
   if(error){toast('Erro: '+error.message,'te');return;}
   d.etapa_atual=nova;d.hist_fases=JSON.stringify(hist);
-  if(conc){d.status='Concluído';notifConc(d,quem);}
+  if(conc){d.status='Concluído';d.concluido_em=concTs;notifConc(d,quem);}
   abrirDet(detId);renderKanban();if(document.getElementById('v-demandas').style.display!=='none')renderLista();
   toast(conc?'Demanda concluída! 🎉':`Avançou para: ${ETAPAS[nova]?.nome||'Concluída'}`);
 }
@@ -6819,15 +6833,17 @@ async function confirmarAvEtapa(){
     if(!d)return;
     const nova=d.etapa_atual+1;const conc=nova>=ETAPAS.length;
     const hist=getH(d);hist.push({etapa:ETAPAS[d.etapa_atual]?.nome||'',quem:resp,obs:'',data:hoje()});
+    const concTs=conc?new Date().toISOString():null;
     const{error}=await db.from('demandas_escritorio').update({
       etapa_atual:nova,
       responsavel:resp,
       status:conc?'Concluído':'Em andamento',
-      hist_fases:JSON.stringify(hist)
+      hist_fases:JSON.stringify(hist),
+      ...(conc?{concluido_em:concTs}:{})
     }).eq('id',ctx.demandaId);
     if(error){toast('Erro: '+error.message,'te');return;}
     d.etapa_atual=nova;d.responsavel=resp;d.hist_fases=JSON.stringify(hist);
-    if(conc){d.status='Concluído';notifConc(d,resp);}
+    if(conc){d.status='Concluído';d.concluido_em=concTs;notifConc(d,resp);}
     renderKanban();
     toast(conc?'Demanda concluída! 🎉':`Avançou para: ${ETAPAS[nova]?.nome||'Concluída'}`);
   }
@@ -7136,12 +7152,24 @@ window.addEventListener('load',async()=>{
   renderSBInfo();verificarTrial();await migrarLocalStorageParaSupabase();await loadFin();
 
   const[{data:d},{data:c},{data:cv},{data:cl}]=await Promise.all([
-    db.from('demandas_escritorio').select('*').eq('escritorio_id',escData.id).order('created_at',{ascending:false}),
+    db.from('demandas_escritorio').select('*').eq('escritorio_id',escData.id).neq('arquivado',true).order('created_at',{ascending:false}),
     db.from('colab_escritorio').select('*').eq('escritorio_id',escData.id).order('created_at',{ascending:true}),
     db.rpc('buscar_convites_pendentes',{p_escritorio_id:escData.id}),
     db.from('clientes').select('*').eq('escritorio_id',escData.id).order('nome',{ascending:true})
   ]);
   demandas=d||[];colabs=c||[];convitesPendentes=cv||[];clientes=cl||[];
+
+  // auto-arquiva demandas concluídas há mais de 10 dias
+  const _ARCHIVE_DIAS=10;
+  const _agora=Date.now();
+  const _idsArq=demandas.filter(d=>{
+    if(d.status!=='Concluído'||!d.concluido_em)return false;
+    return(_agora-new Date(d.concluido_em).getTime())/(86400000)>=_ARCHIVE_DIAS;
+  }).map(d=>d.id);
+  if(_idsArq.length){
+    await db.from('demandas_escritorio').update({arquivado:true}).in('id',_idsArq);
+    demandas=demandas.filter(d=>!_idsArq.includes(d.id));
+  }
 
   // Garante que o titular aparece na equipe — insere se ainda não existir
   if(usuarioAtual&&!colabs.some(m=>m.perfil==='titular')){
@@ -7624,6 +7652,35 @@ function iaAlertarView(){
   window.open(`https://wa.me/${_wpp(num)}?text=${encodeURIComponent(msg)}`,'_blank');
 }
 
+// ── ARQUIVADAS ───────────────────────────────────────────────────
+async function loadArquivadas(){
+  const el=document.getElementById('arq-lista');
+  if(!el)return;
+  el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:16px 0;">Carregando...</div>';
+  const{data,error}=await db.from('demandas_escritorio').select('*').eq('escritorio_id',escData.id).eq('arquivado',true).order('concluido_em',{ascending:false});
+  if(error){el.innerHTML='<div style="color:var(--red);font-size:13px;">Erro ao carregar.</div>';return;}
+  if(!data||!data.length){el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:16px 0;">Nenhuma demanda arquivada.</div>';return;}
+  el.innerHTML=`<div class="tbl-wrap"><table>
+    <thead><tr><th>Demanda</th><th>Responsável</th><th>Concluída em</th><th></th></tr></thead>
+    <tbody>${data.map(d=>`<tr>
+      <td><span style="font-weight:500">${d.nome||'—'}</span>${d.cpf?`<br><span style="font-size:11px;color:var(--muted)">${d.cpf}</span>`:''}</td>
+      <td>${d.responsavel||'—'}</td>
+      <td>${d.concluido_em?new Date(d.concluido_em).toLocaleDateString('pt-BR'):'—'}</td>
+      <td><button class="btn btn-gh" style="font-size:12px;padding:5px 10px" onclick="desarquivar('${d.id}',this)">Reabrir</button></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+async function desarquivar(id,btn){
+  btn.disabled=true;btn.textContent='...';
+  const{error}=await db.from('demandas_escritorio').update({arquivado:false,status:'Em andamento'}).eq('id',id);
+  if(error){toast('Erro: '+error.message,'te');btn.disabled=false;btn.textContent='Reabrir';return;}
+  // reload local demandas to include this one
+  const{data:d}=await db.from('demandas_escritorio').select('*').eq('id',id).single();
+  if(d){demandas.unshift(d);renderKanban();}
+  toast('Demanda reaberta!');
+  loadArquivadas();
+}
+
 // ── SUPABASE REALTIME ────────────────────────────────────────────
 function iniciarRealtime(){
   if(!escData?.id)return;
@@ -7639,6 +7696,7 @@ function _rtDemanda({eventType,new:n,old:o}){
     demandas.unshift(n);
     toast(`Nova demanda: ${n.nome}`,'ti');
   }else if(eventType==='UPDATE'){
+    if(n.arquivado===true){demandas=demandas.filter(d=>d.id!==n.id);renderKanban();atualizarBadgeMinhas();return;}
     const i=demandas.findIndex(d=>d.id===n.id);
     if(i>=0)demandas[i]=n;else demandas.unshift(n);
     if(o.responsavel!==n.responsavel&&n.responsavel===userAtual){
