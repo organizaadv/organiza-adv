@@ -3049,10 +3049,10 @@ function renderKanban(){
                   ${d.responsavel?avatarHTML(d.responsavel,'Responsável: '+d.responsavel):''}
                   ${delegadoPara&&delegadoPara!==d.responsavel?avatarHTML(delegadoPara,'Executando: '+delegadoPara):''}
                 </div>`:''}
-                ${mostraAvbtn&&d.etapa_atual>0?`<button class="kcard-avbtn" onclick="quickVoltarEtapa(${d.id},event)" title="Voltar etapa">
+                ${mostraAvbtn&&d.etapa_atual>0?`<button class="kcard-avbtn" onclick="quickVoltarEtapa('${d.id}',event)" title="Voltar etapa">
                   <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="8.5,2 4.5,6 8.5,10"/></svg>
                 </button>`:''}
-                ${mostraAvbtn?`<button class="kcard-avbtn" onclick="abrirQuickAv(${d.id},event)" title="Avançar etapa">
+                ${mostraAvbtn?`<button class="kcard-avbtn" onclick="abrirQuickAv('${d.id}',event)" title="Avançar etapa">
                   <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3.5,2 7.5,6 3.5,10"/></svg>
                 </button>`:''}
               </div>
@@ -3076,7 +3076,7 @@ async function quickVoltarEtapa(id,evt){
 }
 function abrirQuickAv(id,evt){
   evt.stopPropagation();
-  const d=demandas.find(x=>x.id===id);
+  const d=demandas.find(x=>String(x.id)===String(id));
   if(!d||statusD(d)!=='Em andamento')return;
   quickAvId=id;
   const et=ETAPAS[d.etapa_atual]?.nome||'';
@@ -3177,10 +3177,10 @@ function _demCard(d){
           ${d.responsavel?avatarHTML(d.responsavel,'Responsável: '+d.responsavel):''}
           ${delegadoPara&&delegadoPara!==d.responsavel?avatarHTML(delegadoPara,'Executando: '+delegadoPara):''}
         </div>`:''}
-        ${mostraAvbtn&&d.etapa_atual>0?`<button class="kcard-avbtn" onclick="quickVoltarEtapa(${d.id},event)" title="Voltar etapa">
+        ${mostraAvbtn&&d.etapa_atual>0?`<button class="kcard-avbtn" onclick="quickVoltarEtapa('${d.id}',event)" title="Voltar etapa">
           <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="8.5,2 4.5,6 8.5,10"/></svg>
         </button>`:''}
-        ${mostraAvbtn?`<button class="kcard-avbtn" onclick="abrirQuickAv(${d.id},event)" title="Avançar etapa">
+        ${mostraAvbtn?`<button class="kcard-avbtn" onclick="abrirQuickAv('${d.id}',event)" title="Avançar etapa">
           <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3.5,2 7.5,6 3.5,10"/></svg>
         </button>`:''}
       </div>
