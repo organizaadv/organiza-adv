@@ -1103,7 +1103,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         <div class="field"><label class="flabel">CPF / CNPJ</label><input type="text" class="finp" id="f-cpf" placeholder="000.000.000-00 ou 00.000.000/0001-00" onblur="onBlurCpf(this)"/></div>
       </div>
       <div class="fg2">
-        <div class="field"><label class="flabel">WhatsApp <span class="req">*</span></label><input type="tel" class="finp" id="f-tel" placeholder="(00) 9 0000-0000"/></div>
+        <div class="field"><label class="flabel">WhatsApp</label><input type="tel" class="finp" id="f-tel" placeholder="(00) 9 0000-0000"/></div>
         <div class="field"><label class="flabel">E-mail</label><input type="email" class="finp" id="f-email" placeholder="cliente@email.com"/></div>
       </div>
 
@@ -1145,7 +1145,7 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
         <input type="text" class="finp" id="f-tipo-outro" placeholder="Descreva o tipo de demanda..."/>
       </div>
       <div class="fg2">
-        <div class="field"><label class="flabel">Responsável pela demanda</label><select class="fsel" id="f-resp"><option value="">Selecione...</option></select></div>
+        <div class="field"><label class="flabel">Responsável pela demanda <span class="req">*</span></label><select class="fsel" id="f-resp"><option value="">Selecione...</option></select></div>
         <div class="field"><label class="flabel">Prazo fatal</label><input type="date" class="finp" id="f-prazo"/></div>
       </div>
 
@@ -4814,7 +4814,8 @@ async function salvarDemanda(){
   if(!nome){toast('Selecione um cliente cadastrado.','te');return;}
   if(!clienteId){toast('Selecione um cliente da lista. Use "Cadastrar agora" se o cliente ainda não está cadastrado.','te');return;}
   if(!tipo){toast('Selecione o tipo de demanda.','te');return;}
-  if(!tel){toast('Informe o WhatsApp do cliente.','te');return;}
+  const resp=document.getElementById('f-resp').value;
+  if(!resp){toast('Selecione o responsável pela demanda.','te');return;}
   const cpfVal=document.getElementById('f-cpf').value.trim();
   if(cpfVal&&!validarCpfCnpj(cpfVal)){toast('CPF ou CNPJ inválido.','te');return;}
 
