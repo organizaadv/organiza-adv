@@ -1124,37 +1124,32 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <div class="fg2">
         <div class="field">
           <label class="flabel">Tipo de demanda <span class="req">*</span></label>
-          <select class="fsel" id="f-tipo-sel" onchange="toggleTipoOutro()">
-            <option value="">Selecione o tipo...</option>
-            <option value="Ação Trabalhista">Ação Trabalhista</option>
-            <option value="Reclamação Trabalhista">Reclamação Trabalhista</option>
-            <option value="Direito de Família">Direito de Família</option>
-            <option value="Divórcio Consensual">Divórcio Consensual</option>
-            <option value="Divórcio Litigioso">Divórcio Litigioso</option>
-            <option value="Inventário Judicial">Inventário Judicial</option>
-            <option value="Inventário Extrajudicial">Inventário Extrajudicial</option>
-            <option value="Ação Cível">Ação Cível</option>
-            <option value="Direito do Consumidor">Direito do Consumidor</option>
-            <option value="Ação Previdenciária">Ação Previdenciária</option>
-            <option value="Habeas Corpus">Habeas Corpus</option>
-            <option value="Mandado de Segurança">Mandado de Segurança</option>
-            <option value="Direito Criminal">Direito Criminal</option>
-            <option value="Direito Tributário">Direito Tributário</option>
-            <option value="Direito Empresarial">Direito Empresarial</option>
-            <option value="Direito Imobiliário">Direito Imobiliário</option>
-            <option value="Direito Administrativo">Direito Administrativo</option>
-            <option value="Direito Ambiental">Direito Ambiental</option>
-            <option value="Direito Digital">Direito Digital</option>
-            <option value="Responsabilidade Médica">Responsabilidade Médica</option>
-            <option value="Direito Eleitoral">Direito Eleitoral</option>
-            <option value="Outro">Outro (especificar)</option>
-          </select>
+          <input type="text" class="finp" id="f-tipo-sel" list="tipos-demanda-list" autocomplete="off" placeholder="Digite ou selecione..." oninput="renderTmplPreview(this.value)"/>
         </div>
+        <datalist id="tipos-demanda-list">
+          <option value="Ação Trabalhista">
+          <option value="Reclamação Trabalhista">
+          <option value="Direito de Família">
+          <option value="Divórcio Consensual">
+          <option value="Divórcio Litigioso">
+          <option value="Inventário Judicial">
+          <option value="Inventário Extrajudicial">
+          <option value="Ação Cível">
+          <option value="Direito do Consumidor">
+          <option value="Ação Previdenciária">
+          <option value="Habeas Corpus">
+          <option value="Mandado de Segurança">
+          <option value="Direito Criminal">
+          <option value="Direito Tributário">
+          <option value="Direito Empresarial">
+          <option value="Direito Imobiliário">
+          <option value="Direito Administrativo">
+          <option value="Direito Ambiental">
+          <option value="Direito Digital">
+          <option value="Responsabilidade Médica">
+          <option value="Direito Eleitoral">
+        </datalist>
         <div class="field"><label class="flabel">Iniciar na etapa</label><select class="fsel" id="f-etapa-ini"></select></div>
-      </div>
-      <div class="field" id="f-tipo-outro-wrap" style="display:none;">
-        <label class="flabel">Especifique o tipo <span class="req">*</span></label>
-        <input type="text" class="finp" id="f-tipo-outro" placeholder="Descreva o tipo de demanda..."/>
       </div>
       <div class="fg2">
         <div class="field"><label class="flabel">Responsável pela demanda <span class="req">*</span></label><select class="fsel" id="f-resp"><option value="">Selecione...</option></select></div>
@@ -1562,37 +1557,9 @@ thead th.sort-desc::after{content:' ▼';font-size:9px;color:var(--gd)}
       <div class="fg2">
         <div class="field">
           <label class="flabel">Tipo de demanda <span class="req">*</span></label>
-          <select class="fsel" id="e-tipo-sel" onchange="toggleEditTipoOutro()">
-            <option value="">Selecione...</option>
-            <option value="Ação Trabalhista">Ação Trabalhista</option>
-            <option value="Reclamação Trabalhista">Reclamação Trabalhista</option>
-            <option value="Direito de Família">Direito de Família</option>
-            <option value="Divórcio Consensual">Divórcio Consensual</option>
-            <option value="Divórcio Litigioso">Divórcio Litigioso</option>
-            <option value="Inventário Judicial">Inventário Judicial</option>
-            <option value="Inventário Extrajudicial">Inventário Extrajudicial</option>
-            <option value="Ação Cível">Ação Cível</option>
-            <option value="Direito do Consumidor">Direito do Consumidor</option>
-            <option value="Ação Previdenciária">Ação Previdenciária</option>
-            <option value="Habeas Corpus">Habeas Corpus</option>
-            <option value="Mandado de Segurança">Mandado de Segurança</option>
-            <option value="Direito Criminal">Direito Criminal</option>
-            <option value="Direito Tributário">Direito Tributário</option>
-            <option value="Direito Empresarial">Direito Empresarial</option>
-            <option value="Direito Imobiliário">Direito Imobiliário</option>
-            <option value="Direito Administrativo">Direito Administrativo</option>
-            <option value="Direito Ambiental">Direito Ambiental</option>
-            <option value="Direito Digital">Direito Digital</option>
-            <option value="Responsabilidade Médica">Responsabilidade Médica</option>
-            <option value="Direito Eleitoral">Direito Eleitoral</option>
-            <option value="Outro">Outro (especificar)</option>
-          </select>
+          <input type="text" class="finp" id="e-tipo-sel" list="tipos-demanda-list" autocomplete="off" placeholder="Digite ou selecione..."/>
         </div>
         <div class="field"><label class="flabel">Número do processo</label><input type="text" class="finp" id="e-proc" placeholder="0000000-00.0000.0.00.0000"/></div>
-      </div>
-      <div class="field" id="e-tipo-outro-wrap" style="display:none;">
-        <label class="flabel">Especifique o tipo <span class="req">*</span></label>
-        <input type="text" class="finp" id="e-tipo-outro" placeholder="Descreva o tipo de demanda..."/>
       </div>
       <div class="fg2">
         <div class="field"><label class="flabel">Responsável pela demanda</label><select class="fsel" id="e-resp"><option value="">Selecione...</option></select></div>
@@ -4826,11 +4793,6 @@ function limparFinCli(){
   document.getElementById('fn-cli-selecionado').style.display='none';
   document.getElementById('fn-cli').focus();
 }
-function toggleTipoOutro(){
-  const sel=document.getElementById('f-tipo-sel').value;
-  document.getElementById('f-tipo-outro-wrap').style.display=sel==='Outro'?'block':'none';
-  renderTmplPreview(sel==='Outro'?'':sel);
-}
 function renderTmplPreview(tipo){
   const wrap=document.getElementById('f-tmpl-preview');
   const fasesEl=document.getElementById('f-tmpl-fases');
@@ -4853,9 +4815,7 @@ function renderTmplPreview(tipo){
 
 async function salvarDemanda(){
   const nome=document.getElementById('f-nome').value.trim();
-  const tipoSel=document.getElementById('f-tipo-sel').value;
-  const tipoOutro=document.getElementById('f-tipo-outro')?.value.trim();
-  const tipo=tipoSel==='Outro'?tipoOutro:tipoSel;
+  const tipo=document.getElementById('f-tipo-sel').value.trim();
   const tel=document.getElementById('f-tel').value.trim();
   const clienteId=document.getElementById('f-cliente-id').value||null;
 
@@ -4934,8 +4894,6 @@ async function salvarDemanda(){
   document.getElementById('f-cliente-id').value='';
   document.getElementById('f-cliente-selecionado').style.display='none';
   document.getElementById('f-tipo-sel').value='';
-  document.getElementById('f-tipo-outro').value='';
-  document.getElementById('f-tipo-outro-wrap').style.display='none';
   document.getElementById('f-resp').value='';
   document.getElementById('f-prazo').value='';
   document.getElementById('f-hon-pag').value='';
@@ -5212,11 +5170,6 @@ async function voltarEtapa(){
   toast(`Voltou para: ${ETAPAS[nova]?.nome}`);
 }
 
-function toggleEditTipoOutro(){
-  const sel=document.getElementById('e-tipo-sel').value;
-  document.getElementById('e-tipo-outro-wrap').style.display=sel==='Outro'?'block':'none';
-}
-
 function abrirConverterProcesso(){
   const d=demandas.find(x=>String(x.id)===String(detId));if(!d)return;
   const num=prompt('Informe o número do processo (ex: 0001234-56.2026.1.00.0001):');
@@ -5272,15 +5225,7 @@ function abrirEdicao(){
   document.getElementById('e-status').value=d.status||'Em andamento';
 
   // Tipo de demanda
-  const tiposSel=['Ação Trabalhista','Reclamação Trabalhista','Direito de Família','Divórcio Consensual','Divórcio Litigioso','Inventário Judicial','Inventário Extrajudicial','Ação Cível','Direito do Consumidor','Ação Previdenciária','Habeas Corpus','Mandado de Segurança','Direito Criminal','Direito Tributário','Direito Empresarial','Direito Imobiliário','Direito Administrativo','Direito Ambiental','Direito Digital','Responsabilidade Médica','Direito Eleitoral'];
-  if(tiposSel.includes(d.tipo)){
-    document.getElementById('e-tipo-sel').value=d.tipo;
-    document.getElementById('e-tipo-outro-wrap').style.display='none';
-  } else {
-    document.getElementById('e-tipo-sel').value='Outro';
-    document.getElementById('e-tipo-outro').value=d.tipo||'';
-    document.getElementById('e-tipo-outro-wrap').style.display='block';
-  }
+  document.getElementById('e-tipo-sel').value=d.tipo||'';
 
   // Responsável
   const respSel=document.getElementById('e-resp');
@@ -5292,9 +5237,7 @@ function abrirEdicao(){
 async function salvarEdicao(){
   const nome=document.getElementById('e-nome').value.trim();
   const tel=document.getElementById('e-tel').value.trim();
-  const tipoSel=document.getElementById('e-tipo-sel').value;
-  const tipoOutro=document.getElementById('e-tipo-outro')?.value.trim();
-  const tipo=tipoSel==='Outro'?tipoOutro:tipoSel;
+  const tipo=document.getElementById('e-tipo-sel').value.trim();
 
   if(!nome){toast('Informe o nome do cliente.','te');return;}
   if(!tipo){toast('Selecione o tipo de demanda.','te');return;}
