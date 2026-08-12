@@ -5272,7 +5272,7 @@ function abrirEdicao(){
   document.getElementById('e-status').value=d.status||'Em andamento';
 
   // Tipo de demanda
-  const tiposSel=['Ação Trabalhista','Reclamação Trabalhista','Direito de Família','Divórcio Consensual','Divórcio Litigioso','Inventário Judicial','Inventário Extrajudicial','Ação Cível','Direito do Consumidor','Ação Previdenciária','Habeas Corpus','Mandado de Segurança'];
+  const tiposSel=['Ação Trabalhista','Reclamação Trabalhista','Direito de Família','Divórcio Consensual','Divórcio Litigioso','Inventário Judicial','Inventário Extrajudicial','Ação Cível','Direito do Consumidor','Ação Previdenciária','Habeas Corpus','Mandado de Segurança','Direito Criminal','Direito Tributário','Direito Empresarial','Direito Imobiliário','Direito Administrativo','Direito Ambiental','Direito Digital','Responsabilidade Médica','Direito Eleitoral'];
   if(tiposSel.includes(d.tipo)){
     document.getElementById('e-tipo-sel').value=d.tipo;
     document.getElementById('e-tipo-outro-wrap').style.display='none';
