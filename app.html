@@ -6495,7 +6495,10 @@ async function salvarNovoCliente(){
     obs:document.getElementById('nc-obs').value.trim()||null
   }]).select().single();
   btn.disabled=false;btn.textContent='Salvar cliente';
-  if(error){toast('Erro ao salvar: '+error.message,'te');return;}
+  if(error){
+    if(error.code==='23505'){toast(`Já existe um cliente cadastrado com o nome "${nome}" neste escritório.`,'te');return;}
+    toast('Erro ao salvar: '+error.message,'te');return;
+  }
   clientes.push(data);
   clientes.sort((a,b)=>a.nome.localeCompare(b.nome));
   closeM('m-novo-cliente');
@@ -6732,7 +6735,10 @@ async function salvarClienteDeAtendimento(){
     obs:document.getElementById('nc-obs').value.trim()||null
   }]).select().single();
   btn.disabled=false;btn.textContent='Salvar cliente';
-  if(error){toast('Erro ao salvar cliente: '+error.message,'te');return;}
+  if(error){
+    if(error.code==='23505'){toast(`Já existe um cliente cadastrado com o nome "${nome}" neste escritório.`,'te');return;}
+    toast('Erro ao salvar cliente: '+error.message,'te');return;
+  }
   clientes.push(novoCliente);clientes.sort((a,b)=>a.nome.localeCompare(b.nome));
   ['nc-nome','nc-cpf','nc-rg','nc-nasc','nc-prof','nc-tel','nc-email','nc-cep','nc-end','nc-comp','nc-bairro','nc-cidade','nc-uf','nc-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('nc-ecivil').value='';
@@ -6791,7 +6797,10 @@ async function salvarClienteEAbrirDemanda(){
     obs:document.getElementById('nc-obs').value.trim()||null
   }]).select().single();
   btn.disabled=false;btn.textContent='Salvar e abrir demanda';
-  if(error){toast('Erro ao salvar cliente: '+error.message,'te');return;}
+  if(error){
+    if(error.code==='23505'){toast(`Já existe um cliente cadastrado com o nome "${nome}" neste escritório.`,'te');return;}
+    toast('Erro ao salvar cliente: '+error.message,'te');return;
+  }
   clientes.push(novoCliente);clientes.sort((a,b)=>a.nome.localeCompare(b.nome));
   // Limpar e restaurar modal
   ['nc-nome','nc-cpf','nc-rg','nc-nasc','nc-prof','nc-tel','nc-email','nc-cep','nc-end','nc-comp','nc-bairro','nc-cidade','nc-uf','nc-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
